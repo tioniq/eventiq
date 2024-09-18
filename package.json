@@ -1,0 +1,81 @@
+{
+  "name": "@tioniq/eventiq",
+  "version": "1.0.0",
+  "description": "A library providing utilities for implementing the Event pattern, facilitating event handling in JavaScript and TypeScript applications. This library is a collection of common utilities for managing events and event handlers using the Event pattern.",
+  "author": {
+    "email": "timoniann@gmail.com",
+    "name": "Tim"
+  },
+  "homepage": "https://github.com/tioniq/eventiq/blob/main/README.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tioniq/eventiq.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tioniq/eventiq/issues"
+  },
+  "license": "MIT",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "test": "jest",
+    "test:coverage": "jest --coverage --collect-coverage",
+    "test:badges": "coverage-badges",
+    "prepublishOnly": "npm run build && npm run test:coverage && npm run test:badges",
+    "run:publish": "npm publish --access public"
+  },
+  "dependencies": {
+    "@tioniq/disposiq": "^1.0.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.1",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^22.5.4",
+    "coverage-badges-cli": "^1.2.5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.2.4",
+    "typescript": "^5.6.2"
+  },
+  "keywords": [
+    "event",
+    "event-pattern",
+    "observable",
+    "observables",
+    "observer",
+    "observable-pattern",
+    "event-handling",
+    "event-emitter",
+    "event-listener",
+    "event-dispatcher",
+    "typescript",
+    "javascript",
+    "event-management",
+    "event-utilities",
+    "eventiq",
+    "disposiq",
+    "variable-operations",
+    "event-subscription",
+    "event-driven",
+    "variable",
+    "variables",
+    "observable-variable",
+    "observable-variables",
+    "variable-management",
+    "reactive",
+    "reactive-variables",
+    "reactive-variable"
+  ],
+  "private": false,
+  "contributors": [
+    "Tim (https://github.com/Timoniann)"
+  ]
+}
