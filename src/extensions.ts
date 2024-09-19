@@ -346,3 +346,5 @@ Variable.prototype.sealWhen = function <T>(this: Variable<T>, condition: Func<T,
   vary.subscribeOnceWhere(v => vary.seal(v), v => this.equalityComparer(v, condition))
   return vary
 }
+
+export {}
