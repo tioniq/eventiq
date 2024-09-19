@@ -5,7 +5,7 @@ import {
   AndVariable,
   MinVariable,
   MaxVariable,
-  SumVariable, DelegateVariable, DirectVariable
+  SumVariable, DelegateVariable, DirectVariable, MutableVariable
 } from "./vars"
 import {DisposableAction, IDisposable} from "@tioniq/disposiq"
 import {Func, Func0} from "./action"
@@ -13,12 +13,21 @@ import {Variable} from "./variable"
 import {EventObserver, LazyEventDispatcher} from "./events";
 
 /**
+ * Creates a new mutable variable
+ * @param initialValue the initial value of the variable
+ * @returns a new mutable variable
+ */
+export function createVar<T>(initialValue: T): MutableVariable<T> {
+  return new MutableVariable(initialValue)
+}
+
+/**
  * Creates a new variable based on FuncVariable parameters
  * @param activator a function that will be called to activate the variable when it is subscribed
  * @param exactValue a function that returns the exact value of the variable when there is no subscriptions
  * @returns a new variable
  */
-export function createVar<T>(activator: Func<FuncVariable<T>, IDisposable>, exactValue: Func0<T>): Variable<T> {
+export function createFuncVar<T>(activator: Func<FuncVariable<T>, IDisposable>, exactValue: Func0<T>): Variable<T> {
   return new FuncVariable(activator, exactValue)
 }
 

@@ -1,6 +1,6 @@
 import {DisposableAction} from "@tioniq/disposiq";
 import {
-  createVar,
+  createFuncVar,
   createConst,
   createDelegate,
   createDirect,
@@ -9,14 +9,24 @@ import {
   sum,
   min,
   max,
-  createDelayDispatcher, ConstantVariable, MutableVariable
+  createDelayDispatcher, ConstantVariable, MutableVariable, createVar
 } from "../src"
 import {FuncVariable} from "../src";
 
 describe('functions', () => {
+  it('should create and return a mutable variable', () => {
+    const variable = createVar(10)
+    expect(variable.value).toBe(10)
+    expect(variable instanceof MutableVariable).toBe(true)
+
+    variable.value = 20
+
+    expect(variable.value).toBe(20)
+  })
+
   it('should create and return a function variable', () => {
     let staticVar = 10
-    const variable = createVar(vary => {
+    const variable = createFuncVar(vary => {
       vary.value = staticVar
       return new DisposableAction(() => {
       })

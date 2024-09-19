@@ -609,12 +609,18 @@ declare module './variable' {
 }
 
 /**
+ * Creates a new mutable variable
+ * @param initialValue the initial value of the variable
+ * @returns a new mutable variable
+ */
+declare function createVar<T>(initialValue: T): MutableVariable<T>;
+/**
  * Creates a new variable based on FuncVariable parameters
  * @param activator a function that will be called to activate the variable when it is subscribed
  * @param exactValue a function that returns the exact value of the variable when there is no subscriptions
  * @returns a new variable
  */
-declare function createVar<T>(activator: Func<FuncVariable<T>, IDisposable>, exactValue: Func0<T>): Variable<T>;
+declare function createFuncVar<T>(activator: Func<FuncVariable<T>, IDisposable>, exactValue: Func0<T>): Variable<T>;
 /**
  * Creates a new constant variable that will always have the same value
  * @param value the value of the variable
@@ -778,4 +784,4 @@ declare class ChainNode<T> {
 type VariableOrValue<T> = T | Variable<T>;
 type VarOrVal<T> = VariableOrValue<T>;
 
-export { AndVariable, CombinedVariable, CompoundVariable, type ConstVar, type ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, FuncVariable, type ImmutableVar, InvertVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, type MutableVar, MutableVariable, OrVariable, type ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, type Var, type VarOrVal, Variable, type VariableOrValue, type Vary, and, createConst, createDelayDispatcher, createDelegate, createDirect, createVar, defaultEqualityComparer, functionEqualityComparer, isVariable, isVariableOf, max, min, or, simpleEqualityComparer, strictEqualityComparer, sum };
+export { AndVariable, CombinedVariable, CompoundVariable, type ConstVar, type ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, FuncVariable, type ImmutableVar, InvertVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, type MutableVar, MutableVariable, OrVariable, type ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, type Var, type VarOrVal, Variable, type VariableOrValue, type Vary, and, createConst, createDelayDispatcher, createDelegate, createDirect, createFuncVar, createVar, defaultEqualityComparer, functionEqualityComparer, isVariable, isVariableOf, max, min, or, simpleEqualityComparer, strictEqualityComparer, sum };
