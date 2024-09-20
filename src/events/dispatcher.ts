@@ -35,3 +35,14 @@ export class EventDispatcher<T = void> extends EventObserver<T> {
     return this._nodes.hasAny
   }
 }
+
+/**
+ * EventDispatcher extensions
+ */
+export interface EventDispatcher<T> {
+  /**
+   * Dispatches the event to all subscribers. If an error occurs while dispatching the event, it will be caught
+   * @param value the value of the event
+   */
+  dispatchSafe(value: T): void
+}
