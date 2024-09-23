@@ -1,4 +1,4 @@
-import { DisposableCompat, IDisposable } from '@tioniq/disposiq';
+import { Disposiq, IDisposable } from '@tioniq/disposiq';
 
 type Action$1<T = void> = (value: T) => void;
 type Func0<R> = () => R;
@@ -30,8 +30,8 @@ declare abstract class CompoundVariable<T> extends Variable<T> {
      */
     protected set value(value: T);
     get equalityComparer(): EqualityComparer<T>;
-    subscribe(callback: Func<T, void>): DisposableCompat;
-    subscribeSilent(callback: Func<T, void>): DisposableCompat;
+    subscribe(callback: Func<T, void>): Disposiq;
+    subscribeSilent(callback: Func<T, void>): Disposiq;
     /**
      * A method for activating functionality for the variable. It is called when at least one subscription is added
      * @protected internal use only
@@ -99,8 +99,8 @@ declare class ConstantVariable<T> extends Variable<T> {
     constructor(value: T, equalityComparer?: EqualityComparer<T>);
     get value(): T;
     get equalityComparer(): EqualityComparer<T>;
-    subscribe(callback: Func<T, void>): DisposableCompat;
-    subscribeSilent(_: Func<T, void>): DisposableCompat;
+    subscribe(callback: Func<T, void>): Disposiq;
+    subscribeSilent(_: Func<T, void>): Disposiq;
 }
 
 /**
@@ -133,8 +133,8 @@ declare class DirectVariable<T> extends Variable<T> {
      */
     set value(value: T);
     get equalityComparer(): EqualityComparer<T>;
-    subscribe(callback: Func<T, void>): DisposableCompat;
-    subscribeSilent(callback: Func<T, void>): DisposableCompat;
+    subscribe(callback: Func<T, void>): Disposiq;
+    subscribeSilent(callback: Func<T, void>): Disposiq;
     /**
      * Sets the value of the variable without notifying the subscribers
      * @param value the new value for the variable
@@ -186,8 +186,8 @@ declare class InvertVariable extends Variable<boolean> {
     constructor(variable: Variable<boolean>);
     get value(): boolean;
     get equalityComparer(): EqualityComparer<boolean>;
-    subscribe(callback: Func<boolean, void>): DisposableCompat;
-    subscribeSilent(callback: Func<boolean, void>): DisposableCompat;
+    subscribe(callback: Func<boolean, void>): Disposiq;
+    subscribeSilent(callback: Func<boolean, void>): Disposiq;
 }
 
 /**
@@ -238,8 +238,8 @@ declare class MutableVariable<T> extends Variable<T> {
      */
     set value(value: T);
     get equalityComparer(): EqualityComparer<T>;
-    subscribe(callback: Func<T, void>): DisposableCompat;
-    subscribeSilent(callback: Func<T, void>): DisposableCompat;
+    subscribe(callback: Func<T, void>): Disposiq;
+    subscribeSilent(callback: Func<T, void>): Disposiq;
     /**
      * Sets the value of the variable without notifying the subscribers
      * @param value the new value for the variable
@@ -271,8 +271,8 @@ declare class SealVariable<T> extends Variable<T> {
     constructor(vary: Variable<T>, equalityComparer?: EqualityComparer<T>);
     get value(): T;
     get equalityComparer(): EqualityComparer<T>;
-    subscribe(callback: Func<T, void>): DisposableCompat;
-    subscribeSilent(callback: Func<T, void>): DisposableCompat;
+    subscribe(callback: Func<T, void>): Disposiq;
+    subscribeSilent(callback: Func<T, void>): Disposiq;
     /**
      * Seals the variable. If the variable is already sealed, the method will do nothing
      * @param valueToSeal the value to seal. If the value is not provided, the current value of the variable will be
@@ -324,7 +324,7 @@ declare abstract class EventObserver<T = void> {
      * @param callback the callback for the subscription
      * @returns an object that can be used to unsubscribe
      */
-    abstract subscribe(callback: Action$1<T>): DisposableCompat;
+    abstract subscribe(callback: Action$1<T>): Disposiq;
 }
 /**
  * EventObserver extensions
@@ -335,14 +335,14 @@ interface EventObserver<T> {
      * @param callback the callback for the subscription
      * @returns an object that can be used to unsubscribe
      */
-    subscribeOnce(callback: Action$1<T>): DisposableCompat;
+    subscribeOnce(callback: Action$1<T>): Disposiq;
     /**
      * Subscribes to the event observer. The callback will be called only once when the condition is met
      * @param callback the callback for the subscription
      * @param condition the condition that must be met to call the callback
      * @returns an object that can be used to unsubscribe
      */
-    subscribeOnceWhere(callback: Action$1<T>, condition: Func<T, boolean>): DisposableCompat;
+    subscribeOnceWhere(callback: Action$1<T>, condition: Func<T, boolean>): Disposiq;
     /**
      * Subscribes to the event observer. The callback will be called every time the event is dispatched when the
      * condition is met
@@ -350,14 +350,14 @@ interface EventObserver<T> {
      * @param condition the condition that must be met to call the callback
      * @returns an object that can be used to unsubscribe
      */
-    subscribeWhere(callback: Action$1<T>, condition: Func<T, boolean>): DisposableCompat;
+    subscribeWhere(callback: Action$1<T>, condition: Func<T, boolean>): Disposiq;
     /**
      * Subscribes to the event observer. The callback will be called only when the condition variable is true
      * @param callback the callback for the subscription
      * @param condition the condition that must be met to call the callback
      * @returns an object that can be used to unsubscribe
      */
-    subscribeOn(callback: Action$1<T>, condition: Variable<boolean>): DisposableCompat;
+    subscribeOn(callback: Action$1<T>, condition: Variable<boolean>): Disposiq;
     /**
      * Maps the event observer to a new event observer with a different type
      * @param mapper the function that maps the value of the event observer to a new value
@@ -416,14 +416,14 @@ declare abstract class Variable<T> {
      * variable changes
      * @returns an object that can be used to unsubscribe
      */
-    abstract subscribe(callback: Func<T, void>): DisposableCompat;
+    abstract subscribe(callback: Func<T, void>): Disposiq;
     /**
      * Subscribes to the variable. The callback will not be called immediately after the subscription, only when the value
      * of the variable changes. You can unsubscribe by calling the `dispose` method of the returned object.
      * @param callback the callback that will be called every time the value of the variable changes
      * @returns an object that can be used to unsubscribe
      */
-    abstract subscribeSilent(callback: Func<T, void>): DisposableCompat;
+    abstract subscribeSilent(callback: Func<T, void>): Disposiq;
     /**
      * Checks if the value of the variable is equal to the specified value
      * @param value the value to compare with
@@ -451,14 +451,14 @@ interface Variable<T> {
      * @param callback the callback
      * @returns an object that can be used to unsubscribe
      */
-    subscribeDisposable<T>(callback: Func<T, IDisposable>): DisposableCompat;
+    subscribeDisposable<T>(callback: Func<T, IDisposable>): Disposiq;
     /**
      * Subscribes to the variable and calls the callback once if the condition is met
      * @param callback the callback
      * @param condition the condition
      * @returns an object that can be used to unsubscribe
      */
-    subscribeOnceWhere(callback: Action$1<T>, condition: Func<T, boolean>): DisposableCompat;
+    subscribeOnceWhere(callback: Action$1<T>, condition: Func<T, boolean>): Disposiq;
     /**
      * Maps the variable value to another value
      * @param mapper the mapper
@@ -513,12 +513,12 @@ interface Variable<T> {
      * @param receiver the receiver variable
      * @returns an object that can be used to unsubscribe
      */
-    streamTo(receiver: MutableVariable<T>): DisposableCompat;
+    streamTo(receiver: MutableVariable<T>): Disposiq;
     /**
      * Keeps the variable's subscription alive
      * @returns an object that can be used to stop the persistence
      */
-    startPersistent(): DisposableCompat;
+    startPersistent(): Disposiq;
     /**
      * Creates a new variable that will return the sum of the variable values
      * @param other the other variable or a value
@@ -710,25 +710,25 @@ declare class LinkedChain<T> {
      * @param value the element to add
      * @returns an array containing the subscription and a boolean value indicating if the element was added
      */
-    addUnique(value: T): [subscription: DisposableCompat, added: boolean];
+    addUnique(value: T): [subscription: Disposiq, added: boolean];
     /**
      * Adds an element to the end of the chain
      * @param value the element to add
      * @returns a subscription that can be used to remove the element from the chain
      */
-    add(value: T): DisposableCompat;
+    add(value: T): Disposiq;
     /**
      * Adds an element to the beginning of the chain. If the element is already in the chain, it will not be added again.
      * @param value the element to add
      * @returns an array containing the subscription and a boolean value indicating if the element was added
      */
-    addToBeginUnique(value: T): [subscription: DisposableCompat, added: boolean];
+    addToBeginUnique(value: T): [subscription: Disposiq, added: boolean];
     /**
      * Adds an element to the beginning of the chain
      * @param value the element to add
      * @returns a subscription that can be used to remove the element from the chain
      */
-    addToBegin(value: T): DisposableCompat;
+    addToBegin(value: T): Disposiq;
     /**
      * Adds a node and its children to the end of the chain
      * @param node
