@@ -2,7 +2,7 @@ import {Variable} from "../variable"
 import {defaultEqualityComparer, EqualityComparer, functionEqualityComparer} from "../comparer"
 import {LinkedChain} from "../linked-chain"
 import {Action, Func} from "../action"
-import {DisposableAction, DisposableCompat} from "@tioniq/disposiq"
+import {DisposableAction, Disposiq} from "@tioniq/disposiq"
 
 /**
  * A Variable class that is base for common compound variables. It provides a functionality to react on subscription
@@ -63,7 +63,7 @@ export abstract class CompoundVariable<T> extends Variable<T> {
     return this._equalityComparer
   }
 
-  subscribe(callback: Func<T, void>): DisposableCompat {
+  subscribe(callback: Func<T, void>): Disposiq {
     if (this._chain.empty) {
       this.activate()
     }
@@ -79,7 +79,7 @@ export abstract class CompoundVariable<T> extends Variable<T> {
     })
   }
 
-  subscribeSilent(callback: Func<T, void>): DisposableCompat {
+  subscribeSilent(callback: Func<T, void>): Disposiq {
     if (this._chain.empty) {
       this.activate()
     }

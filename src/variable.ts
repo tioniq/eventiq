@@ -1,4 +1,4 @@
-import {DisposableCompat, IDisposable} from "@tioniq/disposiq"
+import {Disposiq, IDisposable} from "@tioniq/disposiq"
 import {Action, Func} from "./action"
 import {EqualityComparer} from "./comparer"
 import {MutableVariable, SwitchMapMapper} from "./vars";
@@ -36,7 +36,7 @@ export abstract class Variable<T> {
    * variable changes
    * @returns an object that can be used to unsubscribe
    */
-  abstract subscribe(callback: Func<T, void>): DisposableCompat
+  abstract subscribe(callback: Func<T, void>): Disposiq
 
   /**
    * Subscribes to the variable. The callback will not be called immediately after the subscription, only when the value
@@ -44,7 +44,7 @@ export abstract class Variable<T> {
    * @param callback the callback that will be called every time the value of the variable changes
    * @returns an object that can be used to unsubscribe
    */
-  abstract subscribeSilent(callback: Func<T, void>): DisposableCompat
+  abstract subscribeSilent(callback: Func<T, void>): Disposiq
 
   /**
    * Checks if the value of the variable is equal to the specified value
@@ -86,7 +86,7 @@ export interface Variable<T> {
    * @param callback the callback
    * @returns an object that can be used to unsubscribe
    */
-  subscribeDisposable<T>(callback: Func<T, IDisposable>): DisposableCompat
+  subscribeDisposable<T>(callback: Func<T, IDisposable>): Disposiq
 
   /**
    * Subscribes to the variable and calls the callback once if the condition is met
@@ -94,7 +94,7 @@ export interface Variable<T> {
    * @param condition the condition
    * @returns an object that can be used to unsubscribe
    */
-  subscribeOnceWhere(callback: Action<T>, condition: Func<T, boolean>): DisposableCompat
+  subscribeOnceWhere(callback: Action<T>, condition: Func<T, boolean>): Disposiq
 
   /**
    * Maps the variable value to another value
@@ -156,13 +156,13 @@ export interface Variable<T> {
    * @param receiver the receiver variable
    * @returns an object that can be used to unsubscribe
    */
-  streamTo(receiver: MutableVariable<T>): DisposableCompat
+  streamTo(receiver: MutableVariable<T>): Disposiq
 
   /**
    * Keeps the variable's subscription alive
    * @returns an object that can be used to stop the persistence
    */
-  startPersistent(): DisposableCompat
+  startPersistent(): Disposiq
 
   /**
    * Creates a new variable that will return the sum of the variable values

@@ -1,6 +1,6 @@
 import {Variable} from "../variable"
 import {Func} from "../action"
-import {DisposableCompat, emptyDisposable} from "@tioniq/disposiq"
+import {Disposiq, emptyDisposable} from "@tioniq/disposiq"
 import {defaultEqualityComparer, EqualityComparer} from "../comparer"
 
 /**
@@ -32,12 +32,12 @@ export class ConstantVariable<T> extends Variable<T> {
     return this._equalityComparer
   }
 
-  subscribe(callback: Func<T, void>): DisposableCompat {
+  subscribe(callback: Func<T, void>): Disposiq {
     callback(this._value)
     return emptyDisposable
   }
 
-  subscribeSilent(_: Func<T, void>): DisposableCompat {
+  subscribeSilent(_: Func<T, void>): Disposiq {
     return emptyDisposable
   }
 }

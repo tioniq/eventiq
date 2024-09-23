@@ -1,5 +1,5 @@
 import {EventObserver} from "./observer"
-import {DisposableCompat, emptyDisposable} from "@tioniq/disposiq";
+import {Disposiq, emptyDisposable} from "@tioniq/disposiq";
 
 /**
  * A stub for the EventObserver class.
@@ -9,7 +9,7 @@ import {DisposableCompat, emptyDisposable} from "@tioniq/disposiq";
  * @typeparam T - the type of the event value
  */
 export class EventObserverStub<T> extends EventObserver<T> {
-  subscribe(): DisposableCompat {
+  subscribe(): Disposiq {
     return emptyDisposable
   }
 }

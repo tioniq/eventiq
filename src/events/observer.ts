@@ -1,5 +1,5 @@
 import {Action, Func} from "../action";
-import {DisposableCompat} from "@tioniq/disposiq";
+import {Disposiq} from "@tioniq/disposiq";
 import {Variable} from "../variable";
 
 /**
@@ -18,7 +18,7 @@ export abstract class EventObserver<T = void> {
    * @param callback the callback for the subscription
    * @returns an object that can be used to unsubscribe
    */
-  abstract subscribe(callback: Action<T>): DisposableCompat
+  abstract subscribe(callback: Action<T>): Disposiq
 }
 
 /**
@@ -30,7 +30,7 @@ export interface EventObserver<T> {
    * @param callback the callback for the subscription
    * @returns an object that can be used to unsubscribe
    */
-  subscribeOnce(callback: Action<T>): DisposableCompat
+  subscribeOnce(callback: Action<T>): Disposiq
 
   /**
    * Subscribes to the event observer. The callback will be called only once when the condition is met
@@ -38,7 +38,7 @@ export interface EventObserver<T> {
    * @param condition the condition that must be met to call the callback
    * @returns an object that can be used to unsubscribe
    */
-  subscribeOnceWhere(callback: Action<T>, condition: Func<T, boolean>): DisposableCompat
+  subscribeOnceWhere(callback: Action<T>, condition: Func<T, boolean>): Disposiq
 
   /**
    * Subscribes to the event observer. The callback will be called every time the event is dispatched when the
@@ -47,7 +47,7 @@ export interface EventObserver<T> {
    * @param condition the condition that must be met to call the callback
    * @returns an object that can be used to unsubscribe
    */
-  subscribeWhere(callback: Action<T>, condition: Func<T, boolean>): DisposableCompat
+  subscribeWhere(callback: Action<T>, condition: Func<T, boolean>): Disposiq
 
   /**
    * Subscribes to the event observer. The callback will be called only when the condition variable is true
@@ -55,7 +55,7 @@ export interface EventObserver<T> {
    * @param condition the condition that must be met to call the callback
    * @returns an object that can be used to unsubscribe
    */
-  subscribeOn(callback: Action<T>, condition: Variable<boolean>): DisposableCompat
+  subscribeOn(callback: Action<T>, condition: Variable<boolean>): Disposiq
 
   /**
    * Maps the event observer to a new event observer with a different type

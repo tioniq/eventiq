@@ -1,4 +1,4 @@
-import {DisposableAction, DisposableCompat} from "@tioniq/disposiq"
+import {DisposableAction, Disposiq} from "@tioniq/disposiq"
 import {defaultEqualityComparer, EqualityComparer} from "./comparer"
 
 type Action<T> = (value: T) => void
@@ -113,7 +113,7 @@ export class LinkedChain<T> {
    * @param value the element to add
    * @returns an array containing the subscription and a boolean value indicating if the element was added
    */
-  addUnique(value: T): [subscription: DisposableCompat, added: boolean] {
+  addUnique(value: T): [subscription: Disposiq, added: boolean] {
     const existing = this._findNode(value)
     if (existing !== null) {
       return [new DisposableAction(() => this._unlinkNode(existing)), false]
@@ -126,7 +126,7 @@ export class LinkedChain<T> {
    * @param value the element to add
    * @returns a subscription that can be used to remove the element from the chain
    */
-  add(value: T): DisposableCompat {
+  add(value: T): Disposiq {
     let node: ChainNode<T>
     if (this._invoking) {
       if (this._pendingHead === null) {
@@ -157,7 +157,7 @@ export class LinkedChain<T> {
    * @param value the element to add
    * @returns an array containing the subscription and a boolean value indicating if the element was added
    */
-  addToBeginUnique(value: T): [subscription: DisposableCompat, added: boolean] {
+  addToBeginUnique(value: T): [subscription: Disposiq, added: boolean] {
     const existing = this._findNode(value)
     if (existing !== null) {
       return [new DisposableAction(() => this._unlinkNode(existing)), false]
@@ -170,7 +170,7 @@ export class LinkedChain<T> {
    * @param value the element to add
    * @returns a subscription that can be used to remove the element from the chain
    */
-  addToBegin(value: T): DisposableCompat {
+  addToBegin(value: T): Disposiq {
     let node: ChainNode<T>
     if (this._head === null) {
       node = new ChainNode(value)

@@ -1,4 +1,4 @@
-import {DisposableAction, DisposableCompat, DisposableContainer} from "@tioniq/disposiq";
+import {DisposableAction, DisposableContainer, Disposiq} from "@tioniq/disposiq";
 import {Action, Func} from "../action";
 import {EqualityComparer, functionEqualityComparer} from "../comparer";
 import {Variable} from "../variable";
@@ -44,7 +44,7 @@ export class InvertVariable extends Variable<boolean> {
     return this._variable.equalityComparer
   }
 
-  subscribe(callback: Func<boolean, void>): DisposableCompat {
+  subscribe(callback: Func<boolean, void>): Disposiq {
     if (this._chain.empty) {
       this._activate()
     }
@@ -60,7 +60,7 @@ export class InvertVariable extends Variable<boolean> {
     })
   }
 
-  subscribeSilent(callback: Func<boolean, void>): DisposableCompat {
+  subscribeSilent(callback: Func<boolean, void>): Disposiq {
     return this._variable.subscribeSilent(value => callback(!value))
   }
 

@@ -1,11 +1,11 @@
-import {DisposableCompat, DisposableContainer, emptyDisposable} from "@tioniq/disposiq"
+import {DisposableContainer, Disposiq, emptyDisposable} from "@tioniq/disposiq"
 import {Action, Func} from "../action"
 import {EventObserver} from "./observer"
 import {Variable} from "../variable";
 import {LazyEventDispatcher} from "./lazy";
 import {EventDispatcher} from "./dispatcher";
 
-EventObserver.prototype.subscribeOnce = function <T>(this: EventObserver<T>, callback: Action<T>): DisposableCompat {
+EventObserver.prototype.subscribeOnce = function <T>(this: EventObserver<T>, callback: Action<T>): Disposiq {
   const subscription = new DisposableContainer()
   subscription.set(this.subscribe(value => {
     subscription.dispose()
@@ -14,7 +14,7 @@ EventObserver.prototype.subscribeOnce = function <T>(this: EventObserver<T>, cal
   return subscription
 }
 
-EventObserver.prototype.subscribeOnceWhere = function <T>(this: EventObserver<T>, callback: Action<T>, condition: Func<T, boolean>): DisposableCompat {
+EventObserver.prototype.subscribeOnceWhere = function <T>(this: EventObserver<T>, callback: Action<T>, condition: Func<T, boolean>): Disposiq {
   const subscription = new DisposableContainer()
   subscription.set(this.subscribe(value => {
     if (!condition(value)) {
@@ -26,7 +26,7 @@ EventObserver.prototype.subscribeOnceWhere = function <T>(this: EventObserver<T>
   return subscription
 }
 
-EventObserver.prototype.subscribeWhere = function <T>(this: EventObserver<T>, callback: Action<T>, condition: Func<T, boolean>): DisposableCompat {
+EventObserver.prototype.subscribeWhere = function <T>(this: EventObserver<T>, callback: Action<T>, condition: Func<T, boolean>): Disposiq {
   return this.subscribe(value => {
     if (condition(value)) {
       callback(value)
@@ -34,7 +34,7 @@ EventObserver.prototype.subscribeWhere = function <T>(this: EventObserver<T>, ca
   })
 }
 
-EventObserver.prototype.subscribeOn = function <T>(this: EventObserver<T>, callback: Action<T>, condition: Variable<boolean>): DisposableCompat {
+EventObserver.prototype.subscribeOn = function <T>(this: EventObserver<T>, callback: Action<T>, condition: Variable<boolean>): Disposiq {
   return condition.subscribeDisposable(value => value ? this.subscribe(callback) : emptyDisposable)
 }
 

@@ -1,6 +1,12 @@
 import {EventObserver} from "./observer"
 import {Action, Func} from "../action"
-import {DisposableAction, DisposableCompat, DisposableContainer, IDisposable, toDisposable} from "@tioniq/disposiq"
+import {
+  DisposableAction,
+  DisposableContainer,
+  Disposiq,
+  IDisposable,
+  toDisposable
+} from "@tioniq/disposiq"
 import {functionEqualityComparer} from "../comparer"
 import {LinkedChain} from "../linked-chain"
 
@@ -32,8 +38,8 @@ export class LazyEventDispatcher<T = void> extends EventObserver<T> {
     return this._nodes.hasAny
   }
 
-  override subscribe(callback: Action<T>): DisposableCompat {
-    let subscription: IDisposable
+  override subscribe(callback: Action<T>): Disposiq {
+    let subscription: Disposiq
     if (this._nodes.empty) {
       subscription = this._nodes.add(callback)
       this._activate()

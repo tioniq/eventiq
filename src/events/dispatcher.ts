@@ -1,7 +1,7 @@
 import {LinkedChain} from "../linked-chain";
 import {Action} from "../action";
 import {functionEqualityComparer} from "../comparer";
-import {DisposableCompat} from "@tioniq/disposiq";
+import {Disposiq} from "@tioniq/disposiq";
 import {EventObserver} from "./observer";
 
 /**
@@ -15,7 +15,7 @@ export class EventDispatcher<T = void> extends EventObserver<T> {
    */
   private readonly _nodes = new LinkedChain<Action<T>>(functionEqualityComparer);
 
-  override subscribe(action: Action<T>): DisposableCompat {
+  override subscribe(action: Action<T>): Disposiq {
     return this._nodes.add(action);
   }
 

@@ -1,5 +1,5 @@
 import {Variable} from "../variable"
-import {DisposableAction, DisposableCompat, DisposableContainer, emptyDisposable} from "@tioniq/disposiq";
+import {DisposableAction, DisposableContainer, Disposiq, emptyDisposable} from "@tioniq/disposiq";
 import {Action, Func} from "../action";
 import {LinkedChain} from "../linked-chain";
 import {EqualityComparer, functionEqualityComparer} from "../comparer";
@@ -59,7 +59,7 @@ export class SealVariable<T> extends Variable<T> {
     return this._equalityComparer
   }
 
-  subscribe(callback: Func<T, void>): DisposableCompat {
+  subscribe(callback: Func<T, void>): Disposiq {
     if (this._sealed) {
       callback(this._value)
       return emptyDisposable
@@ -79,7 +79,7 @@ export class SealVariable<T> extends Variable<T> {
     })
   }
 
-  subscribeSilent(callback: Func<T, void>): DisposableCompat {
+  subscribeSilent(callback: Func<T, void>): Disposiq {
     if (this._sealed) {
       return emptyDisposable
     }

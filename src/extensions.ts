@@ -14,8 +14,7 @@ import {AndVariable} from "./vars"
 import {InvertVariable} from "./vars"
 import {
   DisposableAction,
-  DisposableCompat,
-  DisposableContainer,
+  DisposableContainer, Disposiq,
   emptyDisposable,
   IDisposable,
   toDisposable
@@ -26,7 +25,7 @@ import {EventObserver} from "./events";
 import {noop} from "./noop";
 import {createDelayDispatcher} from "./functions";
 
-Variable.prototype.subscribeDisposable = function <T>(this: Variable<T>, callback: Func<T, IDisposable>): DisposableCompat {
+Variable.prototype.subscribeDisposable = function <T>(this: Variable<T>, callback: Func<T, IDisposable>): Disposiq {
   const container = new DisposableContainer()
   const subscription = this.subscribe(v => {
     container.disposeCurrent()
@@ -38,7 +37,7 @@ Variable.prototype.subscribeDisposable = function <T>(this: Variable<T>, callbac
   })
 }
 
-Variable.prototype.subscribeOnceWhere = function <T>(this: Variable<T>, callback: Action<T>, condition: Func<T, boolean>): DisposableCompat {
+Variable.prototype.subscribeOnceWhere = function <T>(this: Variable<T>, callback: Action<T>, condition: Func<T, boolean>): Disposiq {
   const container = new DisposableContainer()
   container.set(this.subscribeSilent(v => {
     if (!condition(v)) {
@@ -88,11 +87,11 @@ Variable.prototype.throttle = function <T>(this: Variable<T>, delay: number | Ev
   }
 }
 
-Variable.prototype.streamTo = function <T>(this: Variable<T>, receiver: MutableVariable<T>): DisposableCompat {
+Variable.prototype.streamTo = function <T>(this: Variable<T>, receiver: MutableVariable<T>): Disposiq {
   return this.subscribe(value => receiver.value = value)
 }
 
-Variable.prototype.startPersistent = function <T>(this: Variable<T>): DisposableCompat {
+Variable.prototype.startPersistent = function <T>(this: Variable<T>): Disposiq {
   return this.subscribeSilent(noop)
 }
 

@@ -1,8 +1,8 @@
 import {Variable} from "../variable"
 import {defaultEqualityComparer, EqualityComparer, functionEqualityComparer} from "../comparer"
-import {DisposableCompat} from "@tioniq/disposiq"
 import {Action, Func} from "../action"
 import {LinkedChain} from "../linked-chain"
+import {Disposiq} from "@tioniq/disposiq";
 
 /**
  * A class that implements the Variable class and provides the ability to change the value of the variable.
@@ -51,7 +51,7 @@ export class MutableVariable<T> extends Variable<T> {
     return this._equalityComparer
   }
 
-  subscribe(callback: Func<T, void>): DisposableCompat {
+  subscribe(callback: Func<T, void>): Disposiq {
     const [disposable, added] = this._chain.addUnique(callback)
     if (added) {
       callback(this._value)
@@ -59,7 +59,7 @@ export class MutableVariable<T> extends Variable<T> {
     return disposable
   }
 
-  subscribeSilent(callback: Func<T, void>): DisposableCompat {
+  subscribeSilent(callback: Func<T, void>): Disposiq {
     return this._chain.addUnique(callback)[0]
   }
 
