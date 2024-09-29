@@ -451,7 +451,7 @@ interface Variable<T> {
      * @param callback the callback
      * @returns an object that can be used to unsubscribe
      */
-    subscribeDisposable<T>(callback: Func<T, IDisposable>): Disposiq;
+    subscribeDisposable(callback: Func<T, IDisposable>): Disposiq;
     /**
      * Subscribes to the variable and calls the callback once if the condition is met
      * @param callback the callback
@@ -665,7 +665,7 @@ declare function createDelayDispatcher(delay: number): EventObserver;
  * @param value The value to check
  * @returns true if the value is a variable, false otherwise
  */
-declare function isVariable(value: any): value is Variable<unknown>;
+declare function isVariable(value: any): value is Variable<any>;
 /**
  * Check if the value is a variable of the specified type
  * @param value The value to check
@@ -767,4 +767,75 @@ declare class ChainNode<T> {
 type VariableOrValue<T> = T | Variable<T>;
 type VarOrVal<T> = VariableOrValue<T>;
 
-export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, createConst, createDelayDispatcher, createDelegate, createDirect, createFuncVar, createVar, defaultEqualityComparer, functionEqualityComparer, isVariable, isVariableOf, max, min, or, simpleEqualityComparer, strictEqualityComparer, sum };
+type ObservableListChangeEvent<T> = ObservableListRemoveEvent<T> | ObservableListAddEvent<T> | ObservableListReplaceEvent<T> | ObservableListMoveEvent<T>;
+interface ObservableListChangeBaseEvent<T> {
+    type: "remove" | "add" | "replace" | "move";
+}
+interface ObservableListRemoveEvent<T> extends ObservableListChangeBaseEvent<T> {
+    type: "remove";
+    items: T[];
+    startIndex: number;
+}
+interface ObservableListAddEvent<T> extends ObservableListChangeBaseEvent<T> {
+    type: "add";
+    items: T[];
+    startIndex: number;
+}
+interface ObservableListReplaceEvent<T> extends ObservableListChangeBaseEvent<T> {
+    type: "replace";
+    oldItems: T[];
+    newItems: T[];
+    startIndex: number;
+}
+interface ObservableListMoveEvent<T> extends ObservableListChangeBaseEvent<T> {
+    type: "move";
+    items: {
+        item: T;
+        from: number;
+        to: number;
+    }[];
+}
+/**
+ * Represents a list that can be observed for changes. The list is mutable and can be changed by adding, removing, or
+ * replacing items. The list can be observed for changes using the `onRemove`, `onAdd`, `onReplace`, `onMove`, and
+ * `onAnyChange` events. The implementation is still in alpha and may change in the future.
+ * @alpha
+ */
+declare class ObservableList<T> {
+    private readonly list;
+    private readonly _onRemove;
+    private readonly _onAdd;
+    private readonly _onReplace;
+    private readonly _onMove;
+    private readonly _onAnyChange;
+    constructor(items?: T[]);
+    get onRemove(): EventObserver<ObservableListRemoveEvent<T>>;
+    get onAdd(): EventObserver<ObservableListAddEvent<T>>;
+    get onReplace(): EventObserver<ObservableListReplaceEvent<T>>;
+    get onMove(): EventObserver<ObservableListMoveEvent<T>>;
+    get onAnyChange(): EventObserver<ObservableListChangeEvent<T>>;
+    get length(): number;
+    get(index: number): T;
+    set(index: number, value: T): void;
+    push(...items: T[]): void;
+    pushAll(items: T[]): void;
+    copyTo(array: T[]): void;
+    getRange(index: number, count: number): T[];
+    insertRange(index: number, items: T[]): void;
+    remove(item: T): boolean;
+    removeRange(index: number, count: number): void;
+    toArray(): T[];
+    private get _hasAnySubscription();
+    replace(replacement: T[]): void;
+    indexOf(item: T): number;
+    lastIndexOf(item: T): number;
+    contains(item: T): boolean;
+    insert(index: number, item: T): void;
+    removeAt(index: number): void;
+    get asReadonly(): ReadonlyArray<T>;
+    sort(compareFn?: (a: T, b: T) => number): void;
+    clear(): void;
+    private updateSorted;
+}
+
+export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, createConst, createDelayDispatcher, createDelegate, createDirect, createFuncVar, createVar, defaultEqualityComparer, functionEqualityComparer, isVariable, isVariableOf, max, min, or, simpleEqualityComparer, strictEqualityComparer, sum };
