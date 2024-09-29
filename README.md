@@ -19,6 +19,14 @@ The library consists of two main objects:
 > However, for a deeper understanding, we recommend exploring the [source code](https://github.com/tioniq/eventiq), as
 > it’s straightforward and easy to follow.
 
+## Installation
+
+To install the package, run the following command:
+
+```bash
+npm install @tioniq/eventiq
+```
+
 ### EventObserver
 
 EventObserver allows you to subscribe to events and receive notifications when those events occur. Every subscription
