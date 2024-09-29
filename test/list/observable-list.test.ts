@@ -52,15 +52,6 @@ describe('observable list', () => {
     expect(onRemove).toHaveBeenCalledWith({type: 'remove', items: [2], startIndex: 1})
   })
 
-  it.skip('should dispatch replace event when replace', () => {
-    const list = new ObservableList<number>()
-    const onReplace = jest.fn()
-    list.onReplace.subscribe(onReplace)
-    list.push(1, 2, 3)
-    list.replace([4, 5, 6])
-    expect(onReplace).toHaveBeenCalledWith({type: 'replace', oldItems: [1, 2, 3], newItems: [4, 5, 6], startIndex: 0})
-  })
-
   it('should dispatch clear event when clear', () => {
     const list = new ObservableList<number>()
     const onClear = jest.fn()
@@ -286,6 +277,124 @@ describe('observable list', () => {
     expect(list.toArray()).toEqual([3, 2, 1])
   })
 
+  it('should not dispatch events when no items at removedAt', () => {
+    const list = new ObservableList<number>()
+    const onRemove = jest.fn()
+    list.onRemove.subscribe(onRemove)
+    list.push(1, 2, 3)
+    list.removeAt(4)
+    expect(onRemove).not.toHaveBeenCalled()
+  })
+
+  it('should asReadonly return a readonly list', () => {
+    const list = new ObservableList<number>()
+    list.push(1, 2, 3)
+    expect(() => list.asReadonly).not.toThrow()
+  })
+
+  it('should insert element at specified index', () => {
+    const list = new ObservableList<number>()
+    list.push(1, 2, 3)
+    list.insert(1, 4)
+
+    expect(list.toArray()).toEqual([1, 4, 2, 3])
+
+    list.insert(0, 5)
+
+    expect(list.toArray()).toEqual([5, 1, 4, 2, 3])
+  })
+
+  it('should insert element and dispatch add event', () => {
+    const list = new ObservableList<number>()
+    const onAdd = jest.fn()
+    const onAnyChange = jest.fn()
+    list.onAdd.subscribe(onAdd)
+    list.onAnyChange.subscribe(onAnyChange)
+    list.push(1, 2, 3)
+    list.insert(1, 4)
+
+    expect(onAdd).toHaveBeenCalledWith({type: 'add', items: [4], startIndex: 1})
+    expect(onAnyChange).toHaveBeenCalledWith({type: 'add', items: [4], startIndex: 1})
+  })
+
+  it('should replace when no subscribers', () => {
+    const list = new ObservableList<number>()
+    list.push(1, 2, 3)
+    list.replace([4, 5, 6])
+    expect(list.toArray()).toEqual([4, 5, 6])
+  })
+
+  it('should replace when no items', () => {
+    const list = new ObservableList<number>()
+    const onAdded = jest.fn()
+    list.onAdd.subscribe(onAdded)
+    list.replace([4, 5, 6])
+    expect(onAdded).toHaveBeenCalledWith({type: 'add', items: [4, 5, 6], startIndex: 0})
+  })
+
+  it('should replace only remove with subscription', () => {
+    const list = new ObservableList<number>()
+    const onAnyChange = jest.fn()
+    list.push(1, 2, 3)
+    list.onAnyChange.subscribe(onAnyChange)
+    list.replace([])
+
+    expect(list.toArray()).toEqual([])
+    expect(onAnyChange).toHaveBeenCalledWith({type: 'remove', items: [3], startIndex: 2})
+    expect(onAnyChange).toHaveBeenCalledWith({type: 'remove', items: [2], startIndex: 1})
+    expect(onAnyChange).toHaveBeenCalledWith({type: 'remove', items: [1], startIndex: 0})
+  })
+
+  it('should replace only remove one with subscription', () => {
+    const list = new ObservableList<number>()
+    const onAnyChange = jest.fn()
+    list.push(1, 2, 3)
+    list.onAnyChange.subscribe(onAnyChange)
+    list.replace([2])
+
+    expect(list.toArray()).toEqual([2])
+    expect(onAnyChange).toHaveBeenCalledWith({type: 'remove', items: [3], startIndex: 2})
+    expect(onAnyChange).toHaveBeenCalledWith({type: 'remove', items: [1], startIndex: 0})
+  })
+
+  it('should replace only add with subscription', () => {
+    const list = new ObservableList<number>()
+    const onAnyChange = jest.fn()
+    list.push(1, 2, 3)
+    list.onAnyChange.subscribe(onAnyChange)
+    list.replace([4, 5, 6])
+
+    expect(list.toArray()).toEqual([4, 5, 6])
+    expect(onAnyChange).toHaveBeenCalledWith({type: 'add', items: [4], startIndex: 0})
+    expect(onAnyChange).toHaveBeenCalledWith({type: 'add', items: [5], startIndex: 1})
+    expect(onAnyChange).toHaveBeenCalledWith({type: 'add', items: [6], startIndex: 2})
+  })
+
+  it('should replace change position with subscription', () => {
+    const list = new ObservableList<number>()
+    const onAnyChange = jest.fn()
+    list.push(1, 2, 3)
+    list.onAnyChange.subscribe(onAnyChange)
+    list.replace([3, 2, 1])
+
+    expect(list.toArray()).toEqual([3, 2, 1])
+    expect(onAnyChange).toHaveBeenCalledWith({
+      type: 'move', items: [
+        {item: 3, from: 2, to: 0},
+        {item: 2, from: 2, to: 1},
+      ]
+    })
+  })
+
+  it.skip('should dispatch replace event when replace', () => {
+    const list = new ObservableList<number>()
+    const onReplace = jest.fn()
+    list.onReplace.subscribe(onReplace)
+    list.push(1, 2, 3)
+    list.replace([4, 5, 6])
+    expect(onReplace).toHaveBeenCalledWith({type: 'replace', oldItems: [1, 2, 3], newItems: [4, 5, 6], startIndex: 0})
+  })
+
   it('should sort and dispatch move events', () => {
     const list = new ObservableList<number>()
     const onMove = jest.fn()
@@ -294,14 +403,8 @@ describe('observable list', () => {
 
     list.sort()
 
-    expect(onMove).toHaveBeenCalledWith({
-      type: 'move',
-      items: [{
-        item: 1,
-        from: 2,
-        to: 0
-      }]
-    })
+    expect(list.toArray()).toEqual([1, 2, 3])
+
     expect(onMove).toHaveBeenCalledWith({
       type: 'move',
       items: [{
@@ -310,5 +413,24 @@ describe('observable list', () => {
         to: 2
       }]
     })
+    expect(onMove).toHaveBeenCalledWith({
+      type: 'move',
+      items: [{
+        item: 2,
+        from: 0,
+        to: 1
+      }]
+    })
+  })
+
+  it('should sort and dispatch move events 2', () => {
+    const list = new ObservableList<number>()
+    const onMove = jest.fn()
+    list.onMove.subscribe(onMove)
+    list.push(8, 6, 5, 2, 9, 0, 1, 4, 7, 3)
+
+    list.sort()
+
+    expect(list.toArray()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
   })
 })

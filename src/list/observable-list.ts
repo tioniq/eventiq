@@ -38,6 +38,12 @@ export interface ObservableListMoveEvent<T> extends ObservableListChangeBaseEven
   }[]
 }
 
+/**
+ * Represents a list that can be observed for changes. The list is mutable and can be changed by adding, removing, or
+ * replacing items. The list can be observed for changes using the `onRemove`, `onAdd`, `onReplace`, `onMove`, and
+ * `onAnyChange` events. The implementation is still in alpha and may change in the future.
+ * @alpha
+ */
 export class ObservableList<T> {
   private readonly list: T[];
   private readonly _onRemove = new EventDispatcher<ObservableListRemoveEvent<T>>();
@@ -310,9 +316,9 @@ export class ObservableList<T> {
       this.list.sort(compareFn);
       return;
     }
-    const beforeSortItems = this.list.slice();
-    this.list.sort(compareFn);
-    this.updateSorted(beforeSortItems)
+    const array = this.list.slice();
+    array.sort(compareFn);
+    this.updateSorted(array)
   }
 
   clear(): void {
@@ -332,12 +338,12 @@ export class ObservableList<T> {
     this._onAnyChange.dispatch(event);
   }
 
-  private updateSorted(beforeSortItems: T[]): void {
-    const itemCount = beforeSortItems.length
+  private updateSorted(sortedItems: T[]): void {
+    const itemCount = sortedItems.length
     const items: SortItemData<T>[] = []
     for (let i = 0; i < itemCount; i++) {
       const item = this.list[i]
-      const endPosition = beforeSortItems.indexOf(item)
+      const endPosition = sortedItems.indexOf(item)
       const distance = endPosition - i
       items.push({
         item,
@@ -401,8 +407,6 @@ export class ObservableList<T> {
         const prevNodeIndex = items.indexOf(prevNode!)
         items.splice(prevNodeIndex, 0, item)
       }
-      this.list.splice(moveFrom, 1)
-      this.list.splice(item.index, 0, item!.item!)
 
       const event: ObservableListMoveEvent<T> = {
         type: "move",
@@ -412,6 +416,8 @@ export class ObservableList<T> {
           to: item.index
         }]
       }
+      this.list.splice(moveFrom, 1)
+      this.list.splice(item.index, 0, item.item!)
       this._onMove.dispatch(event)
       this._onAnyChange.dispatch(event)
     }
