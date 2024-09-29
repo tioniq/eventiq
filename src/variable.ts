@@ -86,7 +86,7 @@ export interface Variable<T> {
    * @param callback the callback
    * @returns an object that can be used to unsubscribe
    */
-  subscribeDisposable<T>(callback: Func<T, IDisposable>): Disposiq
+  subscribeDisposable(callback: Func<T, IDisposable>): Disposiq
 
   /**
    * Subscribes to the variable and calls the callback once if the condition is met

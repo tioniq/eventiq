@@ -1,4 +1,4 @@
-import {isVariable, isVariableOf, MutableVariable} from "../src";
+import {isVariable, isVariableOf, MutableVariable, VarOrVal} from "../src";
 
 describe('is var', () => {
   it('should check inheritance', () => {
@@ -17,6 +17,8 @@ describe('is var', () => {
       }
     }
     expect(isVariable(varLike)).toBe(false)
+
+    expect(isVariable(var1.map(w => w))).toBe(true)
   })
 
   it('should check generic type', () => {
@@ -57,5 +59,24 @@ describe('is var', () => {
     expect(isVariableOf(varLike)).toBe(false)
 
     expect(isVariableOf(varLike, () => true)).toBe(false)
+  })
+
+  it('should type checker work for isVariable', () => {
+    let var1: VarOrVal<string> = ""
+    if ((100).toString() === "100") {
+      var1 = new MutableVariable("test")
+    } else {
+      var1 = "test"
+    }
+
+    // if (isVariable(var1)) {
+    //   const val = var1.value
+    //   expect(val).toBe("test")
+    // }
+
+    if (!isVariable(var1)) {
+      const val = var1
+      expect(val).toBe("test")
+    }
   })
 })

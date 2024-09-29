@@ -5,7 +5,7 @@ import {Variable} from "./variable";
  * @param value The value to check
  * @returns true if the value is a variable, false otherwise
  */
-export function isVariable(value: any): value is Variable<unknown> {
+export function isVariable(value: any): value is Variable<any> {
   return value instanceof Variable
 }
 
@@ -23,11 +23,12 @@ export function isVariableOf<T>(value: any, typeCheckerOrExampleValue?: ((t: any
   if (!(value instanceof Variable)) {
     return false
   }
+  if (typeCheckerOrExampleValue == undefined) {
+    return true
+  }
   let checker: (t: Variable<any>) => boolean
   if (typeof typeCheckerOrExampleValue === "function") {
     checker = typeCheckerOrExampleValue as (t: any) => boolean
-  } else if (typeof typeCheckerOrExampleValue === "undefined") {
-    checker = () => true
   } else {
     checker = (v: any) => typeof v === typeof typeCheckerOrExampleValue
   }
