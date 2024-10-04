@@ -1,12 +1,6 @@
 import {CompoundVariable, EqualityComparer} from "../../src";
 
 describe('compound var', () => {
-  it('should return the same equality comparer', () => {
-    const equalityComparer = (a: number, b: number) => a === b
-    const vary = new TestVar(0, equalityComparer)
-    expect(vary.equalityComparer).toBe(equalityComparer)
-  })
-
   it('should activate and deactivate', () => {
     const vary = new TestVar(0)
 

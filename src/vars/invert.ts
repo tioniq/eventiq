@@ -1,6 +1,6 @@
 import {DisposableAction, DisposableContainer, Disposiq} from "@tioniq/disposiq";
 import {Action, Func} from "../action";
-import {EqualityComparer, functionEqualityComparer} from "../comparer";
+import {functionEqualityComparer} from "../comparer";
 import {Variable} from "../variable";
 import {LinkedChain} from "../linked-chain";
 
@@ -38,10 +38,6 @@ export class InvertVariable extends Variable<boolean> {
       return this._value
     }
     return !this._variable.value
-  }
-
-  get equalityComparer(): EqualityComparer<boolean> {
-    return this._variable.equalityComparer
   }
 
   subscribe(callback: Func<boolean, void>): Disposiq {

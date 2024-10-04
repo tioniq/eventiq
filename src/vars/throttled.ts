@@ -2,6 +2,7 @@ import {CompoundVariable} from "./compound"
 import {Variable} from "../variable";
 import {DisposableContainer} from "@tioniq/disposiq";
 import {EventObserver} from "../events";
+import {EqualityComparer} from "../comparer";
 
 const noScheduledValue = Object.freeze({})
 
@@ -37,8 +38,8 @@ export class ThrottledVariable<T> extends CompoundVariable<T> {
    */
   private _scheduledValue: T | typeof noScheduledValue = noScheduledValue
 
-  constructor(vary: Variable<T>, onUpdate: EventObserver) {
-    super(null!, vary.equalityComparer)
+  constructor(vary: Variable<T>, onUpdate: EventObserver, equalityComparer?: EqualityComparer<T>) {
+    super(null!, equalityComparer)
     this._var = vary
     this._onUpdate = onUpdate
   }

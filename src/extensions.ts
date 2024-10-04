@@ -20,10 +20,11 @@ import {
   toDisposable
 } from "@tioniq/disposiq"
 import {CombinedVariable} from "./vars"
-import {ThrottledVariable} from "./vars";
-import {EventObserver} from "./events";
-import {noop} from "./noop";
-import {createDelayDispatcher} from "./functions";
+import {ThrottledVariable} from "./vars"
+import {EventObserver} from "./events"
+import {noop} from "./noop"
+import {createDelayDispatcher} from "./functions"
+import {defaultEqualityComparer, EqualityComparer} from "./comparer"
 
 Variable.prototype.subscribeDisposable = function <T>(this: Variable<T>, callback: Func<T, IDisposable>): Disposiq {
   const container = new DisposableContainer()
@@ -79,12 +80,11 @@ Variable.prototype.switchMap = function <TInput, TResult>(this: Variable<TInput>
   return new SwitchMapVariable<TInput, TResult>(this, mapper)
 }
 
-Variable.prototype.throttle = function <T>(this: Variable<T>, delay: number | EventObserver): Variable<T> {
+Variable.prototype.throttle = function <T>(this: Variable<T>, delay: number | EventObserver, equalityComparer?: EqualityComparer<T>): Variable<T> {
   if (typeof delay === 'number') {
-    return new ThrottledVariable(this, createDelayDispatcher(delay))
-  } else {
-    return new ThrottledVariable(this, delay)
+    return new ThrottledVariable(this, createDelayDispatcher(delay), equalityComparer)
   }
+  return new ThrottledVariable(this, delay, equalityComparer)
 }
 
 Variable.prototype.streamTo = function <T>(this: Variable<T>, receiver: MutableVariable<T>): Disposiq {
@@ -155,24 +155,30 @@ Variable.prototype.lessOrEqual = function (this: Variable<number>, other: Variab
   return new MapVariable<number, boolean>(this, v => v <= other)
 }
 
-Variable.prototype.equal = function <T>(this: Variable<T>, other: Variable<T> | T): Variable<boolean> {
-  if (other instanceof Variable) {
-    return this.with(other).map(([a, b]) => this.equalityComparer(a, b))
+Variable.prototype.equal = function <T>(this: Variable<T>, other: Variable<T> | T, equalityComparer?: EqualityComparer<T>): Variable<boolean> {
+  if (!equalityComparer) {
+    equalityComparer = defaultEqualityComparer
   }
-  return new MapVariable<T, boolean>(this, v => this.equalityComparer(v, other))
+  if (other instanceof Variable) {
+    return this.with(other).map(([a, b]) => equalityComparer(a, b))
+  }
+  return new MapVariable<T, boolean>(this, v => equalityComparer(v, other))
 }
 
 Variable.prototype.sealed = function <T>(this: Variable<T>): Variable<T> {
   return new ConstantVariable(this.value)
 }
 
-Variable.prototype.sealWhen = function <T>(this: Variable<T>, condition: Func<T, boolean> | T): Variable<T> {
-  const vary = new SealVariable(this)
+Variable.prototype.sealWhen = function <T>(this: Variable<T>, condition: Func<T, boolean> | T, equalityComparer?: EqualityComparer<T>): Variable<T> {
+  if (!equalityComparer) {
+    equalityComparer = defaultEqualityComparer
+  }
+  const vary = new SealVariable(this, equalityComparer)
   if (typeof condition === 'function') {
     vary.subscribeOnceWhere(v => vary.seal(v), condition as Func<T, boolean>)
     return vary
   }
-  vary.subscribeOnceWhere(v => vary.seal(v), v => this.equalityComparer(v, condition))
+  vary.subscribeOnceWhere(v => vary.seal(v), v => equalityComparer(v, condition))
   return vary
 }
 

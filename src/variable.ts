@@ -1,8 +1,8 @@
 import {Disposiq, IDisposable} from "@tioniq/disposiq"
 import {Action, Func} from "./action"
-import {EqualityComparer} from "./comparer"
 import {MutableVariable, SwitchMapMapper} from "./vars";
 import {EventObserver} from "./events";
+import {EqualityComparer} from "./comparer";
 
 /**
  * Base Variable class. **All variables should extend this class**.
@@ -18,16 +18,11 @@ import {EventObserver} from "./events";
  * </p>
  * @typeparam T - the type of the variable value
  */
-export abstract class Variable<T> {
+export abstract class Variable<out T> {
   /**
    * The current value of the variable
    */
   abstract get value(): T
-
-  /**
-   * The equality comparer used to compare the values of the variable
-   */
-  abstract get equalityComparer(): EqualityComparer<T>
 
   /**
    * Subscribes to the variable. The callback will be called immediately after the subscription and every time the value
@@ -45,15 +40,6 @@ export abstract class Variable<T> {
    * @returns an object that can be used to unsubscribe
    */
   abstract subscribeSilent(callback: Func<T, void>): Disposiq
-
-  /**
-   * Checks if the value of the variable is equal to the specified value
-   * @param value the value to compare with
-   * @returns true if the value of the variable is equal to the specified value, false otherwise
-   */
-  equalTo(value: T): boolean {
-    return this.equalityComparer(this.value, value)
-  }
 
   /**
    * Overload of the `toString` method. Returns the string representation of the value of the variable
@@ -79,7 +65,7 @@ export abstract class Variable<T> {
 /**
  * Variable extensions
  */
-export interface Variable<T> {
+export interface Variable<out T> {
   /**
    * Subscribes to the variable. The callback can return a disposable object that will be disposed when a value is
    * changed or the subscription is disposed
@@ -140,23 +126,25 @@ export interface Variable<T> {
   /**
    * Throttles the variable value changes
    * @param delay the delay in milliseconds
+   * @param equalityComparer the equality comparer
    * @returns a new variable with the throttled value
    */
-  throttle<T>(delay: number): Variable<T>
+  throttle<T>(delay: number, equalityComparer?: EqualityComparer<T>): Variable<T>
 
   /**
    * Throttles the variable value changes
    * @param onUpdate the event observer that will be used to throttle the value changes
+   * @param equalityComparer the equality comparer
    * @returns a new variable with the throttled value
    */
-  throttle<T>(onUpdate: EventObserver): Variable<T>
+  throttle<T>(onUpdate: EventObserver, equalityComparer?: EqualityComparer<T>): Variable<T>
 
   /**
    * Streams the variable value to another mutable variable
    * @param receiver the receiver variable
    * @returns an object that can be used to unsubscribe
    */
-  streamTo(receiver: MutableVariable<T>): Disposiq
+  streamTo<R extends T>(receiver: MutableVariable<R>): Disposiq
 
   /**
    * Keeps the variable's subscription alive
@@ -229,9 +217,10 @@ export interface Variable<T> {
   /**
    * Creates a new variable that will return true if the variable value is equal to the other value
    * @param other the other variable or a value
+   * @param equalityComparer the equality comparer
    * @returns a new variable with the comparison result
    */
-  equal(other: Variable<T> | T): Variable<boolean>
+  equal<R extends T>(other: Variable<R> | R, equalityComparer?: EqualityComparer<R>): Variable<boolean>
 
   /**
    * Creates a new constant variable with the current value
@@ -244,5 +233,13 @@ export interface Variable<T> {
    * @param condition the condition
    * @returns a new variable that will be sealed when the condition is met
    */
-  sealWhen(condition: Func<T, boolean> | T): Variable<T>
+  sealWhen<R extends T>(condition: Func<R, boolean> | R): Variable<R>
+
+  /**
+   * Creates a new variable that will stream the variable value until the condition is met
+   * @param condition the condition value to seal
+   * @param equalityComparer the equality comparer
+   * @returns a new variable that will be sealed when the condition is met
+   */
+  sealWhen<R extends T>(condition: R, equalityComparer?: EqualityComparer<R>): Variable<R>
 }

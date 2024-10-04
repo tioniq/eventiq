@@ -1,7 +1,7 @@
 import {CompoundVariable} from "./compound";
 import {Variable} from "../variable";
-import {EqualityComparer} from "../comparer";
 import {DisposableStore} from "@tioniq/disposiq";
+import {arrayEqualityComparer} from "../comparer";
 
 /**
  * A variable that combines multiple variables into a single variable. The value presents an array of the values of the
@@ -22,8 +22,7 @@ export class CombinedVariable<T extends any[]> extends CompoundVariable<T> {
     if (!vars?.length) {
       throw new Error("No variables provided")
     }
-    const comparers = vars.map(v => v.equalityComparer)
-    super(getStubArray(vars.length), createArrayEqualityComparer(comparers))
+    super(stubArray as T, arrayEqualityComparer)
     this._vars = vars.slice()
   }
 
@@ -56,22 +55,4 @@ export class CombinedVariable<T extends any[]> extends CompoundVariable<T> {
   }
 }
 
-function createArrayEqualityComparer<K, T extends Array<K>>(itemEqualityComparers: EqualityComparer<K>[]): EqualityComparer<T> {
-  return function (a: T, b: T) {
-    if (a.length !== b.length) {
-      return false
-    }
-    for (let i = 0; i < a.length; ++i) {
-      if (!itemEqualityComparers[i](a[i], b[i])) {
-        return false
-      }
-    }
-    return true
-  }
-}
-
 const stubArray = Object.freeze([]) as unknown as any[]
-
-function getStubArray<T extends Array<unknown>>(_: number): T {
-  return stubArray as T
-}

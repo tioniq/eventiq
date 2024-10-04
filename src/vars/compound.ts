@@ -59,10 +59,6 @@ export abstract class CompoundVariable<T> extends Variable<T> {
     this._chain.forEach(a => a(value))
   }
 
-  get equalityComparer(): EqualityComparer<T> {
-    return this._equalityComparer
-  }
-
   subscribe(callback: Func<T, void>): Disposiq {
     if (this._chain.empty) {
       this.activate()

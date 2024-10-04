@@ -2,7 +2,7 @@ import {Variable} from "../variable"
 import {DisposableAction, DisposableContainer, Disposiq, emptyDisposable} from "@tioniq/disposiq";
 import {Action, Func} from "../action";
 import {LinkedChain} from "../linked-chain";
-import {EqualityComparer, functionEqualityComparer} from "../comparer";
+import {defaultEqualityComparer, EqualityComparer, functionEqualityComparer} from "../comparer";
 
 /**
  * A variable that seals the value of another variable. When sealed, the variable will not change its value
@@ -42,7 +42,7 @@ export class SealVariable<T> extends Variable<T> {
   constructor(vary: Variable<T>, equalityComparer?: EqualityComparer<T>) {
     super()
     this._var = vary
-    this._equalityComparer = typeof equalityComparer === "function" ? equalityComparer : vary.equalityComparer
+    this._equalityComparer = typeof equalityComparer === "function" ? equalityComparer : defaultEqualityComparer
   }
 
   get value(): T {

@@ -43,16 +43,6 @@ describe('invert var', () => {
     expect(invertVar.value).toBe(false)
   })
 
-  it('should equalityComparer work', () => {
-    const boolVar = new MutableVariable(true)
-    const invertVar = boolVar.invert()
-
-    expect(invertVar.equalityComparer(false, false)).toBe(true)
-    expect(invertVar.equalityComparer(true, true)).toBe(true)
-    expect(invertVar.equalityComparer(true, false)).toBe(false)
-    expect(invertVar.equalityComparer(false, true)).toBe(false)
-  })
-
   it('should subscribeSilent work', () => {
     const boolVar = new MutableVariable(true)
     const invertVar = boolVar.invert()
