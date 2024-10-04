@@ -7,8 +7,11 @@ type Func<T, R> = (arg: T) => R;
 type EqualityComparer<T> = (a: T, b: T) => boolean;
 declare function strictEqualityComparer<T>(a: T, b: T): boolean;
 declare function simpleEqualityComparer<T>(a: T, b: T): boolean;
-declare const defaultEqualityComparer: typeof strictEqualityComparer;
+declare var defaultEqualityComparer: EqualityComparer<any>;
 declare function functionEqualityComparer(a: Function, b: Function): boolean;
+declare function generalEqualityComparer<T extends any>(a: T, b: T): boolean;
+declare function objectEqualityComparer<T extends object>(a: T, b: T): boolean;
+declare function arrayEqualityComparer<K, T extends ArrayLike<K>>(a: T, b: T): boolean;
 
 /**
  * A Variable class that is base for common compound variables. It provides a functionality to react on subscription
@@ -29,7 +32,6 @@ declare abstract class CompoundVariable<T> extends Variable<T> {
      * @protected internal use only
      */
     protected set value(value: T);
-    get equalityComparer(): EqualityComparer<T>;
     subscribe(callback: Func<T, void>): Disposiq;
     subscribeSilent(callback: Func<T, void>): Disposiq;
     /**
@@ -185,7 +187,6 @@ declare class FuncVariable<T> extends CompoundVariable<T> {
 declare class InvertVariable extends Variable<boolean> {
     constructor(variable: Variable<boolean>);
     get value(): boolean;
-    get equalityComparer(): EqualityComparer<boolean>;
     subscribe(callback: Func<boolean, void>): Disposiq;
     subscribeSilent(callback: Func<boolean, void>): Disposiq;
 }
@@ -380,7 +381,7 @@ interface EventObserver<T> {
  * @typeparam T - the type of the variable value
  */
 declare class ThrottledVariable<T> extends CompoundVariable<T> {
-    constructor(vary: Variable<T>, onUpdate: EventObserver);
+    constructor(vary: Variable<T>, onUpdate: EventObserver, equalityComparer?: EqualityComparer<T>);
     protected activate(): void;
     protected deactivate(): void;
     protected getExactValue(): T;
@@ -400,15 +401,11 @@ declare class ThrottledVariable<T> extends CompoundVariable<T> {
  * </p>
  * @typeparam T - the type of the variable value
  */
-declare abstract class Variable<T> {
+declare abstract class Variable<out T> {
     /**
      * The current value of the variable
      */
     abstract get value(): T;
-    /**
-     * The equality comparer used to compare the values of the variable
-     */
-    abstract get equalityComparer(): EqualityComparer<T>;
     /**
      * Subscribes to the variable. The callback will be called immediately after the subscription and every time the value
      * of the variable changes. You can unsubscribe by calling the `dispose` method of the returned object.
@@ -425,12 +422,6 @@ declare abstract class Variable<T> {
      */
     abstract subscribeSilent(callback: Func<T, void>): Disposiq;
     /**
-     * Checks if the value of the variable is equal to the specified value
-     * @param value the value to compare with
-     * @returns true if the value of the variable is equal to the specified value, false otherwise
-     */
-    equalTo(value: T): boolean;
-    /**
      * Overload of the `toString` method. Returns the string representation of the value of the variable
      * @returns the string representation of the value of the variable
      */
@@ -444,7 +435,7 @@ declare abstract class Variable<T> {
 /**
  * Variable extensions
  */
-interface Variable<T> {
+interface Variable<out T> {
     /**
      * Subscribes to the variable. The callback can return a disposable object that will be disposed when a value is
      * changed or the subscription is disposed
@@ -499,21 +490,23 @@ interface Variable<T> {
     /**
      * Throttles the variable value changes
      * @param delay the delay in milliseconds
+     * @param equalityComparer the equality comparer
      * @returns a new variable with the throttled value
      */
-    throttle<T>(delay: number): Variable<T>;
+    throttle<T>(delay: number, equalityComparer?: EqualityComparer<T>): Variable<T>;
     /**
      * Throttles the variable value changes
      * @param onUpdate the event observer that will be used to throttle the value changes
+     * @param equalityComparer the equality comparer
      * @returns a new variable with the throttled value
      */
-    throttle<T>(onUpdate: EventObserver): Variable<T>;
+    throttle<T>(onUpdate: EventObserver, equalityComparer?: EqualityComparer<T>): Variable<T>;
     /**
      * Streams the variable value to another mutable variable
      * @param receiver the receiver variable
      * @returns an object that can be used to unsubscribe
      */
-    streamTo(receiver: MutableVariable<T>): Disposiq;
+    streamTo<R extends T>(receiver: MutableVariable<R>): Disposiq;
     /**
      * Keeps the variable's subscription alive
      * @returns an object that can be used to stop the persistence
@@ -575,9 +568,10 @@ interface Variable<T> {
     /**
      * Creates a new variable that will return true if the variable value is equal to the other value
      * @param other the other variable or a value
+     * @param equalityComparer the equality comparer
      * @returns a new variable with the comparison result
      */
-    equal(other: Variable<T> | T): Variable<boolean>;
+    equal<R extends T>(other: Variable<R> | R, equalityComparer?: EqualityComparer<R>): Variable<boolean>;
     /**
      * Creates a new constant variable with the current value
      * @returns a new variable with the sealed value
@@ -588,7 +582,14 @@ interface Variable<T> {
      * @param condition the condition
      * @returns a new variable that will be sealed when the condition is met
      */
-    sealWhen(condition: Func<T, boolean> | T): Variable<T>;
+    sealWhen<R extends T>(condition: Func<R, boolean> | R): Variable<R>;
+    /**
+     * Creates a new variable that will stream the variable value until the condition is met
+     * @param condition the condition value to seal
+     * @param equalityComparer the equality comparer
+     * @returns a new variable that will be sealed when the condition is met
+     */
+    sealWhen<R extends T>(condition: R, equalityComparer?: EqualityComparer<R>): Variable<R>;
 }
 
 /**
@@ -838,4 +839,4 @@ declare class ObservableList<T> {
     private updateSorted;
 }
 
-export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, createConst, createDelayDispatcher, createDelegate, createDirect, createFuncVar, createVar, defaultEqualityComparer, functionEqualityComparer, isVariable, isVariableOf, max, min, or, simpleEqualityComparer, strictEqualityComparer, sum };
+export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, createConst, createDelayDispatcher, createDelegate, createDirect, createFuncVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isVariable, isVariableOf, max, min, objectEqualityComparer, or, simpleEqualityComparer, strictEqualityComparer, sum };

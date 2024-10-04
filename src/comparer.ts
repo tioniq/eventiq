@@ -1,10 +1,10 @@
 export type EqualityComparer<T> = (a: T, b: T) => boolean
 
-export function strictEqualityComparer<T>(a: T, b: T) {
+export function strictEqualityComparer<T>(a: T, b: T): boolean {
   return a === b
 }
 
-export function simpleEqualityComparer<T>(a: T, b: T) {
+export function simpleEqualityComparer<T>(a: T, b: T): boolean {
   return a == b
 }
 

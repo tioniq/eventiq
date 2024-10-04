@@ -21,7 +21,7 @@ export class MinVariable extends CompoundVariable<number> {
     this._vars = vars.slice()
   }
 
-  protected activate() {
+  protected activate(): void {
     const vars = this._vars
     const length = vars.length
     const subscriptions = this._subscriptions
@@ -34,11 +34,11 @@ export class MinVariable extends CompoundVariable<number> {
     this.postValue()
   }
 
-  protected deactivate() {
+  protected deactivate(): void {
     this._subscriptions.dispose()
   }
 
-  protected getExactValue() {
+  protected getExactValue(): number {
     const vars = this._vars
     const length = vars.length
     let result = Number.POSITIVE_INFINITY
@@ -48,7 +48,7 @@ export class MinVariable extends CompoundVariable<number> {
     return result
   }
 
-  protected postValue() {
+  protected postValue(): void {
     const vars = this._vars
     const length = vars.length
     let result = Number.POSITIVE_INFINITY

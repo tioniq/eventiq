@@ -50,6 +50,7 @@ __export(src_exports, {
   Variable: () => Variable,
   Vary: () => MutableVariable,
   and: () => and,
+  arrayEqualityComparer: () => arrayEqualityComparer,
   createConst: () => createConst,
   createDelayDispatcher: () => createDelayDispatcher,
   createDelegate: () => createDelegate,
@@ -58,10 +59,12 @@ __export(src_exports, {
   createVar: () => createVar,
   defaultEqualityComparer: () => defaultEqualityComparer,
   functionEqualityComparer: () => functionEqualityComparer,
+  generalEqualityComparer: () => generalEqualityComparer,
   isVariable: () => isVariable,
   isVariableOf: () => isVariableOf,
   max: () => max,
   min: () => min,
+  objectEqualityComparer: () => objectEqualityComparer,
   or: () => or,
   simpleEqualityComparer: () => simpleEqualityComparer,
   strictEqualityComparer: () => strictEqualityComparer,
@@ -71,14 +74,6 @@ module.exports = __toCommonJS(src_exports);
 
 // src/variable.ts
 var Variable = class {
-  /**
-   * Checks if the value of the variable is equal to the specified value
-   * @param value the value to compare with
-   * @returns true if the value of the variable is equal to the specified value, false otherwise
-   */
-  equalTo(value) {
-    return this.equalityComparer(this.value, value);
-  }
   /**
    * Overload of the `toString` method. Returns the string representation of the value of the variable
    * @returns the string representation of the value of the variable
@@ -109,6 +104,72 @@ function simpleEqualityComparer(a, b) {
 var defaultEqualityComparer = strictEqualityComparer;
 function functionEqualityComparer(a, b) {
   return a === b;
+}
+function generalEqualityComparer(a, b) {
+  if (a === b) {
+    return true;
+  }
+  const typeA = typeof a;
+  const typeB = typeof b;
+  if (typeA !== typeB) {
+    return false;
+  }
+  if (typeA === "object") {
+    return objectEqualityComparer(a, b);
+  }
+  if (typeA === "function") {
+    return functionEqualityComparer(a, b);
+  }
+  return simpleEqualityComparer(a, b);
+}
+function objectEqualityComparer(a, b) {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  let arrayA = Array.isArray(a);
+  let arrayB = Array.isArray(b);
+  if (arrayA !== arrayB) {
+    return false;
+  }
+  if (arrayA) {
+    return arrayEqualityComparer(a, b);
+  }
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) {
+    return false;
+  }
+  for (const key of keysA) {
+    if (!keysB.includes(key)) {
+      return false;
+    }
+    const valueA = a[key];
+    const valueB = b[key];
+    if (!generalEqualityComparer(valueA, valueB)) {
+      return false;
+    }
+  }
+  return true;
+}
+function arrayEqualityComparer(a, b) {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; ++i) {
+    if (!generalEqualityComparer(a[i], b[i])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // src/linked-chain.ts
@@ -554,9 +615,6 @@ var CompoundVariable = class extends Variable {
     this._value = value;
     this._chain.forEach((a) => a(value));
   }
-  get equalityComparer() {
-    return this._equalityComparer;
-  }
   subscribe(callback) {
     if (this._chain.empty) {
       this.activate();
@@ -688,8 +746,7 @@ var CombinedVariable = class extends CompoundVariable {
     if (!(vars == null ? void 0 : vars.length)) {
       throw new Error("No variables provided");
     }
-    const comparers = vars.map((v) => v.equalityComparer);
-    super(getStubArray(vars.length), createArrayEqualityComparer(comparers));
+    super(stubArray, arrayEqualityComparer);
     /**
      * @internal
      */
@@ -722,23 +779,7 @@ var CombinedVariable = class extends CompoundVariable {
     return result;
   }
 };
-function createArrayEqualityComparer(itemEqualityComparers) {
-  return function(a, b) {
-    if (a.length !== b.length) {
-      return false;
-    }
-    for (let i = 0; i < a.length; ++i) {
-      if (!itemEqualityComparers[i](a[i], b[i])) {
-        return false;
-      }
-    }
-    return true;
-  };
-}
 var stubArray = Object.freeze([]);
-function getStubArray(_) {
-  return stubArray;
-}
 
 // src/vars/constant.ts
 var import_disposiq5 = require("@tioniq/disposiq");
@@ -957,9 +998,6 @@ var InvertVariable = class extends Variable {
       return this._value;
     }
     return !this._variable.value;
-  }
-  get equalityComparer() {
-    return this._variable.equalityComparer;
   }
   subscribe(callback) {
     if (this._chain.empty) {
@@ -1260,7 +1298,7 @@ var SealVariable = class extends Variable {
      */
     this._sealed = false;
     this._var = vary;
-    this._equalityComparer = typeof equalityComparer === "function" ? equalityComparer : vary.equalityComparer;
+    this._equalityComparer = typeof equalityComparer === "function" ? equalityComparer : defaultEqualityComparer;
   }
   get value() {
     if (this._sealed) {
@@ -1451,8 +1489,8 @@ var SwitchMapVariable = class extends CompoundVariable {
 var import_disposiq16 = require("@tioniq/disposiq");
 var noScheduledValue = Object.freeze({});
 var ThrottledVariable = class extends CompoundVariable {
-  constructor(vary, onUpdate) {
-    super(null, vary.equalityComparer);
+  constructor(vary, onUpdate, equalityComparer) {
+    super(null, equalityComparer);
     /**
      * @internal
      */
@@ -1735,12 +1773,11 @@ Variable.prototype.with = function(...others) {
 Variable.prototype.switchMap = function(mapper) {
   return new SwitchMapVariable(this, mapper);
 };
-Variable.prototype.throttle = function(delay) {
+Variable.prototype.throttle = function(delay, equalityComparer) {
   if (typeof delay === "number") {
-    return new ThrottledVariable(this, createDelayDispatcher(delay));
-  } else {
-    return new ThrottledVariable(this, delay);
+    return new ThrottledVariable(this, createDelayDispatcher(delay), equalityComparer);
   }
+  return new ThrottledVariable(this, delay, equalityComparer);
 };
 Variable.prototype.streamTo = function(receiver) {
   return this.subscribe((value) => receiver.value = value);
@@ -1799,22 +1836,28 @@ Variable.prototype.lessOrEqual = function(other) {
   }
   return new MapVariable(this, (v) => v <= other);
 };
-Variable.prototype.equal = function(other) {
-  if (other instanceof Variable) {
-    return this.with(other).map(([a, b]) => this.equalityComparer(a, b));
+Variable.prototype.equal = function(other, equalityComparer) {
+  if (!equalityComparer) {
+    equalityComparer = defaultEqualityComparer;
   }
-  return new MapVariable(this, (v) => this.equalityComparer(v, other));
+  if (other instanceof Variable) {
+    return this.with(other).map(([a, b]) => equalityComparer(a, b));
+  }
+  return new MapVariable(this, (v) => equalityComparer(v, other));
 };
 Variable.prototype.sealed = function() {
   return new ConstantVariable(this.value);
 };
-Variable.prototype.sealWhen = function(condition) {
-  const vary = new SealVariable(this);
+Variable.prototype.sealWhen = function(condition, equalityComparer) {
+  if (!equalityComparer) {
+    equalityComparer = defaultEqualityComparer;
+  }
+  const vary = new SealVariable(this, equalityComparer);
   if (typeof condition === "function") {
     vary.subscribeOnceWhere((v) => vary.seal(v), condition);
     return vary;
   }
-  vary.subscribeOnceWhere((v) => vary.seal(v), (v) => this.equalityComparer(v, condition));
+  vary.subscribeOnceWhere((v) => vary.seal(v), (v) => equalityComparer(v, condition));
   return vary;
 };
 
@@ -2215,6 +2258,7 @@ var ObservableList = class {
   Variable,
   Vary,
   and,
+  arrayEqualityComparer,
   createConst,
   createDelayDispatcher,
   createDelegate,
@@ -2223,10 +2267,12 @@ var ObservableList = class {
   createVar,
   defaultEqualityComparer,
   functionEqualityComparer,
+  generalEqualityComparer,
   isVariable,
   isVariableOf,
   max,
   min,
+  objectEqualityComparer,
   or,
   simpleEqualityComparer,
   strictEqualityComparer,
