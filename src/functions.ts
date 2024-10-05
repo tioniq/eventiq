@@ -5,7 +5,7 @@ import {
   AndVariable,
   MinVariable,
   MaxVariable,
-  SumVariable, DelegateVariable, DirectVariable, MutableVariable
+  SumVariable, DelegateVariable, DirectVariable, MutableVariable, CombinedVariable
 } from "./vars"
 import {DisposableAction, IDisposable} from "@tioniq/disposiq"
 import {Func, Func0} from "./action"
@@ -102,6 +102,21 @@ export function min(...variables: Variable<number>[]): Variable<number> {
  */
 export function max(...variables: Variable<number>[]): Variable<number> {
   return new MaxVariable(variables)
+}
+
+/**
+ * Creates a new variable that combines multiple variables into a single variable
+ * @param vars the variables to combine
+ * @returns a new combined variable that contains an array of the values of the variables
+ */
+export function combine<O extends any[]>(...vars: { [K in keyof O]: Variable<O[K]> }): Variable<O> {
+  if (vars.length === 0) {
+    throw new Error("At least one variable must be provided")
+  }
+  if (vars.length === 1) {
+    return vars[0]
+  }
+  return new CombinedVariable<O>(vars)
 }
 
 /**

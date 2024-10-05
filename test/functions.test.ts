@@ -9,7 +9,7 @@ import {
   sum,
   min,
   max,
-  createDelayDispatcher, ConstantVariable, MutableVariable, createVar
+  createDelayDispatcher, ConstantVariable, MutableVariable, createVar, combine
 } from "../src"
 import {FuncVariable} from "../src";
 
@@ -107,6 +107,28 @@ describe('functions', () => {
 
     const variable = max(variable1, variable2, variable3)
     expect(variable.value).toBe(30)
+  })
+
+  it('should combine multiple variables into a single variable', () => {
+    const variable1 = createConst(10)
+    const variable2 = createVar(20)
+    const variable3 = createConst(30)
+
+    const variable = combine(variable1, variable2, variable3)
+    expect(variable.value).toEqual([10, 20, 30])
+
+    variable2.value = 40
+
+    expect(variable.value).toEqual([10, 40, 30])
+  })
+
+  it('should combine throw an error if no variables are provided', () => {
+    expect(() => combine()).toThrow("At least one variable must be provided")
+  })
+
+  it('should combine return the variable if only one variable is provided', () => {
+    const variable = createConst(10)
+    expect(combine(variable)).toBe(variable)
   })
 })
 
