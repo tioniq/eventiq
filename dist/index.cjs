@@ -51,6 +51,7 @@ __export(src_exports, {
   Vary: () => MutableVariable,
   and: () => and,
   arrayEqualityComparer: () => arrayEqualityComparer,
+  combine: () => combine,
   createConst: () => createConst,
   createDelayDispatcher: () => createDelayDispatcher,
   createDelegate: () => createDelegate,
@@ -1719,6 +1720,15 @@ function min(...variables) {
 function max(...variables) {
   return new MaxVariable(variables);
 }
+function combine(...vars) {
+  if (vars.length === 0) {
+    throw new Error("At least one variable must be provided");
+  }
+  if (vars.length === 1) {
+    return vars[0];
+  }
+  return new CombinedVariable(vars);
+}
 function createDelayDispatcher(delay) {
   return new LazyEventDispatcher((dispatcher) => {
     const timeout = setTimeout(() => dispatcher.dispatch(), delay);
@@ -2259,6 +2269,7 @@ var ObservableList = class {
   Vary,
   and,
   arrayEqualityComparer,
+  combine,
   createConst,
   createDelayDispatcher,
   createDelegate,

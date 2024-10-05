@@ -655,6 +655,14 @@ declare function min(...variables: Variable<number>[]): Variable<number>;
  */
 declare function max(...variables: Variable<number>[]): Variable<number>;
 /**
+ * Creates a new variable that combines multiple variables into a single variable
+ * @param vars the variables to combine
+ * @returns a new combined variable that contains an array of the values of the variables
+ */
+declare function combine<O extends any[]>(...vars: {
+    [K in keyof O]: Variable<O[K]>;
+}): Variable<O>;
+/**
  * Creates a new event dispatcher that will dispatch an event after a specified delay
  * @param delay the delay in milliseconds
  * @returns a new event dispatcher
@@ -839,4 +847,4 @@ declare class ObservableList<T> {
     private updateSorted;
 }
 
-export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, createConst, createDelayDispatcher, createDelegate, createDirect, createFuncVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isVariable, isVariableOf, max, min, objectEqualityComparer, or, simpleEqualityComparer, strictEqualityComparer, sum };
+export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createDelayDispatcher, createDelegate, createDirect, createFuncVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isVariable, isVariableOf, max, min, objectEqualityComparer, or, simpleEqualityComparer, strictEqualityComparer, sum };
