@@ -1464,18 +1464,6 @@ var ThrottledVariable = class extends CompoundVariable {
   }
 };
 
-// src/extensions.ts
-import {
-  DisposableAction as DisposableAction8,
-  DisposableContainer as DisposableContainer10,
-  emptyDisposable as emptyDisposable6,
-  toDisposable as toDisposable2
-} from "@tioniq/disposiq";
-
-// src/noop.ts
-var noop = Object.freeze(function() {
-});
-
 // src/functions.ts
 import { DisposableAction as DisposableAction7 } from "@tioniq/disposiq";
 
@@ -1671,6 +1659,18 @@ function createDelayDispatcher(delay) {
 }
 
 // src/extensions.ts
+import {
+  DisposableAction as DisposableAction8,
+  DisposableContainer as DisposableContainer10,
+  emptyDisposable as emptyDisposable6,
+  toDisposable as toDisposable2
+} from "@tioniq/disposiq";
+
+// src/noop.ts
+var noop = Object.freeze(function() {
+});
+
+// src/extensions.ts
 Variable.prototype.subscribeDisposable = function(callback) {
   const container = new DisposableContainer10();
   const subscription = this.subscribe((v) => {
@@ -1828,12 +1828,30 @@ function isVariableOf(value, typeCheckerOrExampleValue) {
 // src/list/observable-list.ts
 var ObservableList = class {
   constructor(items) {
+    /**
+     * @internal
+     */
     this._onRemove = new EventDispatcher();
+    /**
+     * @internal
+     */
+    /**
+     * @internal
+     */
     this._onAdd = new EventDispatcher();
+    /**
+     * @internal
+     */
     this._onReplace = new EventDispatcher();
+    /**
+     * @internal
+     */
     this._onMove = new EventDispatcher();
+    /**
+     * @internal
+     */
     this._onAnyChange = new EventDispatcher();
-    this.list = Array.isArray(items) ? [...items] : [];
+    this._list = Array.isArray(items) ? [...items] : [];
   }
   get onRemove() {
     return this._onRemove;
@@ -1851,19 +1869,19 @@ var ObservableList = class {
     return this._onAnyChange;
   }
   get length() {
-    return this.list.length;
+    return this._list.length;
   }
   get(index) {
-    return this.list[index];
+    return this._list[index];
   }
   set(index, value) {
     const hasSubscriptions = this._onReplace.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
-      this.list[index] = value;
+      this._list[index] = value;
       return;
     }
-    const old = this.list[index];
-    this.list[index] = value;
+    const old = this._list[index];
+    this._list[index] = value;
     const event = {
       type: "replace",
       oldItems: [old],
@@ -1883,45 +1901,45 @@ var ObservableList = class {
     if (items.length === 1) {
       const item = items[0];
       const hasSubscriptions2 = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions;
-      this.list.push(item);
+      this._list.push(item);
       if (!hasSubscriptions2) {
         return;
       }
       const event2 = {
         type: "add",
         items: [item],
-        startIndex: this.list.length - 1
+        startIndex: this._list.length - 1
       };
       this._onAdd.dispatch(event2);
       this._onAnyChange.dispatch(event2);
       return;
     }
     const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions;
-    this.list.push(...items);
+    this._list.push(...items);
     if (!hasSubscriptions) {
       return;
     }
     const event = {
       type: "add",
       items: [...items],
-      startIndex: this.list.length - items.length
+      startIndex: this._list.length - items.length
     };
     this._onAdd.dispatch(event);
     this._onAnyChange.dispatch(event);
   }
   copyTo(array) {
-    array.push(...this.list);
+    array.push(...this._list);
   }
   getRange(index, count) {
-    return this.list.slice(index, index + count);
+    return this._list.slice(index, index + count);
   }
   insertRange(index, items) {
     const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
-      this.list.splice(index, 0, ...items);
+      this._list.splice(index, 0, ...items);
       return;
     }
-    this.list.splice(index, 0, ...items);
+    this._list.splice(index, 0, ...items);
     const event = {
       type: "add",
       items: [...items],
@@ -1932,11 +1950,11 @@ var ObservableList = class {
   }
   remove(item) {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
-    const index = this.list.indexOf(item);
+    const index = this._list.indexOf(item);
     if (index === -1) {
       return false;
     }
-    this.list.splice(index, 1);
+    this._list.splice(index, 1);
     if (!hasSubscriptions) {
       return true;
     }
@@ -1952,11 +1970,11 @@ var ObservableList = class {
   removeRange(index, count) {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
-      this.list.splice(index, count);
+      this._list.splice(index, count);
       return;
     }
-    const items = this.list.slice(index, index + count);
-    this.list.splice(index, count);
+    const items = this._list.slice(index, index + count);
+    this._list.splice(index, count);
     const event = {
       type: "remove",
       items,
@@ -1966,23 +1984,23 @@ var ObservableList = class {
     this._onAnyChange.dispatch(event);
   }
   toArray() {
-    return this.list.slice();
+    return this._list.slice();
   }
   get _hasAnySubscription() {
     return this._onRemove.hasSubscriptions || this._onAdd.hasSubscriptions || this._onReplace.hasSubscriptions || this._onMove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
   }
   replace(replacement) {
     if (!this._hasAnySubscription) {
-      this.list.length = 0;
-      this.list.push(...replacement);
+      this._list.length = 0;
+      this._list.push(...replacement);
       return;
     }
-    if (this.list.length === 0) {
+    if (this._list.length === 0) {
       this.insertRange(0, replacement);
       return;
     }
-    for (let i = this.list.length - 1; i >= 0; i--) {
-      const t = this.list[i];
+    for (let i = this._list.length - 1; i >= 0; i--) {
+      const t = this._list[i];
       const index = replacement.indexOf(t);
       if (index !== -1) {
         continue;
@@ -1991,7 +2009,7 @@ var ObservableList = class {
     }
     for (let i = 0; i < replacement.length; i++) {
       const t = replacement[i];
-      const index = this.list.indexOf(t);
+      const index = this._list.indexOf(t);
       if (index !== -1) {
         continue;
       }
@@ -2000,12 +2018,12 @@ var ObservableList = class {
     const changedItems = [];
     for (let i = 0; i < replacement.length; i++) {
       const t = replacement[i];
-      const resultIndex = this.list.indexOf(t);
+      const resultIndex = this._list.indexOf(t);
       if (resultIndex === i) {
         continue;
       }
-      this.list.splice(resultIndex, 1);
-      this.list.splice(i, 0, t);
+      this._list.splice(resultIndex, 1);
+      this._list.splice(i, 0, t);
       changedItems.push({ item: t, from: resultIndex, to: i });
     }
     if (changedItems.length <= 0) {
@@ -2019,17 +2037,17 @@ var ObservableList = class {
     this._onAnyChange.dispatch(event);
   }
   indexOf(item) {
-    return this.list.indexOf(item);
+    return this._list.indexOf(item);
   }
   lastIndexOf(item) {
-    return this.list.lastIndexOf(item);
+    return this._list.lastIndexOf(item);
   }
   contains(item) {
-    return this.list.indexOf(item) !== -1;
+    return this._list.indexOf(item) !== -1;
   }
   insert(index, item) {
     const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions;
-    this.list.splice(index, 0, item);
+    this._list.splice(index, 0, item);
     if (!hasSubscriptions) {
       return;
     }
@@ -2044,10 +2062,10 @@ var ObservableList = class {
   removeAt(index) {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
-      this.list.splice(index, 1);
+      this._list.splice(index, 1);
       return;
     }
-    const removed = this.list.splice(index, 1);
+    const removed = this._list.splice(index, 1);
     if (removed.length === 0) {
       return;
     }
@@ -2060,26 +2078,26 @@ var ObservableList = class {
     this._onAnyChange.dispatch(event);
   }
   get asReadonly() {
-    return [...this.list];
+    return Object.freeze([...this._list]);
   }
   sort(compareFn) {
     const hasSubscriptions = this._onMove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
-      this.list.sort(compareFn);
+      this._list.sort(compareFn);
       return;
     }
-    const array = this.list.slice();
+    const array = this._list.slice();
     array.sort(compareFn);
     this.updateSorted(array);
   }
   clear() {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
-      this.list.length = 0;
+      this._list.length = 0;
       return;
     }
-    const items = this.list.slice();
-    this.list.length = 0;
+    const items = this._list.slice();
+    this._list.length = 0;
     const event = {
       type: "remove",
       items,
@@ -2092,7 +2110,7 @@ var ObservableList = class {
     const itemCount = sortedItems.length;
     const items = [];
     for (let i = 0; i < itemCount; i++) {
-      const item = this.list[i];
+      const item = this._list[i];
       const endPosition = sortedItems.indexOf(item);
       const distance = endPosition - i;
       items.push({
@@ -2163,8 +2181,8 @@ var ObservableList = class {
           to: item.index
         }]
       };
-      this.list.splice(moveFrom, 1);
-      this.list.splice(item.index, 0, item.item);
+      this._list.splice(moveFrom, 1);
+      this._list.splice(item.index, 0, item.item);
       this._onMove.dispatch(event);
       this._onAnyChange.dispatch(event);
     }
@@ -2204,10 +2222,14 @@ export {
   arrayEqualityComparer,
   combine,
   createConst,
+  createConst as createConstVar,
   createDelayDispatcher,
   createDelegate,
+  createDelegate as createDelegateVar,
   createDirect,
+  createDirect as createDirectVar,
   createFuncVar,
+  createFuncVar as createLazyVar,
   createVar,
   defaultEqualityComparer,
   functionEqualityComparer,
