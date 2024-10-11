@@ -1,3 +1,4 @@
+import { createConst, createDelegate, createDirect, createFuncVar } from "./functions"
 import {Variable} from "./variable"
 import {MutableVariable} from "./vars"
 import {ConstantVariable} from "./vars"
@@ -13,4 +14,8 @@ export {
   ConstantVariable as ReadonlyVar,
   FuncVariable as FuncVar,
   FuncVariable as LazyVariable,
+  createFuncVar as createLazyVar,
+  createConst as createConstVar,
+  createDelegate as createDelegateVar,
+  createDirect as createDirectVar,
 }

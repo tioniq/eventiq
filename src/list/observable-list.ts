@@ -45,15 +45,41 @@ export interface ObservableListMoveEvent<T> extends ObservableListChangeBaseEven
  * @alpha
  */
 export class ObservableList<T> {
-  private readonly list: T[];
-  private readonly _onRemove = new EventDispatcher<ObservableListRemoveEvent<T>>();
-  private readonly _onAdd = new EventDispatcher<ObservableListAddEvent<T>>();
-  private readonly _onReplace = new EventDispatcher<ObservableListReplaceEvent<T>>();
-  private readonly _onMove = new EventDispatcher<ObservableListMoveEvent<T>>();
-  private readonly _onAnyChange = new EventDispatcher<ObservableListChangeEvent<T>>();
+  /**
+   * @internal
+   */
+  private readonly _list: T[];
+  /**
+   * @internal
+   */
+  private readonly _onRemove = new EventDispatcher<ObservableListRemoveEvent<T>>()
+
+  /**
+   * @internal
+   */
+
+  /**
+   * @internal
+   */
+  private readonly _onAdd = new EventDispatcher<ObservableListAddEvent<T>>()
+
+  /**
+   * @internal
+   */
+  private readonly _onReplace = new EventDispatcher<ObservableListReplaceEvent<T>>()
+
+  /**
+   * @internal
+   */
+  private readonly _onMove = new EventDispatcher<ObservableListMoveEvent<T>>()
+
+  /**
+   * @internal
+   */
+  private readonly _onAnyChange = new EventDispatcher<ObservableListChangeEvent<T>>()
 
   constructor(items?: T[]) {
-    this.list = Array.isArray(items) ? [...items] : [];
+    this._list = Array.isArray(items) ? [...items] : [];
   }
 
   get onRemove(): EventObserver<ObservableListRemoveEvent<T>> {
@@ -77,21 +103,21 @@ export class ObservableList<T> {
   }
 
   get length(): number {
-    return this.list.length
+    return this._list.length
   }
 
   get(index: number): T {
-    return this.list[index]
+    return this._list[index]
   }
 
   set(index: number, value: T): void {
     const hasSubscriptions = this._onReplace.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
-      this.list[index] = value;
+      this._list[index] = value;
       return
     }
-    const old = this.list[index];
-    this.list[index] = value;
+    const old = this._list[index];
+    this._list[index] = value;
     const event: ObservableListReplaceEvent<T> = {
       type: "replace",
       oldItems: [old],
@@ -113,48 +139,48 @@ export class ObservableList<T> {
     if (items.length === 1) {
       const item = items[0]
       const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions;
-      this.list.push(item);
+      this._list.push(item);
       if (!hasSubscriptions) {
         return;
       }
       const event: ObservableListAddEvent<T> = {
         type: "add",
         items: [item],
-        startIndex: this.list.length - 1
+        startIndex: this._list.length - 1
       }
       this._onAdd.dispatch(event);
       this._onAnyChange.dispatch(event);
       return
     }
     const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions;
-    this.list.push(...items);
+    this._list.push(...items);
     if (!hasSubscriptions) {
       return;
     }
     const event: ObservableListAddEvent<T> = {
       type: "add",
       items: [...items],
-      startIndex: this.list.length - items.length
+      startIndex: this._list.length - items.length
     }
     this._onAdd.dispatch(event);
     this._onAnyChange.dispatch(event);
   }
 
   copyTo(array: T[]): void {
-    array.push(...this.list)
+    array.push(...this._list)
   }
 
   getRange(index: number, count: number): T[] {
-    return this.list.slice(index, index + count)
+    return this._list.slice(index, index + count)
   }
 
   insertRange(index: number, items: T[]): void {
     const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
-      this.list.splice(index, 0, ...items)
+      this._list.splice(index, 0, ...items)
       return
     }
-    this.list.splice(index, 0, ...items)
+    this._list.splice(index, 0, ...items)
     const event: ObservableListAddEvent<T> = {
       type: "add",
       items: [...items],
@@ -166,11 +192,11 @@ export class ObservableList<T> {
 
   remove(item: T): boolean {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
-    const index = this.list.indexOf(item)
+    const index = this._list.indexOf(item)
     if (index === -1) {
       return false
     }
-    this.list.splice(index, 1)
+    this._list.splice(index, 1)
     if (!hasSubscriptions) {
       return true
     }
@@ -187,11 +213,11 @@ export class ObservableList<T> {
   removeRange(index: number, count: number): void {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
-      this.list.splice(index, count)
+      this._list.splice(index, count)
       return
     }
-    const items = this.list.slice(index, index + count)
-    this.list.splice(index, count)
+    const items = this._list.slice(index, index + count)
+    this._list.splice(index, count)
     const event: ObservableListRemoveEvent<T> = {
       type: "remove",
       items: items,
@@ -202,7 +228,7 @@ export class ObservableList<T> {
   }
 
   toArray(): T[] {
-    return this.list.slice()
+    return this._list.slice()
   }
 
   private get _hasAnySubscription() {
@@ -213,16 +239,16 @@ export class ObservableList<T> {
 
   replace(replacement: T[]): void {
     if (!this._hasAnySubscription) {
-      this.list.length = 0
-      this.list.push(...replacement)
+      this._list.length = 0
+      this._list.push(...replacement)
       return
     }
-    if (this.list.length === 0) {
+    if (this._list.length === 0) {
       this.insertRange(0, replacement)
       return
     }
-    for (let i = this.list.length - 1; i >= 0; i--) {
-      const t = this.list[i]
+    for (let i = this._list.length - 1; i >= 0; i--) {
+      const t = this._list[i]
       const index = replacement.indexOf(t)
       if (index !== -1) {
         continue
@@ -231,7 +257,7 @@ export class ObservableList<T> {
     }
     for (let i = 0; i < replacement.length; i++) {
       const t = replacement[i]
-      const index = this.list.indexOf(t)
+      const index = this._list.indexOf(t)
       if (index !== -1) {
         continue
       }
@@ -240,12 +266,12 @@ export class ObservableList<T> {
     const changedItems: { item: T, from: number, to: number }[] = []
     for (let i = 0; i < replacement.length; i++) {
       const t = replacement[i]
-      const resultIndex = this.list.indexOf(t)
+      const resultIndex = this._list.indexOf(t)
       if (resultIndex === i) {
         continue
       }
-      this.list.splice(resultIndex, 1)
-      this.list.splice(i, 0, t)
+      this._list.splice(resultIndex, 1)
+      this._list.splice(i, 0, t)
       changedItems.push({item: t, from: resultIndex, to: i})
     }
     if (changedItems.length <= 0) {
@@ -260,20 +286,20 @@ export class ObservableList<T> {
   }
 
   indexOf(item: T): number {
-    return this.list.indexOf(item)
+    return this._list.indexOf(item)
   }
 
   lastIndexOf(item: T): number {
-    return this.list.lastIndexOf(item)
+    return this._list.lastIndexOf(item)
   }
 
   contains(item: T): boolean {
-    return this.list.indexOf(item) !== -1
+    return this._list.indexOf(item) !== -1
   }
 
   insert(index: number, item: T): void {
     const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions
-    this.list.splice(index, 0, item)
+    this._list.splice(index, 0, item)
     if (!hasSubscriptions) {
       return
     }
@@ -289,10 +315,10 @@ export class ObservableList<T> {
   removeAt(index: number): void {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
-      this.list.splice(index, 1)
+      this._list.splice(index, 1)
       return
     }
-    const removed = this.list.splice(index, 1)
+    const removed = this._list.splice(index, 1)
     if (removed.length === 0) {
       return
     }
@@ -306,17 +332,16 @@ export class ObservableList<T> {
   }
 
   get asReadonly(): ReadonlyArray<T> {
-    // TODO
-    return [...this.list]
+    return Object.freeze([...this._list])
   }
 
   sort(compareFn?: (a: T, b: T) => number): void {
     const hasSubscriptions = this._onMove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
-      this.list.sort(compareFn);
+      this._list.sort(compareFn);
       return;
     }
-    const array = this.list.slice();
+    const array = this._list.slice();
     array.sort(compareFn);
     this.updateSorted(array)
   }
@@ -324,11 +349,11 @@ export class ObservableList<T> {
   clear(): void {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
-      this.list.length = 0
+      this._list.length = 0
       return
     }
-    const items = this.list.slice()
-    this.list.length = 0
+    const items = this._list.slice()
+    this._list.length = 0
     const event: ObservableListRemoveEvent<T> = {
       type: "remove",
       items: items,
@@ -342,7 +367,7 @@ export class ObservableList<T> {
     const itemCount = sortedItems.length
     const items: SortItemData<T>[] = []
     for (let i = 0; i < itemCount; i++) {
-      const item = this.list[i]
+      const item = this._list[i]
       const endPosition = sortedItems.indexOf(item)
       const distance = endPosition - i
       items.push({
@@ -416,8 +441,8 @@ export class ObservableList<T> {
           to: item.index
         }]
       }
-      this.list.splice(moveFrom, 1)
-      this.list.splice(item.index, 0, item.item!)
+      this._list.splice(moveFrom, 1)
+      this._list.splice(item.index, 0, item.item!)
       this._onMove.dispatch(event)
       this._onAnyChange.dispatch(event)
     }
