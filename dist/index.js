@@ -1501,6 +1501,11 @@ var EventDispatcher = class extends EventObserver {
 
 // src/events/stub.ts
 import { emptyDisposable as emptyDisposable4 } from "@tioniq/disposiq";
+var EventObserverStub = class extends EventObserver {
+  subscribe() {
+    return emptyDisposable4;
+  }
+};
 
 // src/events/lazy.ts
 import {
@@ -1562,6 +1567,15 @@ var LazyEventDispatcher = class extends EventObserver {
 
 // src/events/functions.ts
 import { DisposableStore as DisposableStore5 } from "@tioniq/disposiq";
+function merge(...observers) {
+  return new LazyEventDispatcher((dispatcher) => {
+    const disposableStore = new DisposableStore5();
+    for (const t of observers) {
+      disposableStore.add(t.subscribe((v) => dispatcher.dispatch(v)));
+    }
+    return disposableStore;
+  });
+}
 
 // src/events/extensions.ts
 import { DisposableContainer as DisposableContainer9, emptyDisposable as emptyDisposable5 } from "@tioniq/disposiq";
@@ -2197,10 +2211,14 @@ export {
   ConstantVariable,
   DelegateVariable,
   DirectVariable,
+  EventDispatcher,
+  EventObserver,
+  EventObserverStub,
   FuncVariable as FuncVar,
   FuncVariable,
   ConstantVariable as ImmutableVar,
   InvertVariable,
+  LazyEventDispatcher,
   FuncVariable as LazyVariable,
   LinkedChain,
   MapVariable,
@@ -2237,6 +2255,7 @@ export {
   isVariable,
   isVariableOf,
   max,
+  merge,
   min,
   objectEqualityComparer,
   or,

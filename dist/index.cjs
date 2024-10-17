@@ -28,10 +28,14 @@ __export(src_exports, {
   ConstantVariable: () => ConstantVariable,
   DelegateVariable: () => DelegateVariable,
   DirectVariable: () => DirectVariable,
+  EventDispatcher: () => EventDispatcher,
+  EventObserver: () => EventObserver,
+  EventObserverStub: () => EventObserverStub,
   FuncVar: () => FuncVariable,
   FuncVariable: () => FuncVariable,
   ImmutableVar: () => ConstantVariable,
   InvertVariable: () => InvertVariable,
+  LazyEventDispatcher: () => LazyEventDispatcher,
   LazyVariable: () => FuncVariable,
   LinkedChain: () => LinkedChain,
   MapVariable: () => MapVariable,
@@ -68,6 +72,7 @@ __export(src_exports, {
   isVariable: () => isVariable,
   isVariableOf: () => isVariableOf,
   max: () => max,
+  merge: () => merge,
   min: () => min,
   objectEqualityComparer: () => objectEqualityComparer,
   or: () => or,
@@ -1580,6 +1585,11 @@ var EventDispatcher = class extends EventObserver {
 
 // src/events/stub.ts
 var import_disposiq17 = require("@tioniq/disposiq");
+var EventObserverStub = class extends EventObserver {
+  subscribe() {
+    return import_disposiq17.emptyDisposable;
+  }
+};
 
 // src/events/lazy.ts
 var import_disposiq18 = require("@tioniq/disposiq");
@@ -1637,6 +1647,15 @@ var LazyEventDispatcher = class extends EventObserver {
 
 // src/events/functions.ts
 var import_disposiq19 = require("@tioniq/disposiq");
+function merge(...observers) {
+  return new LazyEventDispatcher((dispatcher) => {
+    const disposableStore = new import_disposiq19.DisposableStore();
+    for (const t of observers) {
+      disposableStore.add(t.subscribe((v) => dispatcher.dispatch(v)));
+    }
+    return disposableStore;
+  });
+}
 
 // src/events/extensions.ts
 var import_disposiq20 = require("@tioniq/disposiq");
@@ -2268,10 +2287,14 @@ var ObservableList = class {
   ConstantVariable,
   DelegateVariable,
   DirectVariable,
+  EventDispatcher,
+  EventObserver,
+  EventObserverStub,
   FuncVar,
   FuncVariable,
   ImmutableVar,
   InvertVariable,
+  LazyEventDispatcher,
   LazyVariable,
   LinkedChain,
   MapVariable,
@@ -2308,6 +2331,7 @@ var ObservableList = class {
   isVariable,
   isVariableOf,
   max,
+  merge,
   min,
   objectEqualityComparer,
   or,

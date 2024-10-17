@@ -69,6 +69,83 @@ interface EventObserver<T> {
     where(condition: Func<T, boolean>): EventObserver<T>;
 }
 
+/**
+ * A class that implements the EventObserver class and provides the ability to dispatch events by calling the `dispatch`
+ * method
+ * @typeparam T - the type of the event value
+ */
+declare class EventDispatcher<T = void> extends EventObserver<T> {
+    subscribe(action: Action$1<T>): Disposiq;
+    /**
+     * Dispatches the event to all subscribers
+     * @param value the value of the event
+     */
+    dispatch(value: T): void;
+    /**
+     * Checks if there are any subscriptions
+     * @returns true if there are any subscriptions, false otherwise
+     */
+    get hasSubscriptions(): boolean;
+}
+/**
+ * EventDispatcher extensions
+ */
+interface EventDispatcher<T> {
+    /**
+     * Dispatches the event to all subscribers. If an error occurs while dispatching the event, it will be caught
+     * @param value the value of the event
+     */
+    dispatchSafe(value: T): void;
+}
+
+/**
+ * A stub for the EventObserver class.
+ * <p>
+ *   The purpose of this class is to provide a stub for the EventObserver class that does nothing
+ * </p>
+ * @typeparam T - the type of the event value
+ */
+declare class EventObserverStub<T> extends EventObserver<T> {
+    subscribe(): Disposiq;
+}
+
+/**
+ * A class that implements the EventObserver class in a lazy way. The implementation receives an activator function.
+ * The activator will be activated only when there is at least one subscription. When the last subscription is disposed,
+ * the activator will be deactivated. The activator can be reactivated when a new subscription is added.
+ * <p>
+ *   This class is useful when you need to activate some resources only when there are subscribers.
+ *   subscribers.
+ * </p>
+ * @typeparam T - the type of the event value
+ */
+declare class LazyEventDispatcher<T = void> extends EventObserver<T> {
+    private readonly _nodes;
+    private readonly _subscription;
+    private readonly _activator;
+    constructor(activator: Func<LazyEventDispatcher<T>, IDisposable>);
+    /**
+     * Checks if there are any subscriptions
+     * @returns true if there are any subscriptions, false otherwise
+     */
+    get hasSubscription(): boolean;
+    subscribe(callback: Action$1<T>): Disposiq;
+    /**
+     * Dispatches the event to all subscribers
+     * @param value the value of the event
+     */
+    dispatch(value: T): void;
+}
+
+/**
+ * Merges multiple event observers into a single event observer. The resulting event observer will dispatch events
+ * from all the given event observers.
+ * @param observers the event observers to merge
+ * @returns the merged event observer
+ * @typeparam T - the type of the event value
+ */
+declare function merge<T>(...observers: EventObserver<T>[]): EventObserver<T>;
+
 type EqualityComparer<T> = (a: T, b: T) => boolean;
 declare function strictEqualityComparer<T>(a: T, b: T): boolean;
 declare function simpleEqualityComparer<T>(a: T, b: T): boolean;
@@ -841,4 +918,4 @@ declare class ObservableList<T> {
     private updateSorted;
 }
 
-export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createConst as createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isVariable, isVariableOf, max, min, objectEqualityComparer, or, simpleEqualityComparer, strictEqualityComparer, sum };
+export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, EventDispatcher, EventObserver, EventObserverStub, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, LazyEventDispatcher, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createConst as createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isVariable, isVariableOf, max, merge, min, objectEqualityComparer, or, simpleEqualityComparer, strictEqualityComparer, sum };
