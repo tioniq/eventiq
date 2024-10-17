@@ -6,6 +6,7 @@ export * from "./is"
 export * from "./linked-chain"
 export * from "./types"
 export * from "./variable"
+export * from "./events"
 
 import "./extensions"
 
