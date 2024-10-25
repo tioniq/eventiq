@@ -1,4 +1,12 @@
-import {isVariable, isVariableOf, MutableVariable, VarOrVal} from "../src";
+import {
+  createDelegateVar,
+  isDelegateVariable,
+  isMutableVariable,
+  isVariable,
+  isVariableOf,
+  MutableVariable,
+  VarOrVal
+} from "../src";
 
 describe('is var', () => {
   it('should check inheritance', () => {
@@ -78,5 +86,24 @@ describe('is var', () => {
       const val = var1
       expect(val).toBe("test")
     }
+  })
+
+  it('should check if variable is mutable', () => {
+    const mutableVar = new MutableVariable("test")
+    const mappedVariable = mutableVar.map(w => w)
+
+    expect(isMutableVariable(mutableVar)).toBe(true)
+    expect(isMutableVariable(createDelegateVar("test"))).toBe(false)
+    expect(isMutableVariable(mappedVariable)).toBe(false)
+  })
+
+  it('should check if variable is delegate', () => {
+    const mutableVar = new MutableVariable("test")
+    const delegateVar = createDelegateVar(mutableVar)
+    const mappedVariable = mutableVar.map(w => w)
+
+    expect(isDelegateVariable(delegateVar)).toBe(true)
+    expect(isDelegateVariable(mutableVar)).toBe(false)
+    expect(isDelegateVariable(mappedVariable)).toBe(false)
   })
 })

@@ -845,14 +845,14 @@ var DirectVariable = class extends Variable {
 };
 
 // src/vars/func.ts
-import { DisposableContainer as DisposableContainer2 } from "@tioniq/disposiq";
+import { DisposableContainer as DisposableContainer2, toDisposable } from "@tioniq/disposiq";
 var FuncVariable = class extends CompoundVariable {
   constructor(activate, exactValue) {
     super(null);
     const disposable = new DisposableContainer2();
     this._activator = (self) => {
       disposable.disposeCurrent();
-      disposable.set(activate(self));
+      disposable.set(toDisposable(activate(self)));
     };
     this._deactivator = () => {
       disposable.disposeCurrent();
@@ -1508,15 +1508,17 @@ var EventObserverStub = class extends EventObserver {
 };
 
 // src/events/lazy.ts
-import {
-  DisposableAction as DisposableAction6,
-  DisposableContainer as DisposableContainer8,
-  toDisposable
-} from "@tioniq/disposiq";
+import { DisposableAction as DisposableAction6, DisposableContainer as DisposableContainer8, toDisposable as toDisposable2 } from "@tioniq/disposiq";
 var LazyEventDispatcher = class extends EventObserver {
   constructor(activator) {
     super();
+    /**
+     * @internal
+     */
     this._nodes = new LinkedChain(functionEqualityComparer);
+    /**
+     * @internal
+     */
     this._subscription = new DisposableContainer8();
     this._activator = activator;
   }
@@ -1555,7 +1557,7 @@ var LazyEventDispatcher = class extends EventObserver {
    */
   _activate() {
     this._subscription.disposeCurrent();
-    this._subscription.set(toDisposable(this._activator(this)));
+    this._subscription.set(toDisposable2(this._activator(this)));
   }
   /**
    * @internal
@@ -1677,7 +1679,7 @@ import {
   DisposableAction as DisposableAction8,
   DisposableContainer as DisposableContainer10,
   emptyDisposable as emptyDisposable6,
-  toDisposable as toDisposable2
+  toDisposable as toDisposable3
 } from "@tioniq/disposiq";
 
 // src/noop.ts
@@ -1689,7 +1691,7 @@ Variable.prototype.subscribeDisposable = function(callback) {
   const container = new DisposableContainer10();
   const subscription = this.subscribe((v) => {
     container.disposeCurrent();
-    container.set(toDisposable2(callback(v)));
+    container.set(toDisposable3(callback(v)));
   });
   return new DisposableAction8(() => {
     subscription.dispose();
@@ -1838,6 +1840,12 @@ function isVariableOf(value, typeCheckerOrExampleValue) {
   }
   return checker(value.value);
 }
+function isMutableVariable(value) {
+  return value instanceof MutableVariable;
+}
+function isDelegateVariable(value) {
+  return value instanceof DelegateVariable;
+}
 
 // src/list/observable-list.ts
 var ObservableList = class {
@@ -1867,27 +1875,55 @@ var ObservableList = class {
     this._onAnyChange = new EventDispatcher();
     this._list = Array.isArray(items) ? [...items] : [];
   }
+  /**
+   * An event that is triggered when an item is removed from the list
+   */
   get onRemove() {
     return this._onRemove;
   }
+  /**
+   * An event that is triggered when an item is added to the list
+   */
   get onAdd() {
     return this._onAdd;
   }
+  /**
+   * An event that is triggered when an item is replaced in the list
+   */
   get onReplace() {
     return this._onReplace;
   }
+  /**
+   * An event that is triggered when an item is moved in the list
+   */
   get onMove() {
     return this._onMove;
   }
+  /**
+   * An event that is triggered when any change is made to the list
+   */
   get onAnyChange() {
     return this._onAnyChange;
   }
+  /**
+   * The number of items in the list
+   */
   get length() {
     return this._list.length;
   }
+  /**
+   * Gets the item at the specified index
+   * @param index the index of the item
+   * @returns the item at the specified index
+   */
   get(index) {
     return this._list[index];
   }
+  /**
+   * Sets the item at the specified index
+   * @param index the index of the item
+   * @param value the new value of the item
+   */
   set(index, value) {
     const hasSubscriptions = this._onReplace.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
@@ -1905,9 +1941,17 @@ var ObservableList = class {
     this._onReplace.dispatch(event);
     this._onAnyChange.dispatch(event);
   }
+  /**
+   * Adds vararg items to the list
+   * @param items
+   */
   push(...items) {
     this.pushAll(items);
   }
+  /**
+   * Adds items to the list
+   * @param items
+   */
   pushAll(items) {
     if (items === void 0 || items.length === 0) {
       return;
@@ -1941,12 +1985,26 @@ var ObservableList = class {
     this._onAdd.dispatch(event);
     this._onAnyChange.dispatch(event);
   }
+  /**
+   * Copies the items to the specified array
+   * @param array the array to copy the items to
+   */
   copyTo(array) {
     array.push(...this._list);
   }
+  /**
+   * Gets a range of items from the list
+   * @param index the index of the first item
+   * @param count the number of items to get
+   */
   getRange(index, count) {
     return this._list.slice(index, index + count);
   }
+  /**
+   * Insert items at the specified index
+   * @param index the index to insert the items at
+   * @param items the items to insert
+   */
   insertRange(index, items) {
     const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
@@ -1962,6 +2020,11 @@ var ObservableList = class {
     this._onAdd.dispatch(event);
     this._onAnyChange.dispatch(event);
   }
+  /**
+   * Removes the specified item from the list
+   * @param item the item to remove
+   * @returns true if the item was removed, false otherwise
+   */
   remove(item) {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     const index = this._list.indexOf(item);
@@ -1981,6 +2044,11 @@ var ObservableList = class {
     this._onAnyChange.dispatch(event);
     return true;
   }
+  /**
+   * Removes a range of items from the list
+   * @param index the index of the first item to remove
+   * @param count the number of items to remove
+   */
   removeRange(index, count) {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
@@ -1997,12 +2065,19 @@ var ObservableList = class {
     this._onRemove.dispatch(event);
     this._onAnyChange.dispatch(event);
   }
+  /**
+   * Creates a new array with the items of the list
+   */
   toArray() {
     return this._list.slice();
   }
   get _hasAnySubscription() {
     return this._onRemove.hasSubscriptions || this._onAdd.hasSubscriptions || this._onReplace.hasSubscriptions || this._onMove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
   }
+  /**
+   * Replaces the items in the list with the specified items
+   * @param replacement the items to replace the current items with
+   */
   replace(replacement) {
     if (!this._hasAnySubscription) {
       this._list.length = 0;
@@ -2050,15 +2125,32 @@ var ObservableList = class {
     this._onMove.dispatch(event);
     this._onAnyChange.dispatch(event);
   }
+  /**
+   * Gets the index of the specified item
+   * @param item the item to get the index of
+   */
   indexOf(item) {
     return this._list.indexOf(item);
   }
+  /**
+   * Gets the last index of the specified item
+   * @param item the item to get the last index of
+   */
   lastIndexOf(item) {
     return this._list.lastIndexOf(item);
   }
+  /**
+   * Checks if the list contains the specified item
+   * @param item the item to check
+   */
   contains(item) {
     return this._list.indexOf(item) !== -1;
   }
+  /**
+   * Inserts the specified item at the specified index
+   * @param index the index to insert the item at
+   * @param item the item to insert
+   */
   insert(index, item) {
     const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     this._list.splice(index, 0, item);
@@ -2073,6 +2165,10 @@ var ObservableList = class {
     this._onAdd.dispatch(event);
     this._onAnyChange.dispatch(event);
   }
+  /**
+   * Removes the item at the specified index
+   * @param index the index of the item to remove
+   */
   removeAt(index) {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
@@ -2091,9 +2187,16 @@ var ObservableList = class {
     this._onRemove.dispatch(event);
     this._onAnyChange.dispatch(event);
   }
+  /**
+   * Gets a readonly array of the current items in the list
+   */
   get asReadonly() {
     return Object.freeze([...this._list]);
   }
+  /**
+   * Sorts the list
+   * @param compareFn the compare function to use for sorting the list
+   */
   sort(compareFn) {
     const hasSubscriptions = this._onMove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
@@ -2104,6 +2207,9 @@ var ObservableList = class {
     array.sort(compareFn);
     this.updateSorted(array);
   }
+  /**
+   * Clears the list
+   */
   clear() {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
@@ -2252,6 +2358,8 @@ export {
   defaultEqualityComparer,
   functionEqualityComparer,
   generalEqualityComparer,
+  isDelegateVariable,
+  isMutableVariable,
   isVariable,
   isVariableOf,
   max,

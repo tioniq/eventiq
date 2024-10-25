@@ -1,4 +1,4 @@
-import { Disposiq, IDisposable } from '@tioniq/disposiq';
+import { Disposiq, DisposableLike, IDisposable } from '@tioniq/disposiq';
 
 type Action$1<T = void> = (value: T) => void;
 type Func0<R> = () => R;
@@ -120,10 +120,7 @@ declare class EventObserverStub<T> extends EventObserver<T> {
  * @typeparam T - the type of the event value
  */
 declare class LazyEventDispatcher<T = void> extends EventObserver<T> {
-    private readonly _nodes;
-    private readonly _subscription;
-    private readonly _activator;
-    constructor(activator: Func<LazyEventDispatcher<T>, IDisposable>);
+    constructor(activator: Func<LazyEventDispatcher<T>, DisposableLike>);
     /**
      * Checks if there are any subscriptions
      * @returns true if there are any subscriptions, false otherwise
@@ -502,7 +499,7 @@ declare class DirectVariable<T> extends Variable<T> {
  * If there is no subscription, the variable will return the exact value provided by the `exactValue` function
  */
 declare class FuncVariable<T> extends CompoundVariable<T> {
-    constructor(activate: Func<FuncVariable<T>, IDisposable>, exactValue: Func0<T>);
+    constructor(activate: Func<FuncVariable<T>, DisposableLike>, exactValue: Func0<T>);
     get value(): T;
     /**
      * Sets the value of the variable. If the value is the same as the current value, the method will do nothing
@@ -763,6 +760,18 @@ declare function isVariable(value: any): value is Variable<any>;
  * function will return true without checking their properties or inheritance.
  */
 declare function isVariableOf<T>(value: any, typeCheckerOrExampleValue?: ((t: any) => t is T) | T): value is Variable<T>;
+/**
+ * Check if the value is a mutable variable
+ * @param value The value to check
+ * @returns true if the value is a mutable variable, false otherwise
+ */
+declare function isMutableVariable<T>(value: any): value is MutableVariable<T>;
+/**
+ * Check if the value is a delegate variable
+ * @param value The value to check
+ * @returns true if the value is a delegate variable, false otherwise
+ */
+declare function isDelegateVariable<T>(value: any): value is DelegateVariable<T>;
 
 type Action<T> = (value: T) => void;
 /**
@@ -889,33 +898,131 @@ interface ObservableListMoveEvent<T> extends ObservableListChangeBaseEvent<T> {
  */
 declare class ObservableList<T> {
     constructor(items?: T[]);
+    /**
+     * An event that is triggered when an item is removed from the list
+     */
     get onRemove(): EventObserver<ObservableListRemoveEvent<T>>;
+    /**
+     * An event that is triggered when an item is added to the list
+     */
     get onAdd(): EventObserver<ObservableListAddEvent<T>>;
+    /**
+     * An event that is triggered when an item is replaced in the list
+     */
     get onReplace(): EventObserver<ObservableListReplaceEvent<T>>;
+    /**
+     * An event that is triggered when an item is moved in the list
+     */
     get onMove(): EventObserver<ObservableListMoveEvent<T>>;
+    /**
+     * An event that is triggered when any change is made to the list
+     */
     get onAnyChange(): EventObserver<ObservableListChangeEvent<T>>;
+    /**
+     * The number of items in the list
+     */
     get length(): number;
+    /**
+     * Gets the item at the specified index
+     * @param index the index of the item
+     * @returns the item at the specified index
+     */
     get(index: number): T;
+    /**
+     * Sets the item at the specified index
+     * @param index the index of the item
+     * @param value the new value of the item
+     */
     set(index: number, value: T): void;
+    /**
+     * Adds vararg items to the list
+     * @param items
+     */
     push(...items: T[]): void;
+    /**
+     * Adds items to the list
+     * @param items
+     */
     pushAll(items: T[]): void;
+    /**
+     * Copies the items to the specified array
+     * @param array the array to copy the items to
+     */
     copyTo(array: T[]): void;
+    /**
+     * Gets a range of items from the list
+     * @param index the index of the first item
+     * @param count the number of items to get
+     */
     getRange(index: number, count: number): T[];
+    /**
+     * Insert items at the specified index
+     * @param index the index to insert the items at
+     * @param items the items to insert
+     */
     insertRange(index: number, items: T[]): void;
+    /**
+     * Removes the specified item from the list
+     * @param item the item to remove
+     * @returns true if the item was removed, false otherwise
+     */
     remove(item: T): boolean;
+    /**
+     * Removes a range of items from the list
+     * @param index the index of the first item to remove
+     * @param count the number of items to remove
+     */
     removeRange(index: number, count: number): void;
+    /**
+     * Creates a new array with the items of the list
+     */
     toArray(): T[];
     private get _hasAnySubscription();
+    /**
+     * Replaces the items in the list with the specified items
+     * @param replacement the items to replace the current items with
+     */
     replace(replacement: T[]): void;
+    /**
+     * Gets the index of the specified item
+     * @param item the item to get the index of
+     */
     indexOf(item: T): number;
+    /**
+     * Gets the last index of the specified item
+     * @param item the item to get the last index of
+     */
     lastIndexOf(item: T): number;
+    /**
+     * Checks if the list contains the specified item
+     * @param item the item to check
+     */
     contains(item: T): boolean;
+    /**
+     * Inserts the specified item at the specified index
+     * @param index the index to insert the item at
+     * @param item the item to insert
+     */
     insert(index: number, item: T): void;
+    /**
+     * Removes the item at the specified index
+     * @param index the index of the item to remove
+     */
     removeAt(index: number): void;
+    /**
+     * Gets a readonly array of the current items in the list
+     */
     get asReadonly(): ReadonlyArray<T>;
+    /**
+     * Sorts the list
+     * @param compareFn the compare function to use for sorting the list
+     */
     sort(compareFn?: (a: T, b: T) => number): void;
+    /**
+     * Clears the list
+     */
     clear(): void;
     private updateSorted;
 }
 
-export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, EventDispatcher, EventObserver, EventObserverStub, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, LazyEventDispatcher, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createConst as createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isVariable, isVariableOf, max, merge, min, objectEqualityComparer, or, simpleEqualityComparer, strictEqualityComparer, sum };
+export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, EventDispatcher, EventObserver, EventObserverStub, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, LazyEventDispatcher, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createConst as createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isDelegateVariable, isMutableVariable, isVariable, isVariableOf, max, merge, min, objectEqualityComparer, or, simpleEqualityComparer, strictEqualityComparer, sum };

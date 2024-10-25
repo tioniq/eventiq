@@ -1,4 +1,5 @@
-import {Variable} from "./variable";
+import { Variable } from "./variable";
+import { DelegateVariable, MutableVariable } from "./vars";
 
 /**
  * Check if the value is a variable
@@ -33,4 +34,22 @@ export function isVariableOf<T>(value: any, typeCheckerOrExampleValue?: ((t: any
     checker = (v: any) => typeof v === typeof typeCheckerOrExampleValue
   }
   return checker(value.value)
+}
+
+/**
+ * Check if the value is a mutable variable
+ * @param value The value to check
+ * @returns true if the value is a mutable variable, false otherwise
+ */
+export function isMutableVariable<T>(value: any): value is MutableVariable<T> {
+  return value instanceof MutableVariable
+}
+
+/**
+ * Check if the value is a delegate variable
+ * @param value The value to check
+ * @returns true if the value is a delegate variable, false otherwise
+ */
+export function isDelegateVariable<T>(value: any): value is DelegateVariable<T> {
+  return value instanceof DelegateVariable
 }

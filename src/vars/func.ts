@@ -1,6 +1,6 @@
-import {CompoundVariable} from "./compound"
-import {Action, Func, Func0} from "../action"
-import {DisposableContainer, IDisposable} from "@tioniq/disposiq"
+import { CompoundVariable } from "./compound"
+import { Action, Func, Func0 } from "../action"
+import { DisposableContainer, DisposableLike, toDisposable } from "@tioniq/disposiq"
 
 /**
  * A variable that reacts on subscription activation and deactivation using provided function called `activator`.
@@ -22,12 +22,12 @@ export class FuncVariable<T> extends CompoundVariable<T> {
    */
   private readonly _exactValue: Func0<T>
 
-  constructor(activate: Func<FuncVariable<T>, IDisposable>, exactValue: Func0<T>) {
+  constructor(activate: Func<FuncVariable<T>, DisposableLike>, exactValue: Func0<T>) {
     super(null!)
     const disposable = new DisposableContainer()
     this._activator = (self) => {
       disposable.disposeCurrent()
-      disposable.set(activate(self))
+      disposable.set(toDisposable(activate(self)))
     }
     this._deactivator = () => {
       disposable.disposeCurrent()

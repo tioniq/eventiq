@@ -1,14 +1,8 @@
-import {EventObserver} from "./observer"
-import {Action, Func} from "../action"
-import {
-  DisposableAction,
-  DisposableContainer,
-  Disposiq,
-  IDisposable,
-  toDisposable
-} from "@tioniq/disposiq"
-import {functionEqualityComparer} from "../comparer"
-import {LinkedChain} from "../linked-chain"
+import { EventObserver } from "./observer"
+import { Action, Func } from "../action"
+import { DisposableAction, DisposableContainer, DisposableLike, Disposiq, toDisposable } from "@tioniq/disposiq"
+import { functionEqualityComparer } from "../comparer"
+import { LinkedChain } from "../linked-chain"
 
 /**
  * A class that implements the EventObserver class in a lazy way. The implementation receives an activator function.
@@ -21,11 +15,22 @@ import {LinkedChain} from "../linked-chain"
  * @typeparam T - the type of the event value
  */
 export class LazyEventDispatcher<T = void> extends EventObserver<T> {
+  /**
+   * @internal
+   */
   private readonly _nodes = new LinkedChain<Action<T>>(functionEqualityComparer)
-  private readonly _subscription = new DisposableContainer()
-  private readonly _activator: Func<this, IDisposable>
 
-  constructor(activator: Func<LazyEventDispatcher<T>, IDisposable>) {
+  /**
+   * @internal
+   */
+  private readonly _subscription = new DisposableContainer()
+
+  /**
+   * @internal
+   */
+  private readonly _activator: Func<this, DisposableLike>
+
+  constructor(activator: Func<LazyEventDispatcher<T>, DisposableLike>) {
     super()
     this._activator = activator
   }

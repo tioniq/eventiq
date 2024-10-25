@@ -1,4 +1,4 @@
-import {EventDispatcher, EventObserver} from "../events";
+import { EventDispatcher, EventObserver } from "../events";
 
 export type ObservableListChangeEvent<T> =
   ObservableListRemoveEvent<T>
@@ -82,34 +82,62 @@ export class ObservableList<T> {
     this._list = Array.isArray(items) ? [...items] : [];
   }
 
+  /**
+   * An event that is triggered when an item is removed from the list
+   */
   get onRemove(): EventObserver<ObservableListRemoveEvent<T>> {
     return this._onRemove;
   }
 
+  /**
+   * An event that is triggered when an item is added to the list
+   */
   get onAdd(): EventObserver<ObservableListAddEvent<T>> {
     return this._onAdd;
   }
 
+  /**
+   * An event that is triggered when an item is replaced in the list
+   */
   get onReplace(): EventObserver<ObservableListReplaceEvent<T>> {
     return this._onReplace;
   }
 
+  /**
+   * An event that is triggered when an item is moved in the list
+   */
   get onMove(): EventObserver<ObservableListMoveEvent<T>> {
     return this._onMove;
   }
 
+  /**
+   * An event that is triggered when any change is made to the list
+   */
   get onAnyChange(): EventObserver<ObservableListChangeEvent<T>> {
     return this._onAnyChange;
   }
 
+  /**
+   * The number of items in the list
+   */
   get length(): number {
     return this._list.length
   }
 
+  /**
+   * Gets the item at the specified index
+   * @param index the index of the item
+   * @returns the item at the specified index
+   */
   get(index: number): T {
     return this._list[index]
   }
 
+  /**
+   * Sets the item at the specified index
+   * @param index the index of the item
+   * @param value the new value of the item
+   */
   set(index: number, value: T): void {
     const hasSubscriptions = this._onReplace.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
@@ -128,10 +156,18 @@ export class ObservableList<T> {
     this._onAnyChange.dispatch(event);
   }
 
+  /**
+   * Adds vararg items to the list
+   * @param items
+   */
   push(...items: T[]): void {
     this.pushAll(items)
   }
 
+  /**
+   * Adds items to the list
+   * @param items
+   */
   pushAll(items: T[]): void {
     if (items === undefined || items.length === 0) {
       return
@@ -166,14 +202,28 @@ export class ObservableList<T> {
     this._onAnyChange.dispatch(event);
   }
 
+  /**
+   * Copies the items to the specified array
+   * @param array the array to copy the items to
+   */
   copyTo(array: T[]): void {
     array.push(...this._list)
   }
 
+  /**
+   * Gets a range of items from the list
+   * @param index the index of the first item
+   * @param count the number of items to get
+   */
   getRange(index: number, count: number): T[] {
     return this._list.slice(index, index + count)
   }
 
+  /**
+   * Insert items at the specified index
+   * @param index the index to insert the items at
+   * @param items the items to insert
+   */
   insertRange(index: number, items: T[]): void {
     const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
@@ -190,6 +240,11 @@ export class ObservableList<T> {
     this._onAnyChange.dispatch(event)
   }
 
+  /**
+   * Removes the specified item from the list
+   * @param item the item to remove
+   * @returns true if the item was removed, false otherwise
+   */
   remove(item: T): boolean {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
     const index = this._list.indexOf(item)
@@ -210,6 +265,11 @@ export class ObservableList<T> {
     return true
   }
 
+  /**
+   * Removes a range of items from the list
+   * @param index the index of the first item to remove
+   * @param count the number of items to remove
+   */
   removeRange(index: number, count: number): void {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
@@ -227,6 +287,9 @@ export class ObservableList<T> {
     this._onAnyChange.dispatch(event)
   }
 
+  /**
+   * Creates a new array with the items of the list
+   */
   toArray(): T[] {
     return this._list.slice()
   }
@@ -237,6 +300,10 @@ export class ObservableList<T> {
       this._onAnyChange.hasSubscriptions;
   }
 
+  /**
+   * Replaces the items in the list with the specified items
+   * @param replacement the items to replace the current items with
+   */
   replace(replacement: T[]): void {
     if (!this._hasAnySubscription) {
       this._list.length = 0
@@ -285,18 +352,35 @@ export class ObservableList<T> {
     this._onAnyChange.dispatch(event)
   }
 
+  /**
+   * Gets the index of the specified item
+   * @param item the item to get the index of
+   */
   indexOf(item: T): number {
     return this._list.indexOf(item)
   }
 
+  /**
+   * Gets the last index of the specified item
+   * @param item the item to get the last index of
+   */
   lastIndexOf(item: T): number {
     return this._list.lastIndexOf(item)
   }
 
+  /**
+   * Checks if the list contains the specified item
+   * @param item the item to check
+   */
   contains(item: T): boolean {
     return this._list.indexOf(item) !== -1
   }
 
+  /**
+   * Inserts the specified item at the specified index
+   * @param index the index to insert the item at
+   * @param item the item to insert
+   */
   insert(index: number, item: T): void {
     const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions
     this._list.splice(index, 0, item)
@@ -312,6 +396,10 @@ export class ObservableList<T> {
     this._onAnyChange.dispatch(event)
   }
 
+  /**
+   * Removes the item at the specified index
+   * @param index the index of the item to remove
+   */
   removeAt(index: number): void {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
@@ -331,10 +419,17 @@ export class ObservableList<T> {
     this._onAnyChange.dispatch(event)
   }
 
+  /**
+   * Gets a readonly array of the current items in the list
+   */
   get asReadonly(): ReadonlyArray<T> {
     return Object.freeze([...this._list])
   }
 
+  /**
+   * Sorts the list
+   * @param compareFn the compare function to use for sorting the list
+   */
   sort(compareFn?: (a: T, b: T) => number): void {
     const hasSubscriptions = this._onMove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
@@ -346,6 +441,9 @@ export class ObservableList<T> {
     this.updateSorted(array)
   }
 
+  /**
+   * Clears the list
+   */
   clear(): void {
     const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
     if (!hasSubscriptions) {
