@@ -146,9 +146,9 @@ declare function merge<T>(...observers: EventObserver<T>[]): EventObserver<T>;
 type EqualityComparer<T> = (a: T, b: T) => boolean;
 declare function strictEqualityComparer<T>(a: T, b: T): boolean;
 declare function simpleEqualityComparer<T>(a: T, b: T): boolean;
-declare var defaultEqualityComparer: EqualityComparer<any>;
+declare var defaultEqualityComparer: EqualityComparer<unknown>;
 declare function functionEqualityComparer(a: Function, b: Function): boolean;
-declare function generalEqualityComparer<T extends any>(a: T, b: T): boolean;
+declare function generalEqualityComparer<T>(a: T, b: T): boolean;
 declare function objectEqualityComparer<T extends object>(a: T, b: T): boolean;
 declare function arrayEqualityComparer<K, T extends ArrayLike<K>>(a: T, b: T): boolean;
 
@@ -243,7 +243,7 @@ interface Variable<out T> {
      * @param others the other variables
      * @returns a new variable with the combined values
      */
-    with<O extends any[]>(...others: {
+    with<O extends unknown[]>(...others: {
         [K in keyof O]: Variable<O[K]>;
     }): Variable<[T, ...O]>;
     /**
@@ -428,7 +428,7 @@ declare class AndVariable extends CompoundVariable<boolean> {
  * A variable that combines multiple variables into a single variable. The value presents an array of the values of the
  * variables. The variable will notify the subscribers on any of the variables change
  */
-declare class CombinedVariable<T extends any[]> extends CompoundVariable<T> {
+declare class CombinedVariable<T extends unknown[]> extends CompoundVariable<T> {
     constructor(vars: {
         [K in keyof T]: Variable<T[K]>;
     });
@@ -669,9 +669,10 @@ declare class ThrottledVariable<T> extends CompoundVariable<T> {
 /**
  * Creates a new mutable variable
  * @param initialValue the initial value of the variable
+ * @param equalityComparer the equality comparer to use when checking for changes
  * @returns a new mutable variable
  */
-declare function createVar<T>(initialValue: T): MutableVariable<T>;
+declare function createVar<T>(initialValue: T, equalityComparer?: EqualityComparer<T>): MutableVariable<T>;
 /**
  * Creates a new variable based on FuncVariable parameters
  * @param activator a function that will be called to activate the variable when it is subscribed
@@ -748,7 +749,7 @@ declare function createDelayDispatcher(delay: number): EventObserver;
  * @param value The value to check
  * @returns true if the value is a variable, false otherwise
  */
-declare function isVariable(value: any): value is Variable<any>;
+declare function isVariable(value: unknown): value is Variable<unknown>;
 /**
  * Check if the value is a variable of the specified type
  * @param value The value to check
@@ -759,19 +760,19 @@ declare function isVariable(value: any): value is Variable<any>;
  * matches the type of the example value. This means that if both the value and the example value are objects, the
  * function will return true without checking their properties or inheritance.
  */
-declare function isVariableOf<T>(value: any, typeCheckerOrExampleValue?: ((t: any) => t is T) | T): value is Variable<T>;
+declare function isVariableOf<T>(value: unknown, typeCheckerOrExampleValue?: ((t: unknown) => t is T) | T): value is Variable<T>;
 /**
  * Check if the value is a mutable variable
  * @param value The value to check
  * @returns true if the value is a mutable variable, false otherwise
  */
-declare function isMutableVariable<T>(value: any): value is MutableVariable<T>;
+declare function isMutableVariable<T>(value: unknown): value is MutableVariable<T>;
 /**
  * Check if the value is a delegate variable
  * @param value The value to check
  * @returns true if the value is a delegate variable, false otherwise
  */
-declare function isDelegateVariable<T>(value: any): value is DelegateVariable<T>;
+declare function isDelegateVariable<T>(value: unknown): value is DelegateVariable<T>;
 
 type Action<T> = (value: T) => void;
 /**

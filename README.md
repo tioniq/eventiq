@@ -2,8 +2,12 @@
 
 ![Coverage](./coverage/badges.svg)
 ![npm version](https://img.shields.io/npm/v/@tioniq/eventiq)
+[![JSR](https://jsr.io/badges/@tioniq/eventiq)](https://jsr.io/@tioniq/eventiq)
 [![npm bundle size](https://img.shields.io/bundlephobia/minzip/@tioniq/eventiq)](https://bundlephobia.com/package/@tioniq/eventiq)
 ![license](https://img.shields.io/npm/l/@tioniq/eventiq)
+![tree-shakeable](https://badgen.net/bundlephobia/tree-shaking/@tioniq/eventiq)
+![types](https://badgen.net/npm/types/@tioniq/eventiq)
+![downloads](https://img.shields.io/npm/dt/@tioniq/eventiq)
 
 **Eventiq** is a combination of [Observer](https://en.wikipedia.org/wiki/Observer_pattern)
 and [Dispose](https://en.wikipedia.org/wiki/Dispose_pattern) patterns. The library provides a simple and flexible API
@@ -77,7 +81,7 @@ it works.
 This example demonstrates how to use the `EventObserver` and `EventDispatcher` classes to dispatch and observe events.
 
 ```typescript
-import {EventObserver, EventDispatcher} from '@tioniq/eventiq'
+import { EventObserver, EventDispatcher } from '@tioniq/eventiq'
 
 // EventDispatcher is a simple implementation of EventObserver that has a method to dispatch events
 const dispatcher = new EventDispatcher<number>()
@@ -105,8 +109,8 @@ dispatcher.dispatch(2) // No output
 This example demonstrates how to use the `LazyEventDispatcher` class to dispatch events only when there are subscribers.
 
 ```typescript
-import {LazyEventDispatcher} from '@tioniq/eventiq'
-import {DisposableAction} from "@tioniq/disposiq";
+import { LazyEventDispatcher } from '@tioniq/eventiq'
+import { DisposableAction } from "@tioniq/disposiq";
 
 // LazyEventDispatcher works only when someone is listening
 const dispatcher = new LazyEventDispatcher<number>(dispatcher => {
@@ -148,7 +152,7 @@ The library offers a variety of extensions for the `EventObserver` class, which 
 Below are a few examples of how to use these extensions.
 
 ```typescript
-import {EventDisposer} from '@tioniq/eventiq'
+import { EventDisposer } from '@tioniq/eventiq'
 
 // Create an observer
 const observer = new EventDisposer<number>()
@@ -218,7 +222,7 @@ observer.dispatch(20)
 Eventiq can be helpful in UI components for listening to state changes or handling custom events
 
 ```typescript
-import {EventObserver, EventDispatcher} from '@tioniq/eventiq'
+import { EventObserver, EventDispatcher } from '@tioniq/eventiq'
 
 class ButtonComponent {
   private readonly clickDispatcher = new EventDispatcher<void>()
@@ -249,7 +253,7 @@ state across different parts of your application.
 This example demonstrates how to use the `Variable` class to observe changes of a variable.
 
 ```typescript
-import {Variable, MutableVariable} from '@tioniq/eventiq'
+import { Variable, MutableVariable } from '@tioniq/eventiq'
 
 // Create a variable
 const variable = new MutableVariable<number>(0)
@@ -275,7 +279,7 @@ The subscribeSilent method allows you to subscribe to changes without receiving 
 value.
 
 ```typescript
-import {Variable, MutableVariable} from '@tioniq/eventiq'
+import { Variable, MutableVariable } from '@tioniq/eventiq'
 
 // Create a variable
 const variable = new MutableVariable<number>(0)
@@ -314,7 +318,7 @@ upcoming [Explicit Resource Management API](https://github.com/tc39/proposal-exp
 you to manage resources explicitly. Below is an example of how to utilize this feature.
 
 ```typescript
-import {EventObserver, EventDispatcher} from '@tioniq/eventiq'
+import { EventObserver, EventDispatcher } from '@tioniq/eventiq'
 
 // Create a resource
 const resource = new EventDispatcher<number>()
@@ -356,8 +360,8 @@ This example demonstrates how to use the `Variable` class to show a shop panel w
 balance variable
 
 ```typescript
-import {Var, Vary} from '@tioniq/eventiq'
-import {DisposableStore, IDisposable} from "@tioniq/disposiq";
+import { Var, Vary } from '@tioniq/eventiq'
+import { DisposableStore, IDisposable } from "@tioniq/disposiq";
 
 // Create a balance variable with an initial value of 100
 const balance = new Vary<number>(100)

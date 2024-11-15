@@ -55,8 +55,8 @@ function objectEqualityComparer(a, b) {
   if (!a || !b) {
     return false;
   }
-  let arrayA = Array.isArray(a);
-  let arrayB = Array.isArray(b);
+  const arrayA = Array.isArray(a);
+  const arrayB = Array.isArray(b);
   if (arrayA !== arrayB) {
     return false;
   }
@@ -340,7 +340,7 @@ var LinkedChain = class _LinkedChain {
    * @returns the head node of the chain or null if the chain is empty
    */
   removeAll() {
-    let node = this._head;
+    const node = this._head;
     this._head = null;
     this._tail = null;
     return node;
@@ -350,25 +350,26 @@ var LinkedChain = class _LinkedChain {
    * @param valueHandler the action to invoke for each element
    */
   forEach(valueHandler) {
-    while (valueHandler !== null) {
+    let handler = valueHandler;
+    while (handler !== null) {
       if (this._head !== null) {
         if (this._invoking) {
           if (this._actionHead == null) {
-            this._actionHead = new ChainNode(valueHandler);
+            this._actionHead = new ChainNode(handler);
             return;
           }
           let actionTail = this._actionHead;
           while (actionTail.next !== null) {
             actionTail = actionTail.next;
           }
-          actionTail.next = new ChainNode(valueHandler, actionTail, null);
+          actionTail.next = new ChainNode(handler, actionTail, null);
           return;
         }
         this._invoking = true;
         let node = this._head;
         while (node !== null) {
           if (!node.disposed) {
-            valueHandler(node.value);
+            handler(node.value);
           }
           node = node.next;
         }
@@ -389,14 +390,14 @@ var LinkedChain = class _LinkedChain {
       if (this._actionHead == null) {
         return;
       }
-      let nextActionNode = this._actionHead;
+      const nextActionNode = this._actionHead;
       nextActionNode.disposed = true;
       this._actionHead = nextActionNode.next;
       if (this._actionHead != null) {
         this._actionHead.previous = null;
         nextActionNode.next = null;
       }
-      valueHandler = nextActionNode.value;
+      handler = nextActionNode.value;
     }
   }
   /**
@@ -469,7 +470,8 @@ var LinkedChain = class _LinkedChain {
   /**
    * @internal
    */
-  static _clearNode(node) {
+  static _clearNode(chainNode) {
+    let node = chainNode;
     let root = null;
     let tail = null;
     let next = node;
@@ -685,10 +687,12 @@ var CombinedVariable = class extends CompoundVariable {
     const result = new Array(length);
     for (let i = 0; i < length; ++i) {
       const vary = this._vars[i];
-      this._subscriptions.add(vary.subscribeSilent((value) => {
-        result[i] = value;
-        this.setValueForce(result);
-      }));
+      this._subscriptions.add(
+        vary.subscribeSilent((value) => {
+          result[i] = value;
+          this.setValueForce(result);
+        })
+      );
       result[i] = vary.value;
     }
     this.setValueForce(result);
@@ -731,10 +735,22 @@ var ConstantVariable = class extends Variable {
 };
 
 // src/vars/delegate.ts
-import { DisposableAction as DisposableAction3, DisposableContainer, emptyDisposable as emptyDisposable2 } from "@tioniq/disposiq";
+import {
+  DisposableAction as DisposableAction3,
+  DisposableContainer,
+  emptyDisposable as emptyDisposable2
+} from "@tioniq/disposiq";
 var DelegateVariable = class extends CompoundVariable {
   constructor(sourceOrDefaultValue) {
-    super(sourceOrDefaultValue instanceof Variable ? null : sourceOrDefaultValue != void 0 ? sourceOrDefaultValue : null);
+    super(
+      sourceOrDefaultValue instanceof Variable ? (
+        // biome-ignore lint/style/noNonNullAssertion: base value will not be used
+        null
+      ) : sourceOrDefaultValue != void 0 ? sourceOrDefaultValue : (
+        // biome-ignore lint/style/noNonNullAssertion: base value will not be used
+        null
+      )
+    );
     /**
      * @internal
      */
@@ -762,7 +778,9 @@ var DelegateVariable = class extends CompoundVariable {
     this._source = source;
     this._sourceSubscription.disposeCurrent();
     if (this.active) {
-      this._sourceSubscription.set(source.subscribeSilent((v) => this.setValueForce(v)));
+      this._sourceSubscription.set(
+        source.subscribeSilent((v) => this.setValueForce(v))
+      );
       this.value = source.value;
     }
     return new DisposableAction3(() => {
@@ -777,7 +795,9 @@ var DelegateVariable = class extends CompoundVariable {
       return;
     }
     this._sourceSubscription.disposeCurrent();
-    this._sourceSubscription.set(this._source.subscribeSilent((v) => this.setValueForce(v)));
+    this._sourceSubscription.set(
+      this._source.subscribeSilent((v) => this.setValueForce(v))
+    );
     this.value = this._source.value;
   }
   deactivate() {
@@ -845,7 +865,10 @@ var DirectVariable = class extends Variable {
 };
 
 // src/vars/func.ts
-import { DisposableContainer as DisposableContainer2, toDisposable } from "@tioniq/disposiq";
+import {
+  DisposableContainer as DisposableContainer2,
+  toDisposable
+} from "@tioniq/disposiq";
 var FuncVariable = class extends CompoundVariable {
   constructor(activate, exactValue) {
     super(null);
@@ -901,14 +924,19 @@ var FuncVariable = class extends CompoundVariable {
 };
 
 // src/vars/invert.ts
-import { DisposableAction as DisposableAction4, DisposableContainer as DisposableContainer3 } from "@tioniq/disposiq";
+import {
+  DisposableAction as DisposableAction4,
+  DisposableContainer as DisposableContainer3
+} from "@tioniq/disposiq";
 var InvertVariable = class extends Variable {
   constructor(variable) {
     super();
     /**
      * @internal
      */
-    this._chain = new LinkedChain(functionEqualityComparer);
+    this._chain = new LinkedChain(
+      functionEqualityComparer
+    );
     /**
      * @internal
      */
@@ -948,10 +976,13 @@ var InvertVariable = class extends Variable {
    */
   _activate() {
     this._subscription.disposeCurrent();
-    this._subscription.set(this._variable.subscribeSilent((v) => {
-      const value = this._value = !v;
-      this._chain.forEach((a) => a(value));
-    }));
+    this._subscription.set(
+      this._variable.subscribeSilent((v) => {
+        const value = !v;
+        this._value = value;
+        this._chain.forEach((a) => a(value));
+      })
+    );
     this._value = !this._variable.value;
   }
   /**
@@ -1010,9 +1041,11 @@ var MaxVariable = class extends CompoundVariable {
     const subscriptions = this._subscriptions;
     subscriptions.disposeCurrent();
     for (let i = 0; i < length; ++i) {
-      subscriptions.add(vars[i].subscribeSilent(() => {
-        this.postValue();
-      }));
+      subscriptions.add(
+        vars[i].subscribeSilent(() => {
+          this.postValue();
+        })
+      );
     }
     this.postValue();
   }
@@ -1056,9 +1089,11 @@ var MinVariable = class extends CompoundVariable {
     const subscriptions = this._subscriptions;
     subscriptions.disposeCurrent();
     for (let i = 0; i < length; ++i) {
-      subscriptions.add(vars[i].subscribeSilent(() => {
-        this.postValue();
-      }));
+      subscriptions.add(
+        vars[i].subscribeSilent(() => {
+          this.postValue();
+        })
+      );
     }
     this.postValue();
   }
@@ -1203,7 +1238,11 @@ var OrVariable = class extends CompoundVariable {
 };
 
 // src/vars/seal.ts
-import { DisposableAction as DisposableAction5, DisposableContainer as DisposableContainer5, emptyDisposable as emptyDisposable3 } from "@tioniq/disposiq";
+import {
+  DisposableAction as DisposableAction5,
+  DisposableContainer as DisposableContainer5,
+  emptyDisposable as emptyDisposable3
+} from "@tioniq/disposiq";
 var SealVariable = class extends Variable {
   constructor(vary, equalityComparer) {
     super();
@@ -1218,6 +1257,7 @@ var SealVariable = class extends Variable {
     /**
      * @internal
      */
+    // biome-ignore lint/style/noNonNullAssertion: the field access is safe because it used only in the sealed state
     this._value = null;
     /**
      * @internal
@@ -1285,7 +1325,7 @@ var SealVariable = class extends Variable {
     this._sealed = true;
     this._varSubscription.dispose();
     if (arguments.length === 0) {
-      let currentValue = this._chain.empty ? this._var.value : this._value;
+      const currentValue = this._chain.empty ? this._var.value : this._value;
       this._varSubscription.dispose();
       this._sealValue(currentValue);
       return true;
@@ -1299,10 +1339,12 @@ var SealVariable = class extends Variable {
    */
   _activate() {
     this._varSubscription.disposeCurrent();
-    this._varSubscription.set(this._var.subscribeSilent((v) => {
-      this._value = v;
-      this._chain.forEach((a) => a(v));
-    }));
+    this._varSubscription.set(
+      this._var.subscribeSilent((v) => {
+        this._value = v;
+        this._chain.forEach((a) => a(v));
+      })
+    );
     this._value = this._var.value;
   }
   /**
@@ -1343,9 +1385,11 @@ var SumVariable = class extends CompoundVariable {
     subscriptions.disposeCurrent();
     for (let i = 0; i < length; ++i) {
       const variable = vars[i];
-      subscriptions.add(variable.subscribeSilent(() => {
-        this.postValue();
-      }));
+      subscriptions.add(
+        variable.subscribeSilent(() => {
+          this.postValue();
+        })
+      );
     }
     this.postValue();
   }
@@ -1390,7 +1434,9 @@ var SwitchMapVariable = class extends CompoundVariable {
   }
   activate() {
     this._switchSubscription.disposeCurrent();
-    this._switchSubscription.set(this._var.subscribeSilent((i) => this._handleSwitch(i)));
+    this._switchSubscription.set(
+      this._var.subscribeSilent((i) => this._handleSwitch(i))
+    );
     this._handleSwitch(this._var.value);
   }
   deactivate() {
@@ -1406,7 +1452,11 @@ var SwitchMapVariable = class extends CompoundVariable {
   _handleSwitch(input) {
     this._varSubscription.disposeCurrent();
     const mappedVariable = this._mapper(input);
-    this._varSubscription.set(mappedVariable.subscribeSilent((result) => this.value = result));
+    this._varSubscription.set(
+      mappedVariable.subscribeSilent((result) => {
+        this.value = result;
+      })
+    );
     this.value = mappedVariable.value;
   }
 };
@@ -1434,9 +1484,11 @@ var ThrottledVariable = class extends CompoundVariable {
   }
   activate() {
     this._subscription.disposeCurrent();
-    this._subscription.set(this._var.subscribeSilent((v) => {
-      this._scheduleUpdate(v);
-    }));
+    this._subscription.set(
+      this._var.subscribeSilent((v) => {
+        this._scheduleUpdate(v);
+      })
+    );
     this.value = this._var.value;
   }
   deactivate() {
@@ -1456,11 +1508,13 @@ var ThrottledVariable = class extends CompoundVariable {
     }
     this._scheduledValue = value;
     this._updateSubscription.disposeCurrent();
-    this._updateSubscription.set(this._onUpdate.subscribeOnce(() => {
-      const val = this._scheduledValue;
-      this._scheduledValue = noScheduledValue;
-      this.value = val === noScheduledValue ? this._var.value : val;
-    }));
+    this._updateSubscription.set(
+      this._onUpdate.subscribeOnce(() => {
+        const val = this._scheduledValue;
+        this._scheduledValue = noScheduledValue;
+        this.value = val === noScheduledValue ? this._var.value : val;
+      })
+    );
   }
 };
 
@@ -1508,7 +1562,11 @@ var EventObserverStub = class extends EventObserver {
 };
 
 // src/events/lazy.ts
-import { DisposableAction as DisposableAction6, DisposableContainer as DisposableContainer8, toDisposable as toDisposable2 } from "@tioniq/disposiq";
+import {
+  DisposableAction as DisposableAction6,
+  DisposableContainer as DisposableContainer8,
+  toDisposable as toDisposable2
+} from "@tioniq/disposiq";
 var LazyEventDispatcher = class extends EventObserver {
   constructor(activator) {
     super();
@@ -1580,24 +1638,31 @@ function merge(...observers) {
 }
 
 // src/events/extensions.ts
-import { DisposableContainer as DisposableContainer9, emptyDisposable as emptyDisposable5 } from "@tioniq/disposiq";
+import {
+  DisposableContainer as DisposableContainer9,
+  emptyDisposable as emptyDisposable5
+} from "@tioniq/disposiq";
 EventObserver.prototype.subscribeOnce = function(callback) {
   const subscription = new DisposableContainer9();
-  subscription.set(this.subscribe((value) => {
-    subscription.dispose();
-    callback(value);
-  }));
+  subscription.set(
+    this.subscribe((value) => {
+      subscription.dispose();
+      callback(value);
+    })
+  );
   return subscription;
 };
 EventObserver.prototype.subscribeOnceWhere = function(callback, condition) {
   const subscription = new DisposableContainer9();
-  subscription.set(this.subscribe((value) => {
-    if (!condition(value)) {
-      return;
-    }
-    subscription.dispose();
-    callback(value);
-  }));
+  subscription.set(
+    this.subscribe((value) => {
+      if (!condition(value)) {
+        return;
+      }
+      subscription.dispose();
+      callback(value);
+    })
+  );
   return subscription;
 };
 EventObserver.prototype.subscribeWhere = function(callback, condition) {
@@ -1608,17 +1673,23 @@ EventObserver.prototype.subscribeWhere = function(callback, condition) {
   });
 };
 EventObserver.prototype.subscribeOn = function(callback, condition) {
-  return condition.subscribeDisposable((value) => value ? this.subscribe(callback) : emptyDisposable5);
+  return condition.subscribeDisposable(
+    (value) => value ? this.subscribe(callback) : emptyDisposable5
+  );
 };
 EventObserver.prototype.map = function(mapper) {
-  return new LazyEventDispatcher((dispatcher) => this.subscribe((value) => dispatcher.dispatch(mapper(value))));
+  return new LazyEventDispatcher(
+    (dispatcher) => this.subscribe((value) => dispatcher.dispatch(mapper(value)))
+  );
 };
 EventObserver.prototype.where = function(condition) {
-  return new LazyEventDispatcher((dispatcher) => this.subscribe((value) => {
-    if (condition(value)) {
-      dispatcher.dispatch(value);
-    }
-  }));
+  return new LazyEventDispatcher(
+    (dispatcher) => this.subscribe((value) => {
+      if (condition(value)) {
+        dispatcher.dispatch(value);
+      }
+    })
+  );
 };
 EventDispatcher.prototype.dispatchSafe = function(value) {
   try {
@@ -1628,8 +1699,8 @@ EventDispatcher.prototype.dispatchSafe = function(value) {
 };
 
 // src/functions.ts
-function createVar(initialValue) {
-  return new MutableVariable(initialValue);
+function createVar(initialValue, equalityComparer) {
+  return new MutableVariable(initialValue, equalityComparer);
 }
 function createFuncVar(activator, exactValue) {
   return new FuncVariable(activator, exactValue);
@@ -1683,7 +1754,7 @@ import {
 } from "@tioniq/disposiq";
 
 // src/noop.ts
-var noop = Object.freeze(function() {
+var noop = Object.freeze(() => {
 });
 
 // src/extensions.ts
@@ -1700,13 +1771,15 @@ Variable.prototype.subscribeDisposable = function(callback) {
 };
 Variable.prototype.subscribeOnceWhere = function(callback, condition) {
   const container = new DisposableContainer10();
-  container.set(this.subscribeSilent((v) => {
-    if (!condition(v)) {
-      return;
-    }
-    container.dispose();
-    callback(v);
-  }));
+  container.set(
+    this.subscribeSilent((v) => {
+      if (!condition(v)) {
+        return;
+      }
+      container.dispose();
+      callback(v);
+    })
+  );
   const value = this.value;
   if (!condition(value)) {
     return container;
@@ -1735,12 +1808,18 @@ Variable.prototype.switchMap = function(mapper) {
 };
 Variable.prototype.throttle = function(delay, equalityComparer) {
   if (typeof delay === "number") {
-    return new ThrottledVariable(this, createDelayDispatcher(delay), equalityComparer);
+    return new ThrottledVariable(
+      this,
+      createDelayDispatcher(delay),
+      equalityComparer
+    );
   }
   return new ThrottledVariable(this, delay, equalityComparer);
 };
 Variable.prototype.streamTo = function(receiver) {
-  return this.subscribe((value) => receiver.value = value);
+  return this.subscribe((value) => {
+    receiver.value = value;
+  });
 };
 Variable.prototype.startPersistent = function() {
   return this.subscribeSilent(noop);
@@ -1753,7 +1832,10 @@ Variable.prototype.plus = function(other) {
 };
 Variable.prototype.minus = function(other) {
   if (other instanceof Variable) {
-    return new SumVariable([this, new MapVariable(other, (v) => -v)]);
+    return new SumVariable([
+      this,
+      new MapVariable(other, (v) => -v)
+    ]);
   }
   return new MapVariable(this, (v) => v - other);
 };
@@ -1797,27 +1879,26 @@ Variable.prototype.lessOrEqual = function(other) {
   return new MapVariable(this, (v) => v <= other);
 };
 Variable.prototype.equal = function(other, equalityComparer) {
-  if (!equalityComparer) {
-    equalityComparer = defaultEqualityComparer;
-  }
+  const comparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
   if (other instanceof Variable) {
-    return this.with(other).map(([a, b]) => equalityComparer(a, b));
+    return this.with(other).map(([a, b]) => comparer(a, b));
   }
-  return new MapVariable(this, (v) => equalityComparer(v, other));
+  return new MapVariable(this, (v) => comparer(v, other));
 };
 Variable.prototype.sealed = function() {
   return new ConstantVariable(this.value);
 };
 Variable.prototype.sealWhen = function(condition, equalityComparer) {
-  if (!equalityComparer) {
-    equalityComparer = defaultEqualityComparer;
-  }
-  const vary = new SealVariable(this, equalityComparer);
+  const comparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
+  const vary = new SealVariable(this, comparer);
   if (typeof condition === "function") {
     vary.subscribeOnceWhere((v) => vary.seal(v), condition);
     return vary;
   }
-  vary.subscribeOnceWhere((v) => vary.seal(v), (v) => equalityComparer(v, condition));
+  vary.subscribeOnceWhere(
+    (v) => vary.seal(v),
+    (v) => comparer(v, condition)
+  );
   return vary;
 };
 
@@ -1832,13 +1913,10 @@ function isVariableOf(value, typeCheckerOrExampleValue) {
   if (typeCheckerOrExampleValue == void 0) {
     return true;
   }
-  let checker;
   if (typeof typeCheckerOrExampleValue === "function") {
-    checker = typeCheckerOrExampleValue;
-  } else {
-    checker = (v) => typeof v === typeof typeCheckerOrExampleValue;
+    return typeCheckerOrExampleValue(value.value);
   }
-  return checker(value.value);
+  return typeof value.value === typeof typeCheckerOrExampleValue;
 }
 function isMutableVariable(value) {
   return value instanceof MutableVariable;
@@ -2260,9 +2338,14 @@ var ObservableList = class {
       }
       if (maxDistance === 0) {
         if (hasDistanceMoved) {
-          console.error("Bad state: hasDistanceMoved is true but maxDistance is 0");
+          console.error(
+            "Bad state: hasDistanceMoved is true but maxDistance is 0"
+          );
         }
         break;
+      }
+      if (index === void 0) {
+        continue;
       }
       const item = index;
       const dist = item.distance;
@@ -2281,7 +2364,7 @@ var ObservableList = class {
         items.splice(indexIndex, 1);
         const nextNodeIndex = items.indexOf(nextNode);
         items.splice(nextNodeIndex + 1, 0, item);
-      } else {
+      } else if (dist < 0) {
         let prevNode = index;
         const indexIndex = items.indexOf(item);
         for (let i = 0; i < -dist; i++) {
@@ -2295,11 +2378,13 @@ var ObservableList = class {
       }
       const event = {
         type: "move",
-        items: [{
-          item: item.item,
-          from: moveFrom,
-          to: item.index
-        }]
+        items: [
+          {
+            item: item.item,
+            from: moveFrom,
+            to: item.index
+          }
+        ]
       };
       this._list.splice(moveFrom, 1);
       this._list.splice(item.index, 0, item.item);
