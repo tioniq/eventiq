@@ -1,8 +1,8 @@
-import {CompoundVariable} from "./compound"
-import {Variable} from "../variable";
-import {DisposableContainer} from "@tioniq/disposiq";
-import {EventObserver} from "../events";
-import {EqualityComparer} from "../comparer";
+import { CompoundVariable } from "./compound"
+import type { Variable } from "../variable"
+import { DisposableContainer } from "@tioniq/disposiq"
+import type { EventObserver } from "../events"
+import type { EqualityComparer } from "../comparer"
 
 const noScheduledValue = Object.freeze({})
 
@@ -38,7 +38,12 @@ export class ThrottledVariable<T> extends CompoundVariable<T> {
    */
   private _scheduledValue: T | typeof noScheduledValue = noScheduledValue
 
-  constructor(vary: Variable<T>, onUpdate: EventObserver, equalityComparer?: EqualityComparer<T>) {
+  constructor(
+    vary: Variable<T>,
+    onUpdate: EventObserver,
+    equalityComparer?: EqualityComparer<T>,
+  ) {
+    // biome-ignore lint/style/noNonNullAssertion: base value will not be used
     super(null!, equalityComparer)
     this._var = vary
     this._onUpdate = onUpdate
@@ -46,9 +51,11 @@ export class ThrottledVariable<T> extends CompoundVariable<T> {
 
   protected activate(): void {
     this._subscription.disposeCurrent()
-    this._subscription.set(this._var.subscribeSilent(v => {
-      this._scheduleUpdate(v)
-    }))
+    this._subscription.set(
+      this._var.subscribeSilent((v) => {
+        this._scheduleUpdate(v)
+      }),
+    )
     this.value = this._var.value
   }
 
@@ -70,11 +77,13 @@ export class ThrottledVariable<T> extends CompoundVariable<T> {
       return
     }
     this._scheduledValue = value
-    this._updateSubscription.disposeCurrent();
-    this._updateSubscription.set(this._onUpdate.subscribeOnce(() => {
-      const val = this._scheduledValue
-      this._scheduledValue = noScheduledValue
-      this.value = val === noScheduledValue ? this._var.value : val as T
-    }))
+    this._updateSubscription.disposeCurrent()
+    this._updateSubscription.set(
+      this._onUpdate.subscribeOnce(() => {
+        const val = this._scheduledValue
+        this._scheduledValue = noScheduledValue
+        this.value = val === noScheduledValue ? this._var.value : (val as T)
+      }),
+    )
   }
 }

@@ -1,12 +1,12 @@
-import { Variable } from "./variable";
-import { DelegateVariable, MutableVariable } from "./vars";
+import { Variable } from "./variable"
+import { DelegateVariable, MutableVariable } from "./vars"
 
 /**
  * Check if the value is a variable
  * @param value The value to check
  * @returns true if the value is a variable, false otherwise
  */
-export function isVariable(value: any): value is Variable<any> {
+export function isVariable(value: unknown): value is Variable<unknown> {
   return value instanceof Variable
 }
 
@@ -20,20 +20,20 @@ export function isVariable(value: any): value is Variable<any> {
  * matches the type of the example value. This means that if both the value and the example value are objects, the
  * function will return true without checking their properties or inheritance.
  */
-export function isVariableOf<T>(value: any, typeCheckerOrExampleValue?: ((t: any) => t is T) | T): value is Variable<T> {
+export function isVariableOf<T>(
+  value: unknown,
+  typeCheckerOrExampleValue?: ((t: unknown) => t is T) | T,
+): value is Variable<T> {
   if (!(value instanceof Variable)) {
     return false
   }
   if (typeCheckerOrExampleValue == undefined) {
     return true
   }
-  let checker: (t: Variable<any>) => boolean
   if (typeof typeCheckerOrExampleValue === "function") {
-    checker = typeCheckerOrExampleValue as (t: any) => boolean
-  } else {
-    checker = (v: any) => typeof v === typeof typeCheckerOrExampleValue
+    return (typeCheckerOrExampleValue as (t: unknown) => boolean)(value.value)
   }
-  return checker(value.value)
+  return typeof value.value === typeof typeCheckerOrExampleValue
 }
 
 /**
@@ -41,7 +41,9 @@ export function isVariableOf<T>(value: any, typeCheckerOrExampleValue?: ((t: any
  * @param value The value to check
  * @returns true if the value is a mutable variable, false otherwise
  */
-export function isMutableVariable<T>(value: any): value is MutableVariable<T> {
+export function isMutableVariable<T>(
+  value: unknown,
+): value is MutableVariable<T> {
   return value instanceof MutableVariable
 }
 
@@ -50,6 +52,8 @@ export function isMutableVariable<T>(value: any): value is MutableVariable<T> {
  * @param value The value to check
  * @returns true if the value is a delegate variable, false otherwise
  */
-export function isDelegateVariable<T>(value: any): value is DelegateVariable<T> {
+export function isDelegateVariable<T>(
+  value: unknown,
+): value is DelegateVariable<T> {
   return value instanceof DelegateVariable
 }

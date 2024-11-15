@@ -1,8 +1,17 @@
-import {Variable} from "../variable"
-import {DisposableAction, DisposableContainer, Disposiq, emptyDisposable} from "@tioniq/disposiq";
-import {Action, Func} from "../action";
-import {LinkedChain} from "../linked-chain";
-import {defaultEqualityComparer, EqualityComparer, functionEqualityComparer} from "../comparer";
+import { Variable } from "../variable"
+import {
+  DisposableAction,
+  DisposableContainer,
+  type Disposiq,
+  emptyDisposable,
+} from "@tioniq/disposiq"
+import type { Action, Func } from "../action"
+import { LinkedChain } from "../linked-chain"
+import {
+  defaultEqualityComparer,
+  type EqualityComparer,
+  functionEqualityComparer,
+} from "../comparer"
 
 /**
  * A variable that seals the value of another variable. When sealed, the variable will not change its value
@@ -32,6 +41,8 @@ export class SealVariable<T> extends Variable<T> {
   /**
    * @internal
    */
+
+  // biome-ignore lint/style/noNonNullAssertion: the field access is safe because it used only in the sealed state
   private _value: T = null!
 
   /**
@@ -42,7 +53,10 @@ export class SealVariable<T> extends Variable<T> {
   constructor(vary: Variable<T>, equalityComparer?: EqualityComparer<T>) {
     super()
     this._var = vary
-    this._equalityComparer = typeof equalityComparer === "function" ? equalityComparer : defaultEqualityComparer
+    this._equalityComparer =
+      typeof equalityComparer === "function"
+        ? equalityComparer
+        : defaultEqualityComparer
   }
 
   get value(): T {
@@ -107,13 +121,15 @@ export class SealVariable<T> extends Variable<T> {
     }
     this._sealed = true
     this._varSubscription.dispose()
+    // biome-ignore lint/style/noArguments: used because we accept the value as an argument event if it is undefined
     if (arguments.length === 0) {
-      let currentValue = this._chain.empty ? this._var.value : this._value
+      const currentValue = this._chain.empty ? this._var.value : this._value
       this._varSubscription.dispose()
       this._sealValue(currentValue)
       return true
     }
     this._varSubscription.dispose()
+    // biome-ignore lint/style/noNonNullAssertion: use any value that is provided by the caller
     this._sealValue(valueToSeal!)
     return true
   }
@@ -123,10 +139,12 @@ export class SealVariable<T> extends Variable<T> {
    */
   private _activate() {
     this._varSubscription.disposeCurrent()
-    this._varSubscription.set(this._var.subscribeSilent(v => {
-      this._value = v
-      this._chain.forEach(a => a(v))
-    }))
+    this._varSubscription.set(
+      this._var.subscribeSilent((v) => {
+        this._value = v
+        this._chain.forEach((a) => a(v))
+      }),
+    )
     this._value = this._var.value
   }
 
@@ -146,7 +164,7 @@ export class SealVariable<T> extends Variable<T> {
       return
     }
     this._value = value
-    this._chain.forEach(a => a(value))
+    this._chain.forEach((a) => a(value))
     this._chain.clear()
   }
 }

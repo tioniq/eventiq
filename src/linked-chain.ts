@@ -1,5 +1,5 @@
-import {DisposableAction, Disposiq} from "@tioniq/disposiq"
-import {defaultEqualityComparer, EqualityComparer} from "./comparer"
+import { DisposableAction, type Disposiq } from "@tioniq/disposiq"
+import { defaultEqualityComparer, type EqualityComparer } from "./comparer"
 
 type Action<T> = (value: T) => void
 
@@ -24,7 +24,7 @@ export class LinkedChain<T> {
   /**
    * @internal
    */
-  private _invoking: boolean = false
+  private _invoking = false
   /**
    * @internal
    */
@@ -135,6 +135,7 @@ export class LinkedChain<T> {
         this._pendingTail = node
       } else {
         node = new ChainNode(value, this._pendingTail, null)
+        // biome-ignore lint/style/noNonNullAssertion: _pendingTail is always not null when _pendingHead is not null
         this._pendingTail!.next = node
         this._pendingTail = node
       }
@@ -146,6 +147,7 @@ export class LinkedChain<T> {
       this._tail = node
     } else {
       node = new ChainNode(value, this._tail, null)
+      // biome-ignore lint/style/noNonNullAssertion: _tail is always not null when _head is not null
       this._tail!.next = node
       this._tail = node
     }
@@ -265,7 +267,7 @@ export class LinkedChain<T> {
    * @returns the head node of the chain or null if the chain is empty
    */
   removeAll(): ChainNode<T> | null {
-    let node = this._head
+    const node = this._head
     this._head = null
     this._tail = null
     return node
@@ -276,25 +278,26 @@ export class LinkedChain<T> {
    * @param valueHandler the action to invoke for each element
    */
   forEach(valueHandler: Action<T>): void {
-    while (valueHandler !== null) {
+    let handler = valueHandler
+    while (handler !== null) {
       if (this._head !== null) {
         if (this._invoking) {
           if (this._actionHead == null) {
-            this._actionHead = new ChainNode<Action<T>>(valueHandler)
+            this._actionHead = new ChainNode<Action<T>>(handler)
             return
           }
           let actionTail = this._actionHead
           while (actionTail.next !== null) {
             actionTail = actionTail.next
           }
-          actionTail.next = new ChainNode<Action<T>>(valueHandler, actionTail, null)
+          actionTail.next = new ChainNode<Action<T>>(handler, actionTail, null)
           return
         }
         this._invoking = true
         let node: ChainNode<T> | null = this._head
         while (node !== null) {
           if (!node.disposed) {
-            valueHandler(node.value)
+            handler(node.value)
           }
           node = node.next
         }
@@ -306,6 +309,7 @@ export class LinkedChain<T> {
             this._tail = this._pendingTail
           } else {
             this._pendingHead.previous = this._tail
+            // biome-ignore lint/style/noNonNullAssertion: _tail is not null when _head is not null
             this._tail!.next = this._pendingHead
             this._tail = this._pendingTail
           }
@@ -316,14 +320,14 @@ export class LinkedChain<T> {
       if (this._actionHead == null) {
         return
       }
-      let nextActionNode = this._actionHead
+      const nextActionNode = this._actionHead
       nextActionNode.disposed = true
       this._actionHead = nextActionNode.next
       if (this._actionHead != null) {
         this._actionHead.previous = null
         nextActionNode.next = null
       }
-      valueHandler = nextActionNode.value
+      handler = nextActionNode.value
     }
   }
 
@@ -370,6 +374,7 @@ export class LinkedChain<T> {
     }
     if (node === this._tail) {
       this._tail = node.previous
+      // biome-ignore lint/style/noNonNullAssertion: _tail is not null because the chain has more one node
       this._tail!.next = null
       return
     }
@@ -385,6 +390,7 @@ export class LinkedChain<T> {
     }
     if (node === this._pendingTail) {
       this._pendingTail = node.previous
+      // biome-ignore lint/style/noNonNullAssertion: _pendingTail is not null because the pending chain has more one node
       this._pendingTail!.next = null
       return
     }
@@ -399,7 +405,10 @@ export class LinkedChain<T> {
   /**
    * @internal
    */
-  private static _clearNode<T>(node: ChainNode<T> | null): ChainNode<T> | null {
+  private static _clearNode<T>(
+    chainNode: ChainNode<T> | null,
+  ): ChainNode<T> | null {
+    let node = chainNode
     let root: ChainNode<T> | null = null
     let tail: ChainNode<T> | null = null
     let next: ChainNode<T> | null = node
@@ -415,6 +424,7 @@ export class LinkedChain<T> {
         node.previous = null
         continue
       }
+      // biome-ignore lint/style/noNonNullAssertion: tail is not null when root is not null
       tail!.next = node
       node.previous = tail
       tail = node
@@ -430,9 +440,13 @@ class ChainNode<T> {
   readonly value: T
   next: ChainNode<T> | null
   previous: ChainNode<T> | null
-  disposed: boolean = false
+  disposed = false
 
-  constructor(value: T, previous?: ChainNode<T> | null, next?: ChainNode<T> | null) {
+  constructor(
+    value: T,
+    previous?: ChainNode<T> | null,
+    next?: ChainNode<T> | null,
+  ) {
     this.value = value
     this.previous = previous ?? null
     this.next = next ?? null

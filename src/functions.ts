@@ -5,20 +5,26 @@ import {
   AndVariable,
   MinVariable,
   MaxVariable,
-  SumVariable, DelegateVariable, DirectVariable, MutableVariable, CombinedVariable
+  SumVariable,
+  DelegateVariable,
+  DirectVariable,
+  MutableVariable,
+  CombinedVariable,
 } from "./vars"
-import {DisposableAction, IDisposable} from "@tioniq/disposiq"
-import {Func, Func0} from "./action"
-import {Variable} from "./variable"
-import {EventObserver, LazyEventDispatcher} from "./events";
+import { DisposableAction, type IDisposable } from "@tioniq/disposiq"
+import type { Func, Func0 } from "./action"
+import type { Variable } from "./variable"
+import { type EventObserver, LazyEventDispatcher } from "./events"
+import { EqualityComparer } from "./comparer";
 
 /**
  * Creates a new mutable variable
  * @param initialValue the initial value of the variable
+ * @param equalityComparer the equality comparer to use when checking for changes
  * @returns a new mutable variable
  */
-export function createVar<T>(initialValue: T): MutableVariable<T> {
-  return new MutableVariable(initialValue)
+export function createVar<T>(initialValue: T, equalityComparer?: EqualityComparer<T>): MutableVariable<T> {
+  return new MutableVariable(initialValue, equalityComparer)
 }
 
 /**
@@ -27,7 +33,10 @@ export function createVar<T>(initialValue: T): MutableVariable<T> {
  * @param exactValue a function that returns the exact value of the variable when there is no subscriptions
  * @returns a new variable
  */
-export function createFuncVar<T>(activator: Func<FuncVariable<T>, IDisposable>, exactValue: Func0<T>): Variable<T> {
+export function createFuncVar<T>(
+  activator: Func<FuncVariable<T>, IDisposable>,
+  exactValue: Func0<T>,
+): Variable<T> {
   return new FuncVariable(activator, exactValue)
 }
 
@@ -45,7 +54,9 @@ export function createConst<T>(value: T): Variable<T> {
  * @param sourceOrDefaultValue the source variable or the default value of the variable
  * @returns a new delegate variable
  */
-export function createDelegate<T>(sourceOrDefaultValue?: Variable<T> | T | null): DelegateVariable<T> {
+export function createDelegate<T>(
+  sourceOrDefaultValue?: Variable<T> | T | null,
+): DelegateVariable<T> {
   return new DelegateVariable(sourceOrDefaultValue)
 }
 
@@ -82,7 +93,9 @@ export function and(...variables: Variable<boolean>[]): Variable<boolean> {
  * @param variables the variables to sum
  * @returns a new SUM variable
  */
-export function sum<T extends number | boolean>(...variables: Variable<T>[]): Variable<number> {
+export function sum<T extends number | boolean>(
+  ...variables: Variable<T>[]
+): Variable<number> {
   return new SumVariable(variables)
 }
 
@@ -109,7 +122,11 @@ export function max(...variables: Variable<number>[]): Variable<number> {
  * @param vars the variables to combine
  * @returns a new combined variable that contains an array of the values of the variables
  */
-export function combine<O extends any[]>(...vars: { [K in keyof O]: Variable<O[K]> }): Variable<O> {
+
+// biome-ignore lint/suspicious/noExplicitAny: required for type checking
+export function combine<O extends any[]>(
+  ...vars: { [K in keyof O]: Variable<O[K]> }
+): Variable<O> {
   if (vars.length === 0) {
     throw new Error("At least one variable must be provided")
   }

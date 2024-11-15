@@ -1,6 +1,6 @@
-import {EventObserver} from "./observer";
-import {LazyEventDispatcher} from "./lazy";
-import {DisposableStore} from "@tioniq/disposiq";
+import type { EventObserver } from "./observer"
+import { LazyEventDispatcher } from "./lazy"
+import { DisposableStore } from "@tioniq/disposiq"
 
 /**
  * Merges multiple event observers into a single event observer. The resulting event observer will dispatch events
@@ -10,11 +10,11 @@ import {DisposableStore} from "@tioniq/disposiq";
  * @typeparam T - the type of the event value
  */
 export function merge<T>(...observers: EventObserver<T>[]): EventObserver<T> {
-  return new LazyEventDispatcher<T>(dispatcher => {
-    const disposableStore = new DisposableStore();
+  return new LazyEventDispatcher<T>((dispatcher) => {
+    const disposableStore = new DisposableStore()
     for (const t of observers) {
-      disposableStore.add(t.subscribe(v => dispatcher.dispatch(v)));
+      disposableStore.add(t.subscribe((v) => dispatcher.dispatch(v)))
     }
-    return disposableStore;
-  });
+    return disposableStore
+  })
 }

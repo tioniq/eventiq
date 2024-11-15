@@ -1,7 +1,7 @@
-import {MutableVariable} from "../src";
+import { MutableVariable } from "../src"
 
-describe('Mutable', () => {
-  it('should be mutable', () => {
+describe("Mutable", () => {
+  it("should be mutable", () => {
     const variable = new MutableVariable<number>(10)
     expect(variable.value).toBe(10)
     variable.value = 20
@@ -17,5 +17,5 @@ describe('Mutable', () => {
     subscription.dispose()
     variable.value = 100
     expect(receiver).toHaveBeenCalledTimes(3)
-  });
+  })
 })

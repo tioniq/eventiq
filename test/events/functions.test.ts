@@ -1,7 +1,7 @@
-import {EventDispatcher, EventObserver, merge} from "../../src/events";
+import { EventDispatcher, type EventObserver, merge } from "../../src"
 
-describe('functions.merge', () => {
-  it('should merge events', () => {
+describe("functions.merge", () => {
+  it("should merge events", () => {
     const dispatcher1 = new EventDispatcher<number>()
     const dispatcher2 = new EventDispatcher<number>()
     const observer1: EventObserver<number> = dispatcher1
@@ -18,7 +18,7 @@ describe('functions.merge', () => {
     expect(callback).toHaveBeenCalledWith(2)
   })
 
-  it('should dispose all subscriptions', () => {
+  it("should dispose all subscriptions", () => {
     const dispatcher1 = new EventDispatcher<number>()
     const dispatcher2 = new EventDispatcher<number>()
     const observer1: EventObserver<number> = dispatcher1
@@ -33,4 +33,4 @@ describe('functions.merge', () => {
 
     expect(callback).not.toHaveBeenCalled()
   })
-});
+})

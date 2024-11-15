@@ -1,6 +1,12 @@
 import { CompoundVariable } from "./compound"
+// biome-ignore lint/style/useImportType: <explanation>
 import { Action, Func, Func0 } from "../action"
-import { DisposableContainer, DisposableLike, toDisposable } from "@tioniq/disposiq"
+// biome-ignore lint/style/useImportType: <explanation>
+import {
+  DisposableContainer,
+  DisposableLike,
+  toDisposable,
+} from "@tioniq/disposiq"
 
 /**
  * A variable that reacts on subscription activation and deactivation using provided function called `activator`.
@@ -22,7 +28,11 @@ export class FuncVariable<T> extends CompoundVariable<T> {
    */
   private readonly _exactValue: Func0<T>
 
-  constructor(activate: Func<FuncVariable<T>, DisposableLike>, exactValue: Func0<T>) {
+  constructor(
+    activate: Func<FuncVariable<T>, DisposableLike>,
+    exactValue: Func0<T>,
+  ) {
+    // biome-ignore lint/style/noNonNullAssertion: base value will not be used
     super(null!)
     const disposable = new DisposableContainer()
     this._activator = (self) => {

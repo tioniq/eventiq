@@ -1,7 +1,7 @@
-import {DirectVariable} from "../../src"
+import { DirectVariable } from "../../src"
 
-describe('direct var', () => {
-  it('should return the same value', () => {
+describe("direct var", () => {
+  it("should return the same value", () => {
     const direct = new DirectVariable(1)
 
     expect(direct.value).toBe(1)
@@ -11,7 +11,7 @@ describe('direct var', () => {
     expect(direct.value).toBe(2)
   })
 
-  it('should notify callback even a new value is set and the value is the same as previous', () => {
+  it("should notify callback even a new value is set and the value is the same as previous", () => {
     const direct = new DirectVariable(1)
 
     const callback = jest.fn()
@@ -26,7 +26,7 @@ describe('direct var', () => {
     expect(callback).toHaveBeenLastCalledWith(1)
   })
 
-  it('should not notify callback on silent set', () => {
+  it("should not notify callback on silent set", () => {
     const direct = new DirectVariable(1)
 
     const callback = jest.fn()
@@ -40,7 +40,7 @@ describe('direct var', () => {
     expect(callback).toHaveBeenCalledTimes(1)
   })
 
-  it('should notify callback on notify', () => {
+  it("should notify callback on notify", () => {
     const direct = new DirectVariable(1)
 
     const callback = jest.fn()
@@ -60,7 +60,7 @@ describe('direct var', () => {
     expect(callback).toHaveBeenLastCalledWith(1)
   })
 
-  it('should subscribeSilent', () => {
+  it("should subscribeSilent", () => {
     const direct = new DirectVariable(1)
 
     const callback = jest.fn()
@@ -73,7 +73,7 @@ describe('direct var', () => {
     expect(callback).toHaveBeenCalledTimes(1)
   })
 
-  it('should equalityComparer be the same as passed', () => {
+  it("should equalityComparer be the same as passed", () => {
     const equalityComparer = jest.fn((a, b) => a === b)
     const direct = new DirectVariable(1, equalityComparer)
 

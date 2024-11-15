@@ -1,8 +1,13 @@
-import { createConst, createDelegate, createDirect, createFuncVar } from "./functions"
-import {Variable} from "./variable"
-import {MutableVariable} from "./vars"
-import {ConstantVariable} from "./vars"
-import {FuncVariable} from "./vars"
+import {
+  createConst,
+  createDelegate,
+  createDirect,
+  createFuncVar,
+} from "./functions"
+import { Variable } from "./variable"
+import { MutableVariable } from "./vars"
+import { ConstantVariable } from "./vars"
+import { FuncVariable } from "./vars"
 
 export {
   Variable as Var,

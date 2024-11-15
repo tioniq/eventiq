@@ -1,7 +1,7 @@
-import {OrVariable, MutableVariable} from "../../src";
+import { OrVariable, MutableVariable } from "../../src"
 
-describe('or var', () => {
-  it('should return true when any var is true', () => {
+describe("or var", () => {
+  it("should return true when any var is true", () => {
     const var1 = new MutableVariable(false)
     const var2 = new MutableVariable(false)
     const or = new OrVariable([var1, var2])
@@ -25,7 +25,7 @@ describe('or var', () => {
     expect(or.value).toBe(false)
   })
 
-  it('should notify subscribers when value is changed', () => {
+  it("should notify subscribers when value is changed", () => {
     const var1 = new MutableVariable(false)
     const var2 = new MutableVariable(false)
     const or = new OrVariable([var1, var2])
@@ -55,7 +55,7 @@ describe('or var', () => {
     expect(fn).toHaveBeenCalledWith(false)
   })
 
-  it('should not notify subscriber when subscriber is disposed', () => {
+  it("should not notify subscriber when subscriber is disposed", () => {
     const var1 = new MutableVariable(false)
     const var2 = new MutableVariable(false)
     const or = new OrVariable([var1, var2])

@@ -1,6 +1,6 @@
-import {CompoundVariable} from "./compound"
-import {Variable} from "../variable"
-import {DisposableStore} from "@tioniq/disposiq"
+import { CompoundVariable } from "./compound"
+import type { Variable } from "../variable"
+import { DisposableStore } from "@tioniq/disposiq"
 
 /**
  * A variable that represents the minimum value of multiple provided variables
@@ -27,9 +27,11 @@ export class MinVariable extends CompoundVariable<number> {
     const subscriptions = this._subscriptions
     subscriptions.disposeCurrent()
     for (let i = 0; i < length; ++i) {
-      subscriptions.add(vars[i].subscribeSilent(() => {
-        this.postValue()
-      }))
+      subscriptions.add(
+        vars[i].subscribeSilent(() => {
+          this.postValue()
+        }),
+      )
     }
     this.postValue()
   }

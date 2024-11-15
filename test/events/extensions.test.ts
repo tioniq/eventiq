@@ -1,8 +1,8 @@
-import {EventDispatcher, EventObserver} from "../../src/events";
-import {MutableVariable} from "../../src";
+import { EventDispatcher, type EventObserver } from "../../src"
+import { MutableVariable } from "../../src"
 
-describe('extensions.subscribeOnce', () => {
-  it('should subscribe only for the next event', () => {
+describe("extensions.subscribeOnce", () => {
+  it("should subscribe only for the next event", () => {
     const dispatcher = new EventDispatcher<number>()
     const observer: EventObserver<number> = dispatcher
     const callback = jest.fn()
@@ -15,7 +15,7 @@ describe('extensions.subscribeOnce', () => {
     expect(callback).toHaveBeenCalledWith(1)
   })
 
-  it('should not call callback after subscription dispose', () => {
+  it("should not call callback after subscription dispose", () => {
     const dispatcher = new EventDispatcher<number>()
     const observer: EventObserver<number> = dispatcher
     const callback = jest.fn()
@@ -28,13 +28,13 @@ describe('extensions.subscribeOnce', () => {
   })
 })
 
-describe('extensions.subscribeOnceWhere', () => {
-  it('should subscribe only for the next event that satisfies the condition', () => {
+describe("extensions.subscribeOnceWhere", () => {
+  it("should subscribe only for the next event that satisfies the condition", () => {
     const dispatcher = new EventDispatcher<number>()
     const observer: EventObserver<number> = dispatcher
     const callback = jest.fn()
 
-    observer.subscribeOnceWhere(callback, value => value > 0)
+    observer.subscribeOnceWhere(callback, (value) => value > 0)
     dispatcher.dispatch(-1)
     dispatcher.dispatch(1)
     dispatcher.dispatch(2)
@@ -43,12 +43,15 @@ describe('extensions.subscribeOnceWhere', () => {
     expect(callback).toHaveBeenCalledWith(1)
   })
 
-  it('should not call callback after subscription dispose', () => {
+  it("should not call callback after subscription dispose", () => {
     const dispatcher = new EventDispatcher<number>()
     const observer: EventObserver<number> = dispatcher
     const callback = jest.fn()
 
-    const subscription = observer.subscribeOnceWhere(callback, value => value > 0)
+    const subscription = observer.subscribeOnceWhere(
+      callback,
+      (value) => value > 0,
+    )
     subscription.dispose()
     dispatcher.dispatch(1)
 
@@ -56,13 +59,13 @@ describe('extensions.subscribeOnceWhere', () => {
   })
 })
 
-describe('extensions.subscribeWhere', () => {
-  it('should subscribe only for events that satisfy the condition', () => {
+describe("extensions.subscribeWhere", () => {
+  it("should subscribe only for events that satisfy the condition", () => {
     const dispatcher = new EventDispatcher<number>()
     const observer: EventObserver<number> = dispatcher
     const callback = jest.fn()
 
-    observer.subscribeWhere(callback, value => value > 0)
+    observer.subscribeWhere(callback, (value) => value > 0)
     dispatcher.dispatch(-1)
     dispatcher.dispatch(1)
     dispatcher.dispatch(2)
@@ -72,12 +75,12 @@ describe('extensions.subscribeWhere', () => {
     expect(callback).toHaveBeenCalledWith(2)
   })
 
-  it('should not call callback after subscription dispose', () => {
+  it("should not call callback after subscription dispose", () => {
     const dispatcher = new EventDispatcher<number>()
     const observer: EventObserver<number> = dispatcher
     const callback = jest.fn()
 
-    const subscription = observer.subscribeWhere(callback, value => value > 0)
+    const subscription = observer.subscribeWhere(callback, (value) => value > 0)
     subscription.dispose()
     dispatcher.dispatch(1)
 
@@ -85,8 +88,8 @@ describe('extensions.subscribeWhere', () => {
   })
 })
 
-describe('extensions.subscribeOn', () => {
-  it('should subscribe only when condition is true', () => {
+describe("extensions.subscribeOn", () => {
+  it("should subscribe only when condition is true", () => {
     const dispatcher = new EventDispatcher<number>()
     const observer: EventObserver<number> = dispatcher
     const callback = jest.fn()
@@ -103,7 +106,7 @@ describe('extensions.subscribeOn', () => {
     expect(callback).toHaveBeenCalledWith(2)
   })
 
-  it('should not call callback after subscription dispose', () => {
+  it("should not call callback after subscription dispose", () => {
     const dispatcher = new EventDispatcher<number>()
     const observer: EventObserver<number> = dispatcher
     const callback = jest.fn()
@@ -119,13 +122,13 @@ describe('extensions.subscribeOn', () => {
   })
 })
 
-describe('extensions.map', () => {
-  it('should map event values', () => {
+describe("extensions.map", () => {
+  it("should map event values", () => {
     const dispatcher = new EventDispatcher<number>()
     const observer: EventObserver<number> = dispatcher
     const callback = jest.fn()
 
-    observer.map(value => value * 2).subscribe(callback)
+    observer.map((value) => value * 2).subscribe(callback)
     dispatcher.dispatch(1)
     dispatcher.dispatch(2)
 
@@ -135,13 +138,13 @@ describe('extensions.map', () => {
   })
 })
 
-describe('extensions.where', () => {
-  it('should filter event values', () => {
+describe("extensions.where", () => {
+  it("should filter event values", () => {
     const dispatcher = new EventDispatcher<number>()
     const observer: EventObserver<number> = dispatcher
     const callback = jest.fn()
 
-    observer.where(value => value > 0).subscribe(callback)
+    observer.where((value) => value > 0).subscribe(callback)
     dispatcher.dispatch(-1)
     dispatcher.dispatch(1)
     dispatcher.dispatch(2)
@@ -152,11 +155,11 @@ describe('extensions.where', () => {
   })
 })
 
-describe('extensions.dispatchSafe', () => {
-  it('should not throw an error when dispatching', () => {
+describe("extensions.dispatchSafe", () => {
+  it("should not throw an error when dispatching", () => {
     const dispatcher = new EventDispatcher<number>()
     dispatcher.subscribe(() => {
-      throw new Error('Error')
+      throw new Error("Error")
     })
     expect(() => dispatcher.dispatchSafe(1)).not.toThrow()
   })

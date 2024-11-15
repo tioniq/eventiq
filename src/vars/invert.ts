@@ -1,8 +1,12 @@
-import {DisposableAction, DisposableContainer, Disposiq} from "@tioniq/disposiq";
-import {Action, Func} from "../action";
-import {functionEqualityComparer} from "../comparer";
-import {Variable} from "../variable";
-import {LinkedChain} from "../linked-chain";
+import {
+  DisposableAction,
+  DisposableContainer,
+  type Disposiq,
+} from "@tioniq/disposiq"
+import type { Action, Func } from "../action"
+import { functionEqualityComparer } from "../comparer"
+import { Variable } from "../variable"
+import { LinkedChain } from "../linked-chain"
 
 /**
  * A variable that inverts the value of another variable
@@ -16,12 +20,14 @@ export class InvertVariable extends Variable<boolean> {
   /**
    * @internal
    */
-  private readonly _chain = new LinkedChain<Action<boolean>>(functionEqualityComparer)
+  private readonly _chain = new LinkedChain<Action<boolean>>(
+    functionEqualityComparer,
+  )
 
   /**
    * @internal
    */
-  private _value: boolean = false
+  private _value = false
 
   /**
    * @internal
@@ -57,7 +63,7 @@ export class InvertVariable extends Variable<boolean> {
   }
 
   subscribeSilent(callback: Func<boolean, void>): Disposiq {
-    return this._variable.subscribeSilent(value => callback(!value))
+    return this._variable.subscribeSilent((value) => callback(!value))
   }
 
   /**
@@ -65,10 +71,13 @@ export class InvertVariable extends Variable<boolean> {
    */
   private _activate() {
     this._subscription.disposeCurrent()
-    this._subscription.set(this._variable.subscribeSilent(v => {
-      const value = this._value = !v
-      this._chain.forEach(a => a(value))
-    }))
+    this._subscription.set(
+      this._variable.subscribeSilent((v) => {
+        const value = !v
+        this._value = value
+        this._chain.forEach((a) => a(value))
+      }),
+    )
     this._value = !this._variable.value
   }
 

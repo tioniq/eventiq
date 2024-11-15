@@ -1,8 +1,12 @@
-import {MaxVariable, MutableVariable} from "../../src";
+import { MaxVariable, MutableVariable } from "../../src"
 
-describe('max var', () => {
-  it('should calculate max', () => {
-    const vars = [new MutableVariable(1), new MutableVariable(2), new MutableVariable(3)]
+describe("max var", () => {
+  it("should calculate max", () => {
+    const vars = [
+      new MutableVariable(1),
+      new MutableVariable(2),
+      new MutableVariable(3),
+    ]
     const max = new MaxVariable(vars)
 
     expect(max.value).toBe(3)
@@ -16,8 +20,12 @@ describe('max var', () => {
     expect(max.value).toBe(5)
   })
 
-  it('should notify on change', () => {
-    const vars = [new MutableVariable(1), new MutableVariable(2), new MutableVariable(3)]
+  it("should notify on change", () => {
+    const vars = [
+      new MutableVariable(1),
+      new MutableVariable(2),
+      new MutableVariable(3),
+    ]
     const max = new MaxVariable(vars)
     const callback = jest.fn()
 
@@ -34,8 +42,12 @@ describe('max var', () => {
     expect(callback).toHaveBeenCalledTimes(3)
   })
 
-  it('should not notify on same value', () => {
-    const vars = [new MutableVariable(1), new MutableVariable(2), new MutableVariable(3)]
+  it("should not notify on same value", () => {
+    const vars = [
+      new MutableVariable(1),
+      new MutableVariable(2),
+      new MutableVariable(3),
+    ]
     const max = new MaxVariable(vars)
     const callback = jest.fn()
 
@@ -52,8 +64,12 @@ describe('max var', () => {
     expect(callback).toHaveBeenCalledTimes(2)
   })
 
-  it('should dispose subscription', () => {
-    const vars = [new MutableVariable(1), new MutableVariable(2), new MutableVariable(3)]
+  it("should dispose subscription", () => {
+    const vars = [
+      new MutableVariable(1),
+      new MutableVariable(2),
+      new MutableVariable(3),
+    ]
     const max = new MaxVariable(vars)
     const callback = jest.fn()
 

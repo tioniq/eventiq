@@ -34,10 +34,10 @@
     "run:publish": "npm run run:publish:npm && npm run run:publish:jsr"
   },
   "dependencies": {
-    "@tioniq/disposiq": "^1.0.12"
+    "@tioniq/disposiq": "^1.0.17"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.1",
+    "@biomejs/biome": "^1.9.4",
     "@types/jest": "^29.5.12",
     "@types/node": "^22.5.4",
     "coverage-badges-cli": "^1.2.5",

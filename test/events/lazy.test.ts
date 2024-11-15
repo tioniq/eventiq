@@ -1,10 +1,10 @@
-import {LazyEventDispatcher} from "../../src/events";
-import {DisposableAction} from "@tioniq/disposiq";
+import { LazyEventDispatcher } from "../../src"
+import { DisposableAction } from "@tioniq/disposiq"
 
-describe('lazy dispatcher', () => {
-  it('should subscribe to event only when needed', () => {
+describe("lazy dispatcher", () => {
+  it("should subscribe to event only when needed", () => {
     let activated = false
-    const dispatcher = new LazyEventDispatcher<number>(_ => {
+    const dispatcher = new LazyEventDispatcher<number>((_) => {
       activated = true
       return new DisposableAction(() => {
         activated = false
@@ -34,9 +34,9 @@ describe('lazy dispatcher', () => {
     expect(activated).toBe(false)
   })
 
-  it('should not deactivate when there are still subscriptions', () => {
+  it("should not deactivate when there are still subscriptions", () => {
     let activated = false
-    const dispatcher = new LazyEventDispatcher<number>(_ => {
+    const dispatcher = new LazyEventDispatcher<number>((_) => {
       activated = true
       return new DisposableAction(() => {
         activated = false

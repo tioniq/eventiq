@@ -1,5 +1,5 @@
-import {EventObserver} from "./observer"
-import {Disposiq, emptyDisposable} from "@tioniq/disposiq";
+import { EventObserver } from "./observer"
+import { type Disposiq, emptyDisposable } from "@tioniq/disposiq"
 
 /**
  * A stub for the EventObserver class.

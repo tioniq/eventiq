@@ -1,8 +1,8 @@
-import {Disposiq, IDisposable} from "@tioniq/disposiq"
-import {Action, Func} from "./action"
-import {MutableVariable, SwitchMapMapper} from "./vars";
-import {EventObserver} from "./events";
-import {EqualityComparer} from "./comparer";
+import type { Disposiq, IDisposable } from "@tioniq/disposiq"
+import type { Action, Func } from "./action"
+import type { MutableVariable, SwitchMapMapper } from "./vars"
+import type { EventObserver } from "./events"
+import type { EqualityComparer } from "./comparer"
 
 /**
  * Base Variable class. **All variables should extend this class**.
@@ -114,7 +114,9 @@ export interface Variable<out T> {
    * @param others the other variables
    * @returns a new variable with the combined values
    */
-  with<O extends any[]>(...others: { [K in keyof O]: Variable<O[K]> }): Variable<[T, ...O]>
+  with<O extends unknown[]>(
+    ...others: { [K in keyof O]: Variable<O[K]> }
+  ): Variable<[T, ...O]>
 
   /**
    * Maps the variable value to another value using the mapper that returns a new variable to subscribe
@@ -129,7 +131,10 @@ export interface Variable<out T> {
    * @param equalityComparer the equality comparer
    * @returns a new variable with the throttled value
    */
-  throttle<T>(delay: number, equalityComparer?: EqualityComparer<T>): Variable<T>
+  throttle<T>(
+    delay: number,
+    equalityComparer?: EqualityComparer<T>,
+  ): Variable<T>
 
   /**
    * Throttles the variable value changes
@@ -137,7 +142,10 @@ export interface Variable<out T> {
    * @param equalityComparer the equality comparer
    * @returns a new variable with the throttled value
    */
-  throttle<T>(onUpdate: EventObserver, equalityComparer?: EqualityComparer<T>): Variable<T>
+  throttle<T>(
+    onUpdate: EventObserver,
+    equalityComparer?: EqualityComparer<T>,
+  ): Variable<T>
 
   /**
    * Streams the variable value to another mutable variable
@@ -157,28 +165,40 @@ export interface Variable<out T> {
    * @param other the other variable or a value
    * @returns a new SUM variable
    */
-  plus(this: Variable<number>, other: Variable<number> | number): Variable<number>
+  plus(
+    this: Variable<number>,
+    other: Variable<number> | number,
+  ): Variable<number>
 
   /**
    * Creates a new variable that will return the difference of the variable values
    * @param other the other variable or a value
    * @returns a new SUM variable
    */
-  minus(this: Variable<number>, other: Variable<number> | number): Variable<number>
+  minus(
+    this: Variable<number>,
+    other: Variable<number> | number,
+  ): Variable<number>
 
   /**
    * Creates a new variable that will return the product of the variable values
    * @param other the other variable or a value
    * @returns a new MULTIPLY variable
    */
-  multiply(this: Variable<number>, other: Variable<number> | number): Variable<number>
+  multiply(
+    this: Variable<number>,
+    other: Variable<number> | number,
+  ): Variable<number>
 
   /**
    * Creates a new variable that will return the quotient of the variable values
    * @param other the other variable or a value
    * @returns a new DIVIDE variable
    */
-  divide(this: Variable<number>, other: Variable<number> | number): Variable<number>
+  divide(
+    this: Variable<number>,
+    other: Variable<number> | number,
+  ): Variable<number>
 
   /**
    * Creates a new variable that will return the rounded value of the variable
@@ -191,28 +211,40 @@ export interface Variable<out T> {
    * @param other the other variable or a value
    * @returns a new variable with the comparison result
    */
-  moreThan(this: Variable<number>, other: Variable<number> | number): Variable<boolean>
+  moreThan(
+    this: Variable<number>,
+    other: Variable<number> | number,
+  ): Variable<boolean>
 
   /**
    * Creates a new variable that will return true if the variable value is less than the other value
    * @param other the other variable or a value
    * @returns a new variable with the comparison result
    */
-  lessThan(this: Variable<number>, other: Variable<number> | number): Variable<boolean>
+  lessThan(
+    this: Variable<number>,
+    other: Variable<number> | number,
+  ): Variable<boolean>
 
   /**
    * Creates a new variable that will return true if the variable value is greater or equal to the other value
    * @param other the other variable or a value
    * @returns a new variable with the comparison result
    */
-  moreOrEqual(this: Variable<number>, other: Variable<number> | number): Variable<boolean>
+  moreOrEqual(
+    this: Variable<number>,
+    other: Variable<number> | number,
+  ): Variable<boolean>
 
   /**
    * Creates a new variable that will return true if the variable value is less or equal to the other value
    * @param other the other variable or a value
    * @returns a new variable with the comparison result
    */
-  lessOrEqual(this: Variable<number>, other: Variable<number> | number): Variable<boolean>
+  lessOrEqual(
+    this: Variable<number>,
+    other: Variable<number> | number,
+  ): Variable<boolean>
 
   /**
    * Creates a new variable that will return true if the variable value is equal to the other value
@@ -220,7 +252,10 @@ export interface Variable<out T> {
    * @param equalityComparer the equality comparer
    * @returns a new variable with the comparison result
    */
-  equal<R extends T>(other: Variable<R> | R, equalityComparer?: EqualityComparer<R>): Variable<boolean>
+  equal<R extends T>(
+    other: Variable<R> | R,
+    equalityComparer?: EqualityComparer<R>,
+  ): Variable<boolean>
 
   /**
    * Creates a new constant variable with the current value
@@ -241,5 +276,8 @@ export interface Variable<out T> {
    * @param equalityComparer the equality comparer
    * @returns a new variable that will be sealed when the condition is met
    */
-  sealWhen<R extends T>(condition: R, equalityComparer?: EqualityComparer<R>): Variable<R>
+  sealWhen<R extends T>(
+    condition: R,
+    equalityComparer?: EqualityComparer<R>,
+  ): Variable<R>
 }

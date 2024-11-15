@@ -1,13 +1,13 @@
-import {CompoundVariable} from "./compound";
-import {Variable} from "../variable";
-import {DisposableStore} from "@tioniq/disposiq";
-import {arrayEqualityComparer} from "../comparer";
+import { CompoundVariable } from "./compound"
+import type { Variable } from "../variable"
+import { DisposableStore } from "@tioniq/disposiq"
+import { arrayEqualityComparer } from "../comparer"
 
 /**
  * A variable that combines multiple variables into a single variable. The value presents an array of the values of the
  * variables. The variable will notify the subscribers on any of the variables change
  */
-export class CombinedVariable<T extends any[]> extends CompoundVariable<T> {
+export class CombinedVariable<T extends unknown[]> extends CompoundVariable<T> {
   /**
    * @internal
    */
@@ -23,7 +23,7 @@ export class CombinedVariable<T extends any[]> extends CompoundVariable<T> {
       throw new Error("No variables provided")
     }
     super(stubArray as T, arrayEqualityComparer)
-    this._vars = vars.slice()
+    this._vars = vars.slice() as Variable<T>[]
   }
 
   protected activate(): void {
@@ -32,10 +32,12 @@ export class CombinedVariable<T extends any[]> extends CompoundVariable<T> {
     const result = new Array(length) as T
     for (let i = 0; i < length; ++i) {
       const vary = this._vars[i]
-      this._subscriptions.add(vary.subscribeSilent(value => {
-        result[i] = value
-        this.setValueForce(result)
-      }))
+      this._subscriptions.add(
+        vary.subscribeSilent((value) => {
+          result[i] = value
+          this.setValueForce(result)
+        }),
+      )
       result[i] = vary.value
     }
     this.setValueForce(result)
@@ -55,4 +57,4 @@ export class CombinedVariable<T extends any[]> extends CompoundVariable<T> {
   }
 }
 
-const stubArray = Object.freeze([]) as unknown as any[]
+const stubArray = Object.freeze<unknown[]>([])

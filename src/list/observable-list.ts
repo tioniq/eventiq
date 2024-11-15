@@ -1,7 +1,7 @@
-import { EventDispatcher, EventObserver } from "../events";
+import { EventDispatcher, type EventObserver } from "../events"
 
 export type ObservableListChangeEvent<T> =
-  ObservableListRemoveEvent<T>
+  | ObservableListRemoveEvent<T>
   | ObservableListAddEvent<T>
   | ObservableListReplaceEvent<T>
   | ObservableListMoveEvent<T>
@@ -10,26 +10,30 @@ export interface ObservableListChangeBaseEvent<T> {
   type: "remove" | "add" | "replace" | "move"
 }
 
-export interface ObservableListRemoveEvent<T> extends ObservableListChangeBaseEvent<T> {
+export interface ObservableListRemoveEvent<T>
+  extends ObservableListChangeBaseEvent<T> {
   type: "remove"
   items: T[]
   startIndex: number
 }
 
-export interface ObservableListAddEvent<T> extends ObservableListChangeBaseEvent<T> {
+export interface ObservableListAddEvent<T>
+  extends ObservableListChangeBaseEvent<T> {
   type: "add"
   items: T[]
   startIndex: number
 }
 
-export interface ObservableListReplaceEvent<T> extends ObservableListChangeBaseEvent<T> {
+export interface ObservableListReplaceEvent<T>
+  extends ObservableListChangeBaseEvent<T> {
   type: "replace"
   oldItems: T[]
   newItems: T[]
   startIndex: number
 }
 
-export interface ObservableListMoveEvent<T> extends ObservableListChangeBaseEvent<T> {
+export interface ObservableListMoveEvent<T>
+  extends ObservableListChangeBaseEvent<T> {
   type: "move"
   items: {
     item: T
@@ -48,11 +52,13 @@ export class ObservableList<T> {
   /**
    * @internal
    */
-  private readonly _list: T[];
+  private readonly _list: T[]
   /**
    * @internal
    */
-  private readonly _onRemove = new EventDispatcher<ObservableListRemoveEvent<T>>()
+  private readonly _onRemove = new EventDispatcher<
+    ObservableListRemoveEvent<T>
+  >()
 
   /**
    * @internal
@@ -66,7 +72,9 @@ export class ObservableList<T> {
   /**
    * @internal
    */
-  private readonly _onReplace = new EventDispatcher<ObservableListReplaceEvent<T>>()
+  private readonly _onReplace = new EventDispatcher<
+    ObservableListReplaceEvent<T>
+  >()
 
   /**
    * @internal
@@ -76,45 +84,47 @@ export class ObservableList<T> {
   /**
    * @internal
    */
-  private readonly _onAnyChange = new EventDispatcher<ObservableListChangeEvent<T>>()
+  private readonly _onAnyChange = new EventDispatcher<
+    ObservableListChangeEvent<T>
+  >()
 
   constructor(items?: T[]) {
-    this._list = Array.isArray(items) ? [...items] : [];
+    this._list = Array.isArray(items) ? [...items] : []
   }
 
   /**
    * An event that is triggered when an item is removed from the list
    */
   get onRemove(): EventObserver<ObservableListRemoveEvent<T>> {
-    return this._onRemove;
+    return this._onRemove
   }
 
   /**
    * An event that is triggered when an item is added to the list
    */
   get onAdd(): EventObserver<ObservableListAddEvent<T>> {
-    return this._onAdd;
+    return this._onAdd
   }
 
   /**
    * An event that is triggered when an item is replaced in the list
    */
   get onReplace(): EventObserver<ObservableListReplaceEvent<T>> {
-    return this._onReplace;
+    return this._onReplace
   }
 
   /**
    * An event that is triggered when an item is moved in the list
    */
   get onMove(): EventObserver<ObservableListMoveEvent<T>> {
-    return this._onMove;
+    return this._onMove
   }
 
   /**
    * An event that is triggered when any change is made to the list
    */
   get onAnyChange(): EventObserver<ObservableListChangeEvent<T>> {
-    return this._onAnyChange;
+    return this._onAnyChange
   }
 
   /**
@@ -139,21 +149,22 @@ export class ObservableList<T> {
    * @param value the new value of the item
    */
   set(index: number, value: T): void {
-    const hasSubscriptions = this._onReplace.hasSubscriptions || this._onAnyChange.hasSubscriptions;
+    const hasSubscriptions =
+      this._onReplace.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
-      this._list[index] = value;
+      this._list[index] = value
       return
     }
-    const old = this._list[index];
-    this._list[index] = value;
+    const old = this._list[index]
+    this._list[index] = value
     const event: ObservableListReplaceEvent<T> = {
       type: "replace",
       oldItems: [old],
       newItems: [value],
-      startIndex: index
+      startIndex: index,
     }
-    this._onReplace.dispatch(event);
-    this._onAnyChange.dispatch(event);
+    this._onReplace.dispatch(event)
+    this._onAnyChange.dispatch(event)
   }
 
   /**
@@ -174,32 +185,34 @@ export class ObservableList<T> {
     }
     if (items.length === 1) {
       const item = items[0]
-      const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions;
-      this._list.push(item);
+      const hasSubscriptions =
+        this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions
+      this._list.push(item)
       if (!hasSubscriptions) {
-        return;
+        return
       }
       const event: ObservableListAddEvent<T> = {
         type: "add",
         items: [item],
-        startIndex: this._list.length - 1
+        startIndex: this._list.length - 1,
       }
-      this._onAdd.dispatch(event);
-      this._onAnyChange.dispatch(event);
+      this._onAdd.dispatch(event)
+      this._onAnyChange.dispatch(event)
       return
     }
-    const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions;
-    this._list.push(...items);
+    const hasSubscriptions =
+      this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions
+    this._list.push(...items)
     if (!hasSubscriptions) {
-      return;
+      return
     }
     const event: ObservableListAddEvent<T> = {
       type: "add",
       items: [...items],
-      startIndex: this._list.length - items.length
+      startIndex: this._list.length - items.length,
     }
-    this._onAdd.dispatch(event);
-    this._onAnyChange.dispatch(event);
+    this._onAdd.dispatch(event)
+    this._onAnyChange.dispatch(event)
   }
 
   /**
@@ -225,7 +238,8 @@ export class ObservableList<T> {
    * @param items the items to insert
    */
   insertRange(index: number, items: T[]): void {
-    const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions
+    const hasSubscriptions =
+      this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
       this._list.splice(index, 0, ...items)
       return
@@ -234,7 +248,7 @@ export class ObservableList<T> {
     const event: ObservableListAddEvent<T> = {
       type: "add",
       items: [...items],
-      startIndex: index
+      startIndex: index,
     }
     this._onAdd.dispatch(event)
     this._onAnyChange.dispatch(event)
@@ -246,7 +260,8 @@ export class ObservableList<T> {
    * @returns true if the item was removed, false otherwise
    */
   remove(item: T): boolean {
-    const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
+    const hasSubscriptions =
+      this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
     const index = this._list.indexOf(item)
     if (index === -1) {
       return false
@@ -258,7 +273,7 @@ export class ObservableList<T> {
     const event: ObservableListRemoveEvent<T> = {
       type: "remove",
       items: [item],
-      startIndex: index
+      startIndex: index,
     }
     this._onRemove.dispatch(event)
     this._onAnyChange.dispatch(event)
@@ -271,7 +286,8 @@ export class ObservableList<T> {
    * @param count the number of items to remove
    */
   removeRange(index: number, count: number): void {
-    const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
+    const hasSubscriptions =
+      this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
       this._list.splice(index, count)
       return
@@ -281,7 +297,7 @@ export class ObservableList<T> {
     const event: ObservableListRemoveEvent<T> = {
       type: "remove",
       items: items,
-      startIndex: index
+      startIndex: index,
     }
     this._onRemove.dispatch(event)
     this._onAnyChange.dispatch(event)
@@ -295,9 +311,13 @@ export class ObservableList<T> {
   }
 
   private get _hasAnySubscription() {
-    return this._onRemove.hasSubscriptions || this._onAdd.hasSubscriptions ||
-      this._onReplace.hasSubscriptions || this._onMove.hasSubscriptions ||
-      this._onAnyChange.hasSubscriptions;
+    return (
+      this._onRemove.hasSubscriptions ||
+      this._onAdd.hasSubscriptions ||
+      this._onReplace.hasSubscriptions ||
+      this._onMove.hasSubscriptions ||
+      this._onAnyChange.hasSubscriptions
+    )
   }
 
   /**
@@ -330,7 +350,7 @@ export class ObservableList<T> {
       }
       this.insert(i, t)
     }
-    const changedItems: { item: T, from: number, to: number }[] = []
+    const changedItems: { item: T; from: number; to: number }[] = []
     for (let i = 0; i < replacement.length; i++) {
       const t = replacement[i]
       const resultIndex = this._list.indexOf(t)
@@ -339,14 +359,14 @@ export class ObservableList<T> {
       }
       this._list.splice(resultIndex, 1)
       this._list.splice(i, 0, t)
-      changedItems.push({item: t, from: resultIndex, to: i})
+      changedItems.push({ item: t, from: resultIndex, to: i })
     }
     if (changedItems.length <= 0) {
       return
     }
     const event: ObservableListMoveEvent<T> = {
       type: "move",
-      items: changedItems
+      items: changedItems,
     }
     this._onMove.dispatch(event)
     this._onAnyChange.dispatch(event)
@@ -382,7 +402,8 @@ export class ObservableList<T> {
    * @param item the item to insert
    */
   insert(index: number, item: T): void {
-    const hasSubscriptions = this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions
+    const hasSubscriptions =
+      this._onAdd.hasSubscriptions || this._onAnyChange.hasSubscriptions
     this._list.splice(index, 0, item)
     if (!hasSubscriptions) {
       return
@@ -390,7 +411,7 @@ export class ObservableList<T> {
     const event: ObservableListAddEvent<T> = {
       type: "add",
       items: [item],
-      startIndex: index
+      startIndex: index,
     }
     this._onAdd.dispatch(event)
     this._onAnyChange.dispatch(event)
@@ -401,7 +422,8 @@ export class ObservableList<T> {
    * @param index the index of the item to remove
    */
   removeAt(index: number): void {
-    const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
+    const hasSubscriptions =
+      this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
       this._list.splice(index, 1)
       return
@@ -413,7 +435,7 @@ export class ObservableList<T> {
     const event: ObservableListRemoveEvent<T> = {
       type: "remove",
       items: removed,
-      startIndex: index
+      startIndex: index,
     }
     this._onRemove.dispatch(event)
     this._onAnyChange.dispatch(event)
@@ -431,13 +453,14 @@ export class ObservableList<T> {
    * @param compareFn the compare function to use for sorting the list
    */
   sort(compareFn?: (a: T, b: T) => number): void {
-    const hasSubscriptions = this._onMove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
+    const hasSubscriptions =
+      this._onMove.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
-      this._list.sort(compareFn);
-      return;
+      this._list.sort(compareFn)
+      return
     }
-    const array = this._list.slice();
-    array.sort(compareFn);
+    const array = this._list.slice()
+    array.sort(compareFn)
     this.updateSorted(array)
   }
 
@@ -445,7 +468,8 @@ export class ObservableList<T> {
    * Clears the list
    */
   clear(): void {
-    const hasSubscriptions = this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions;
+    const hasSubscriptions =
+      this._onRemove.hasSubscriptions || this._onAnyChange.hasSubscriptions
     if (!hasSubscriptions) {
       this._list.length = 0
       return
@@ -455,10 +479,10 @@ export class ObservableList<T> {
     const event: ObservableListRemoveEvent<T> = {
       type: "remove",
       items: items,
-      startIndex: 0
+      startIndex: 0,
     }
-    this._onRemove.dispatch(event);
-    this._onAnyChange.dispatch(event);
+    this._onRemove.dispatch(event)
+    this._onAnyChange.dispatch(event)
   }
 
   private updateSorted(sortedItems: T[]): void {
@@ -472,7 +496,7 @@ export class ObservableList<T> {
         item,
         index: i,
         distance,
-        distanceMoved: 0
+        distanceMoved: 0,
       })
     }
     while (true) {
@@ -495,12 +519,17 @@ export class ObservableList<T> {
       }
       if (maxDistance === 0) {
         if (hasDistanceMoved) {
-          console.error("Bad state: hasDistanceMoved is true but maxDistance is 0")
+          console.error(
+            "Bad state: hasDistanceMoved is true but maxDistance is 0",
+          )
           // throw new Error("Bad state: hasDistanceMoved is true but maxDistance is 0")
         }
         break
       }
-      const item = index!
+      if (index === undefined) {
+        continue
+      }
+      const item = index
       const dist = item.distance
       item.distance = 0
       item.distanceMoved += dist
@@ -508,50 +537,52 @@ export class ObservableList<T> {
       item.index += dist
 
       if (dist > 0) {
-        let nextNode = index;
+        let nextNode = index
         const indexIndex = items.indexOf(item)
         for (let i = 0; i < dist; i++) {
           nextNode = items[indexIndex + i + 1]
-          nextNode.distance++;
-          nextNode.index--;
+          nextNode.distance++
+          nextNode.index--
         }
         items.splice(indexIndex, 1)
+        // biome-ignore lint/style/noNonNullAssertion: nextNode is set in the loop above
         const nextNodeIndex = items.indexOf(nextNode!)
         items.splice(nextNodeIndex + 1, 0, item)
-      } else {
-        let prevNode = index;
+      } else if (dist < 0) {
+        let prevNode = index
         const indexIndex = items.indexOf(item)
         for (let i = 0; i < -dist; i++) {
           prevNode = items[indexIndex - i - 1]
-          prevNode.distance--;
-          prevNode.index++;
+          prevNode.distance--
+          prevNode.index++
         }
         items.splice(indexIndex, 1)
+        // biome-ignore lint/style/noNonNullAssertion: prevNode is set in the loop above
         const prevNodeIndex = items.indexOf(prevNode!)
         items.splice(prevNodeIndex, 0, item)
       }
 
       const event: ObservableListMoveEvent<T> = {
         type: "move",
-        items: [{
-          item: item.item!,
-          from: moveFrom,
-          to: item.index
-        }]
+        items: [
+          {
+            item: item.item,
+            from: moveFrom,
+            to: item.index,
+          },
+        ],
       }
       this._list.splice(moveFrom, 1)
-      this._list.splice(item.index, 0, item.item!)
+      this._list.splice(item.index, 0, item.item)
       this._onMove.dispatch(event)
       this._onAnyChange.dispatch(event)
     }
   }
 }
 
-
 interface SortItemData<T> {
-  item?: T
+  item: T
   index: number
   distance: number
   distanceMoved: number
 }
-

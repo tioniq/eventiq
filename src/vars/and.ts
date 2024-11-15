@@ -1,6 +1,6 @@
-import {CompoundVariable} from "./compound";
-import {Variable} from "../variable";
-import {disposeAll, IDisposable} from "@tioniq/disposiq";
+import { CompoundVariable } from "./compound"
+import type { Variable } from "../variable"
+import { disposeAll, type IDisposable } from "@tioniq/disposiq"
 
 /**
  * A variable that will return true if all the variable values are true
@@ -9,7 +9,7 @@ export class AndVariable extends CompoundVariable<boolean> {
   /**
    * @internal
    */
-  private readonly _variables: Variable<boolean>[];
+  private readonly _variables: Variable<boolean>[]
 
   /**
    * @internal
@@ -17,8 +17,8 @@ export class AndVariable extends CompoundVariable<boolean> {
   private readonly _subscriptions: IDisposable[] = []
 
   constructor(variables: Variable<boolean>[]) {
-    super(false);
-    this._variables = variables;
+    super(false)
+    this._variables = variables
   }
 
   protected activate(): void {
@@ -26,17 +26,17 @@ export class AndVariable extends CompoundVariable<boolean> {
   }
 
   protected deactivate(): void {
-    disposeAll(this._subscriptions);
+    disposeAll(this._subscriptions)
   }
 
   protected getExactValue(): boolean {
     const variables = this._variables
     for (let i = 0; i < variables.length; ++i) {
       if (!variables[i].value) {
-        return false;
+        return false
       }
     }
-    return true;
+    return true
   }
 
   /**
@@ -44,8 +44,8 @@ export class AndVariable extends CompoundVariable<boolean> {
    */
   private _listen(index: number): void {
     if (index >= this._variables.length) {
-      this.value = true;
-      return;
+      this.value = true
+      return
     }
     if (this._subscriptions.length > index) {
       return
@@ -58,10 +58,10 @@ export class AndVariable extends CompoundVariable<boolean> {
         this.value = false
       }
     }
-    const variable = this._variables[index];
-    this._subscriptions.push(variable.subscribeSilent(__listener));
-    __listener(variable.value);
-    return;
+    const variable = this._variables[index]
+    this._subscriptions.push(variable.subscribeSilent(__listener))
+    __listener(variable.value)
+    return
   }
 
   /**
@@ -69,7 +69,7 @@ export class AndVariable extends CompoundVariable<boolean> {
    */
   private _unsubscribeFrom(index: number): void {
     while (index < this._subscriptions.length) {
-      this._subscriptions.pop()?.dispose();
+      this._subscriptions.pop()?.dispose()
     }
   }
 }

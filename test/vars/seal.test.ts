@@ -1,7 +1,7 @@
-import {MutableVariable, SealVariable} from "../../src";
+import { MutableVariable, SealVariable } from "../../src"
 
-describe('seal var', () => {
-  it('should return source value until sealed', () => {
+describe("seal var", () => {
+  it("should return source value until sealed", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
 
@@ -17,7 +17,7 @@ describe('seal var', () => {
     expect(sealed.value).toBe(2)
   })
 
-  it('should notify subscribers until sealed', () => {
+  it("should notify subscribers until sealed", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
     const fn = jest.fn()
@@ -38,7 +38,7 @@ describe('seal var', () => {
     expect(fn).toHaveBeenCalledTimes(2)
   })
 
-  it('should return current value while subscribed and not sealed', () => {
+  it("should return current value while subscribed and not sealed", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
     const fn = jest.fn()
@@ -52,7 +52,7 @@ describe('seal var', () => {
     expect(sealed.value).toBe(2)
   })
 
-  it('should not notify subscribers when sealed', () => {
+  it("should not notify subscribers when sealed", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
     const fn = jest.fn()
@@ -68,7 +68,7 @@ describe('seal var', () => {
     expect(fn).toHaveBeenCalledTimes(1)
   })
 
-  it('should return sealed value after sealing', () => {
+  it("should return sealed value after sealing", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
 
@@ -81,7 +81,7 @@ describe('seal var', () => {
     expect(sealed.value).toBe(2)
   })
 
-  it('should notify subscribers after sealing', () => {
+  it("should notify subscribers after sealing", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
     const fn = jest.fn()
@@ -97,7 +97,7 @@ describe('seal var', () => {
     expect(fn).toHaveBeenCalledTimes(1)
   })
 
-  it('should dispose all subscriptions when sealed', () => {
+  it("should dispose all subscriptions when sealed", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
     const fn = jest.fn()
@@ -120,7 +120,7 @@ describe('seal var', () => {
     expect(fn).toHaveBeenCalledTimes(1)
   })
 
-  it('should dispose subscription before sealing', () => {
+  it("should dispose subscription before sealing", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
     const fn = jest.fn()
@@ -141,7 +141,7 @@ describe('seal var', () => {
     expect(fn).toHaveBeenCalledTimes(1)
   })
 
-  it('should seal return false when already sealed', () => {
+  it("should seal return false when already sealed", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
 
@@ -149,7 +149,7 @@ describe('seal var', () => {
     expect(sealed.seal()).toBe(false)
   })
 
-  it('should subscribe silent', () => {
+  it("should subscribe silent", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
     const fn = jest.fn()
@@ -170,7 +170,7 @@ describe('seal var', () => {
     expect(fn).toHaveBeenCalledTimes(1)
   })
 
-  it('should subscribe silent do nothing when sealed', () => {
+  it("should subscribe silent do nothing when sealed", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
     const fn = jest.fn()
@@ -191,7 +191,7 @@ describe('seal var', () => {
     expect(fn).toHaveBeenCalledTimes(0)
   })
 
-  it('should equality comparer be the same as source\'s equality comparer', () => {
+  it("should equality comparer be the same as source's equality comparer", () => {
     const vary = new MutableVariable(1)
     const sealed = new SealVariable(vary)
 

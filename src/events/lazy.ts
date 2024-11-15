@@ -1,6 +1,12 @@
 import { EventObserver } from "./observer"
-import { Action, Func } from "../action"
-import { DisposableAction, DisposableContainer, DisposableLike, Disposiq, toDisposable } from "@tioniq/disposiq"
+import type { Action, Func } from "../action"
+import {
+  DisposableAction,
+  DisposableContainer,
+  type DisposableLike,
+  type Disposiq,
+  toDisposable,
+} from "@tioniq/disposiq"
 import { functionEqualityComparer } from "../comparer"
 import { LinkedChain } from "../linked-chain"
 
@@ -65,7 +71,7 @@ export class LazyEventDispatcher<T = void> extends EventObserver<T> {
    * @param value the value of the event
    */
   dispatch(value: T): void {
-    this._nodes.forEach(a => a(value))
+    this._nodes.forEach((a) => a(value))
   }
 
   /**

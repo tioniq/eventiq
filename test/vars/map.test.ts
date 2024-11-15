@@ -1,7 +1,7 @@
-import {MutableVariable} from "../../src";
+import { MutableVariable } from "../../src"
 
-describe('map var', () => {
-  it('should map var', () => {
+describe("map var", () => {
+  it("should map var", () => {
     const vary = new MutableVariable(1)
     const mapped = vary.map((v) => v * 2)
 
@@ -12,7 +12,7 @@ describe('map var', () => {
     expect(mapped.value).toBe(4)
   })
 
-  it('should notify on change', () => {
+  it("should notify on change", () => {
     const vary = new MutableVariable(1)
     const mapped = vary.map((v) => v * 2)
     const callback = jest.fn()
@@ -30,7 +30,7 @@ describe('map var', () => {
     expect(callback).toHaveBeenCalledTimes(3)
   })
 
-  it('should not notify on same value', () => {
+  it("should not notify on same value", () => {
     const vary = new MutableVariable(1)
     const mapped = vary.map((v) => v % 2)
     const callback = jest.fn()
@@ -48,7 +48,7 @@ describe('map var', () => {
     expect(callback).toHaveBeenCalledTimes(2)
   })
 
-  it('should dispose subscription', () => {
+  it("should dispose subscription", () => {
     const vary = new MutableVariable(1)
     const mapped = vary.map((v) => v * 2)
     const callback = jest.fn()

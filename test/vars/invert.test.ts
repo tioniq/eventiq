@@ -1,7 +1,7 @@
-import {MutableVariable} from "../../src"
+import { MutableVariable } from "../../src"
 
-describe('invert var', () => {
-  it('should invert a var', () => {
+describe("invert var", () => {
+  it("should invert a var", () => {
     const boolVar = new MutableVariable(true)
     const invertVar = boolVar.invert()
 
@@ -12,7 +12,7 @@ describe('invert var', () => {
     expect(invertVar.value).toBe(true)
   })
 
-  it('should notify on change', () => {
+  it("should notify on change", () => {
     const boolVar = new MutableVariable(true)
     const invertVar = boolVar.invert()
     const callback = jest.fn()
@@ -33,7 +33,7 @@ describe('invert var', () => {
     expect(callback).toHaveBeenCalledTimes(2)
   })
 
-  it('should return current value if there is subscription', () => {
+  it("should return current value if there is subscription", () => {
     const boolVar = new MutableVariable(true)
     const invertVar = boolVar.invert()
     const callback = jest.fn()
@@ -43,7 +43,7 @@ describe('invert var', () => {
     expect(invertVar.value).toBe(false)
   })
 
-  it('should subscribeSilent work', () => {
+  it("should subscribeSilent work", () => {
     const boolVar = new MutableVariable(true)
     const invertVar = boolVar.invert()
     const callback = jest.fn()

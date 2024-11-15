@@ -1,7 +1,7 @@
-import {MutableVariable} from "../src";
+import { MutableVariable } from "../src"
 
-describe('combined', () => {
-  it('should combine variables', () => {
+describe("combined", () => {
+  it("should combine variables", () => {
     const v1 = new MutableVariable("kek")
     const v2 = new MutableVariable(20)
     const combined = v1.with(v2)

@@ -1,6 +1,6 @@
-import {Action, Func} from "../action";
-import {Disposiq} from "@tioniq/disposiq";
-import {Variable} from "../variable";
+import type { Action, Func } from "../action"
+import type { Disposiq } from "@tioniq/disposiq"
+import type { Variable } from "../variable"
 
 /**
  * A base class for event observers. **All event observers should extend this class**.

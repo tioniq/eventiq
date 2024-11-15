@@ -1,18 +1,16 @@
-import {CompoundVariable, EqualityComparer} from "../../src";
+import { CompoundVariable, type EqualityComparer } from "../../src"
 
-describe('compound var', () => {
-  it('should activate and deactivate', () => {
+describe("compound var", () => {
+  it("should activate and deactivate", () => {
     const vary = new TestVar(0)
 
     expect(vary.activated).toBe(false)
 
-    const subscription = vary.subscribe(() => {
-    })
+    const subscription = vary.subscribe(() => {})
 
     expect(vary.activated).toBe(true)
 
-    vary.subscribe(() => {
-    }).dispose()
+    vary.subscribe(() => {}).dispose()
 
     expect(vary.activated).toBe(true)
 
@@ -25,6 +23,7 @@ describe('compound var', () => {
 class TestVar<T> extends CompoundVariable<T> {
   private _active = false
 
+  // biome-ignore lint/complexity/noUselessConstructor: constructor is needed for testing
   constructor(initValue: T, equalityComparer?: EqualityComparer<T>) {
     super(initValue, equalityComparer)
   }

@@ -1,8 +1,12 @@
-import {MinVariable, MutableVariable} from "../../src";
+import { MinVariable, MutableVariable } from "../../src"
 
-describe('min var', () => {
-  it('should calculate min', () => {
-    const vars = [new MutableVariable(1), new MutableVariable(2), new MutableVariable(3)]
+describe("min var", () => {
+  it("should calculate min", () => {
+    const vars = [
+      new MutableVariable(1),
+      new MutableVariable(2),
+      new MutableVariable(3),
+    ]
     const max = new MinVariable(vars)
 
     expect(max.value).toBe(1)
@@ -16,8 +20,12 @@ describe('min var', () => {
     expect(max.value).toBe(-100)
   })
 
-  it('should notify on change', () => {
-    const vars = [new MutableVariable(1), new MutableVariable(3), new MutableVariable(2)]
+  it("should notify on change", () => {
+    const vars = [
+      new MutableVariable(1),
+      new MutableVariable(3),
+      new MutableVariable(2),
+    ]
     const max = new MinVariable(vars)
     const callback = jest.fn()
 
@@ -34,8 +42,12 @@ describe('min var', () => {
     expect(callback).toHaveBeenCalledTimes(3)
   })
 
-  it('should not notify on same value', () => {
-    const vars = [new MutableVariable(1), new MutableVariable(2), new MutableVariable(3)]
+  it("should not notify on same value", () => {
+    const vars = [
+      new MutableVariable(1),
+      new MutableVariable(2),
+      new MutableVariable(3),
+    ]
     const max = new MinVariable(vars)
     const callback = jest.fn()
 
@@ -52,8 +64,12 @@ describe('min var', () => {
     expect(callback).toHaveBeenCalledTimes(2)
   })
 
-  it('should dispose subscription', () => {
-    const vars = [new MutableVariable(1), new MutableVariable(2), new MutableVariable(3)]
+  it("should dispose subscription", () => {
+    const vars = [
+      new MutableVariable(1),
+      new MutableVariable(2),
+      new MutableVariable(3),
+    ]
     const max = new MinVariable(vars)
     const callback = jest.fn()
 

@@ -1,20 +1,26 @@
-import {FuncVariable} from "../../src";
-import {emptyDisposable} from "@tioniq/disposiq";
+import { FuncVariable } from "../../src"
+import { emptyDisposable } from "@tioniq/disposiq"
 
-describe('func var', () => {
-  it('should return exact value when no subscription', () => {
-    const func = new FuncVariable(v => {
-      v.value = 10
-      return emptyDisposable;
-    }, () => 1)
+describe("func var", () => {
+  it("should return exact value when no subscription", () => {
+    const func = new FuncVariable(
+      (v) => {
+        v.value = 10
+        return emptyDisposable
+      },
+      () => 1,
+    )
     expect(func.value).toBe(1)
   })
 
-  it('should set value on activate', () => {
-    const func = new FuncVariable(v => {
-      v.value = 10
-      return emptyDisposable;
-    }, () => 1)
+  it("should set value on activate", () => {
+    const func = new FuncVariable(
+      (v) => {
+        v.value = 10
+        return emptyDisposable
+      },
+      () => 1,
+    )
     expect(func.value).toBe(1)
 
     const callback = jest.fn()
@@ -23,11 +29,14 @@ describe('func var', () => {
     expect(func.value).toBe(10)
   })
 
-  it('should use exact value after deactivate', () => {
-    const func = new FuncVariable(v => {
-      v.value = 10
-      return emptyDisposable;
-    }, () => 1)
+  it("should use exact value after deactivate", () => {
+    const func = new FuncVariable(
+      (v) => {
+        v.value = 10
+        return emptyDisposable
+      },
+      () => 1,
+    )
     expect(func.value).toBe(1)
 
     const callback = jest.fn()
@@ -40,11 +49,14 @@ describe('func var', () => {
     expect(func.value).toBe(1)
   })
 
-  it('should notify on value change', () => {
-    const func = new FuncVariable(v => {
-      v.value = 10
-      return emptyDisposable;
-    }, () => 1)
+  it("should notify on value change", () => {
+    const func = new FuncVariable(
+      (v) => {
+        v.value = 10
+        return emptyDisposable
+      },
+      () => 1,
+    )
     expect(func.value).toBe(1)
 
     const callback = jest.fn()
@@ -59,11 +71,14 @@ describe('func var', () => {
     expect(callback).toHaveBeenCalledWith(20)
   })
 
-  it('should set silent and notify', () => {
-    const func = new FuncVariable(v => {
-      v.value = 10
-      return emptyDisposable;
-    }, () => 1)
+  it("should set silent and notify", () => {
+    const func = new FuncVariable(
+      (v) => {
+        v.value = 10
+        return emptyDisposable
+      },
+      () => 1,
+    )
     expect(func.value).toBe(1)
 
     const callback = jest.fn()
@@ -82,11 +97,14 @@ describe('func var', () => {
     expect(callback).toHaveBeenCalledWith(20)
   })
 
-  it('should set force and notify', () => {
-    const func = new FuncVariable(v => {
-      v.value = 10
-      return emptyDisposable;
-    }, () => 1)
+  it("should set force and notify", () => {
+    const func = new FuncVariable(
+      (v) => {
+        v.value = 10
+        return emptyDisposable
+      },
+      () => 1,
+    )
     expect(func.value).toBe(1)
 
     const callback = jest.fn()
@@ -101,11 +119,14 @@ describe('func var', () => {
     expect(callback).toHaveBeenCalledWith(20)
   })
 
-  it('should subscribe silent', () => {
-    const func = new FuncVariable(v => {
-      v.value = 10
-      return emptyDisposable;
-    }, () => 1)
+  it("should subscribe silent", () => {
+    const func = new FuncVariable(
+      (v) => {
+        v.value = 10
+        return emptyDisposable
+      },
+      () => 1,
+    )
     expect(func.value).toBe(1)
 
     const callback = jest.fn()

@@ -1,7 +1,7 @@
-import {DelegateVariable, MutableVariable} from "../../src";
+import { DelegateVariable, MutableVariable } from "../../src"
 
-describe('delegate var', () => {
-  it('should return the same value', () => {
+describe("delegate var", () => {
+  it("should return the same value", () => {
     const delegate = new DelegateVariable(1)
 
     expect(delegate.value).toBe(1)
@@ -16,7 +16,7 @@ describe('delegate var', () => {
     expect(delegate.value).toBe(3)
   })
 
-  it('should follow source', () => {
+  it("should follow source", () => {
     const source = new MutableVariable(1)
     const delegate = new DelegateVariable(source)
 
@@ -35,7 +35,7 @@ describe('delegate var', () => {
     expect(callback).toHaveBeenCalledWith(3)
   })
 
-  it('should change source', () => {
+  it("should change source", () => {
     const source = new MutableVariable(1)
     const delegate = new DelegateVariable(source)
 
@@ -55,7 +55,7 @@ describe('delegate var', () => {
     expect(delegate.value).toBe(3)
   })
 
-  it('should reset source', () => {
+  it("should reset source", () => {
     const source = new MutableVariable(1)
     const delegate = new DelegateVariable(source)
 
@@ -70,7 +70,7 @@ describe('delegate var', () => {
     expect(delegate.value).toBe(1)
   })
 
-  it('should notify value change on source change', () => {
+  it("should notify value change on source change", () => {
     const source = new MutableVariable(1)
     const delegate = new DelegateVariable(source)
     const callback = jest.fn()
@@ -88,7 +88,7 @@ describe('delegate var', () => {
     expect(callback).toHaveBeenCalledWith(3)
   })
 
-  it('should remove source on dispose', () => {
+  it("should remove source on dispose", () => {
     const source = new MutableVariable(1)
     const delegate = new DelegateVariable<number>()
 
@@ -103,7 +103,7 @@ describe('delegate var', () => {
     expect(delegate.value).toBe(1)
   })
 
-  it('should not remove source on dispose if source changed', () => {
+  it("should not remove source on dispose if source changed", () => {
     const source = new MutableVariable(1)
     const delegate = new DelegateVariable<number>()
 
@@ -121,7 +121,7 @@ describe('delegate var', () => {
     expect(delegate.value).toBe(3)
   })
 
-  it('should return default value if not source', () => {
+  it("should return default value if not source", () => {
     const delegate = new DelegateVariable<number>()
 
     expect(delegate.value).toBe(null)
@@ -131,7 +131,7 @@ describe('delegate var', () => {
     expect(delegate2.value).toBe(10)
   })
 
-  it('should dispatch default value if not source', () => {
+  it("should dispatch default value if not source", () => {
     const delegate = new DelegateVariable<number>()
 
     const callback = jest.fn()
@@ -141,7 +141,7 @@ describe('delegate var', () => {
     expect(callback).toHaveBeenCalledWith(null)
   })
 
-  it('should not notify callback on dispose', () => {
+  it("should not notify callback on dispose", () => {
     const source = new MutableVariable(1)
     const delegate = new DelegateVariable(source)
     const fn = jest.fn()
@@ -155,7 +155,7 @@ describe('delegate var', () => {
     expect(fn).toHaveBeenCalledTimes(1)
   })
 
-  it('should not notify callback on dispose when was no source', () => {
+  it("should not notify callback on dispose when was no source", () => {
     const delegate = new DelegateVariable<number>()
     const fn = jest.fn()
 

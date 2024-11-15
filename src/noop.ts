@@ -1,2 +1,1 @@
-export const noop = Object.freeze(function () {
-})
+export const noop = Object.freeze(() => {})

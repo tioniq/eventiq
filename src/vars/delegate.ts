@@ -1,6 +1,11 @@
-import {CompoundVariable} from "./compound"
-import {Variable} from "../variable"
-import {DisposableAction, DisposableContainer, emptyDisposable, IDisposable} from "@tioniq/disposiq";
+import { CompoundVariable } from "./compound"
+import { Variable } from "../variable"
+import {
+  DisposableAction,
+  DisposableContainer,
+  emptyDisposable,
+  type IDisposable,
+} from "@tioniq/disposiq"
 
 /**
  * A variable that delegates its value to another variable
@@ -18,11 +23,15 @@ export class DelegateVariable<T> extends CompoundVariable<T> {
   private _source: Variable<T> | null
 
   constructor(sourceOrDefaultValue?: Variable<T> | T | null) {
-    super(sourceOrDefaultValue instanceof Variable
-      ? null!
-      : sourceOrDefaultValue != undefined
-        ? sourceOrDefaultValue
-        : null!)
+    super(
+      sourceOrDefaultValue instanceof Variable
+        ? // biome-ignore lint/style/noNonNullAssertion: base value will not be used
+          null!
+        : sourceOrDefaultValue != undefined
+          ? sourceOrDefaultValue
+          : // biome-ignore lint/style/noNonNullAssertion: base value will not be used
+            null!,
+    )
     if (sourceOrDefaultValue instanceof Variable) {
       this._source = sourceOrDefaultValue
     } else {
@@ -47,15 +56,17 @@ export class DelegateVariable<T> extends CompoundVariable<T> {
     this._source = source
     this._sourceSubscription.disposeCurrent()
     if (this.active) {
-      this._sourceSubscription.set(source.subscribeSilent(v => this.setValueForce(v)))
+      this._sourceSubscription.set(
+        source.subscribeSilent((v) => this.setValueForce(v)),
+      )
       this.value = source.value
     }
     return new DisposableAction(() => {
       if (this._source !== source) {
-        return;
+        return
       }
       this.setSource(null)
-    });
+    })
   }
 
   protected activate() {
@@ -63,7 +74,9 @@ export class DelegateVariable<T> extends CompoundVariable<T> {
       return
     }
     this._sourceSubscription.disposeCurrent()
-    this._sourceSubscription.set(this._source.subscribeSilent(v => this.setValueForce(v)))
+    this._sourceSubscription.set(
+      this._source.subscribeSilent((v) => this.setValueForce(v)),
+    )
     this.value = this._source.value
   }
 

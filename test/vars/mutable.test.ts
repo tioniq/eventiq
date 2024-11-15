@@ -1,7 +1,7 @@
-import {MutableVariable} from "../../src";
+import { MutableVariable } from "../../src"
 
-describe('mutable var', () => {
-  it('should be able to change the value of a variable', () => {
+describe("mutable var", () => {
+  it("should be able to change the value of a variable", () => {
     const variable = new MutableVariable(1)
 
     expect(variable.value).toBe(1)
@@ -11,7 +11,7 @@ describe('mutable var', () => {
     expect(variable.value).toBe(2)
   })
 
-  it('should notify subscribers when value is changed', () => {
+  it("should notify subscribers when value is changed", () => {
     const variable = new MutableVariable(1)
     const fn = jest.fn()
 
@@ -26,7 +26,7 @@ describe('mutable var', () => {
     expect(fn).toHaveBeenCalledWith(2)
   })
 
-  it('should not notify subscribers when value is changed to the same value', () => {
+  it("should not notify subscribers when value is changed to the same value", () => {
     const variable = new MutableVariable(1)
     const fn = jest.fn()
 
@@ -40,7 +40,7 @@ describe('mutable var', () => {
     expect(fn).toHaveBeenCalledTimes(1)
   })
 
-  it('should not notify subscribers when value is changed silently', () => {
+  it("should not notify subscribers when value is changed silently", () => {
     const variable = new MutableVariable(1)
     const fn = jest.fn()
 
@@ -55,7 +55,7 @@ describe('mutable var', () => {
     expect(fn).toHaveBeenCalledWith(1)
   })
 
-  it('should notify subscribers when notify is called', () => {
+  it("should notify subscribers when notify is called", () => {
     const variable = new MutableVariable(1)
     const fn = jest.fn()
 
@@ -70,7 +70,7 @@ describe('mutable var', () => {
     expect(fn).toHaveBeenCalledWith(1)
   })
 
-  it('should not call callback when subscribing silently', () => {
+  it("should not call callback when subscribing silently", () => {
     const variable = new MutableVariable(1)
     const fn = jest.fn()
 
@@ -79,7 +79,7 @@ describe('mutable var', () => {
     expect(fn).not.toHaveBeenCalled()
   })
 
-  it('should call callback when subscribing silently and value is changed', () => {
+  it("should call callback when subscribing silently and value is changed", () => {
     const variable = new MutableVariable(1)
     const fn = jest.fn()
 
@@ -92,4 +92,4 @@ describe('mutable var', () => {
     expect(fn).toHaveBeenCalledTimes(1)
     expect(fn).toHaveBeenCalledWith(2)
   })
-});
+})

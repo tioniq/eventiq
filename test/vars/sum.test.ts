@@ -1,7 +1,7 @@
-import {MutableVariable, SumVariable} from "../../src"
+import { MutableVariable, SumVariable } from "../../src"
 
-describe('sum var', () => {
-  it('should calc sum of numbers', () => {
+describe("sum var", () => {
+  it("should calc sum of numbers", () => {
     const var1 = new MutableVariable(1)
     const var2 = new MutableVariable(2)
     const sum = new SumVariable([var1, var2])
@@ -17,7 +17,7 @@ describe('sum var', () => {
     expect(sum.value).toBe(7)
   })
 
-  it('should calc sum of booleans', () => {
+  it("should calc sum of booleans", () => {
     const var1 = new MutableVariable(true)
     const var2 = new MutableVariable(false)
     const sum = new SumVariable([var1, var2])
@@ -38,7 +38,7 @@ describe('sum var', () => {
     expect(sum.value).toBe(2)
   })
 
-  it('should notify about changes', () => {
+  it("should notify about changes", () => {
     const var1 = new MutableVariable(1)
     const var2 = new MutableVariable(2)
     const sum = new SumVariable([var1, var2])
@@ -57,7 +57,7 @@ describe('sum var', () => {
     expect(callback).toHaveBeenCalledWith(7)
   })
 
-  it('should not notify about changes after subscription dispose', () => {
+  it("should not notify about changes after subscription dispose", () => {
     const var1 = new MutableVariable(1)
     const var2 = new MutableVariable(2)
     const sum = new SumVariable([var1, var2])

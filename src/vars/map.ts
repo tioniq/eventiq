@@ -1,8 +1,8 @@
-import {CompoundVariable} from "./compound"
-import {Variable} from "../variable"
-import {Func} from "../action"
-import {DisposableContainer} from "@tioniq/disposiq"
-import {EqualityComparer} from "../comparer"
+import { CompoundVariable } from "./compound"
+import type { Variable } from "../variable"
+import type { Func } from "../action"
+import { DisposableContainer } from "@tioniq/disposiq"
+import type { EqualityComparer } from "../comparer"
 
 /**
  * A variable that maps the value of another variable to a new value
@@ -25,7 +25,11 @@ export class MapVariable<TInput, TOutput> extends CompoundVariable<TOutput> {
    */
   private readonly _subscription = new DisposableContainer()
 
-  constructor(variable: Variable<TInput>, mapper: Func<TInput, TOutput>, equalityComparer?: EqualityComparer<TOutput>) {
+  constructor(
+    variable: Variable<TInput>,
+    mapper: Func<TInput, TOutput>,
+    equalityComparer?: EqualityComparer<TOutput>,
+  ) {
     super(mapper(variable.value), equalityComparer)
     this._variable = variable
     this._mapper = mapper

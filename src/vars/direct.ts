@@ -1,8 +1,12 @@
-import {Variable} from "../variable"
-import {Disposiq} from "@tioniq/disposiq"
-import {Action, Func} from "../action"
-import {defaultEqualityComparer, EqualityComparer, functionEqualityComparer} from "../comparer"
-import {LinkedChain} from "../linked-chain";
+import { Variable } from "../variable"
+import type { Disposiq } from "@tioniq/disposiq"
+import type { Action, Func } from "../action"
+import {
+  defaultEqualityComparer,
+  type EqualityComparer,
+  functionEqualityComparer,
+} from "../comparer"
+import { LinkedChain } from "../linked-chain"
 
 /**
  * A variable that can be changed by setting the value property. The 'direct' means that the change will not be checked
@@ -40,7 +44,7 @@ export class DirectVariable<T> extends Variable<T> {
    */
   set value(value: T) {
     this._value = value
-    this._chain.forEach(a => a(value))
+    this._chain.forEach((a) => a(value))
   }
 
   get equalityComparer(): EqualityComparer<T> {
@@ -74,6 +78,6 @@ export class DirectVariable<T> extends Variable<T> {
    */
   notify(): void {
     const value = this._value
-    this._chain.forEach(a => a(value))
+    this._chain.forEach((a) => a(value))
   }
 }

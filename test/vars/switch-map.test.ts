@@ -1,7 +1,13 @@
-import {createConst, FuncVariable, MutableVariable, SwitchMapVariable, Variable} from "../../src";
-import {DisposableAction} from "@tioniq/disposiq";
+import {
+  createConst,
+  FuncVariable,
+  MutableVariable,
+  SwitchMapVariable,
+  type Variable,
+} from "../../src"
+import { DisposableAction } from "@tioniq/disposiq"
 
-describe('switchMap var', () => {
+describe("switchMap var", () => {
   beforeEach(() => {
     jest.useFakeTimers()
   })
@@ -9,11 +15,11 @@ describe('switchMap var', () => {
     jest.useRealTimers()
   })
 
-  it('should switch variable', () => {
+  it("should switch variable", () => {
     const var1 = new MutableVariable("test1")
     const var2 = new MutableVariable("test2")
-    const switched = new SwitchMapVariable(var1, v => {
-      return !v ? var2 : var2.map(v2 => v + "_" + v2);
+    const switched = new SwitchMapVariable(var1, (v) => {
+      return !v ? var2 : var2.map((v2) => `${v}_${v2}`)
     })
 
     expect(switched.value).toBe("test1_test2")
@@ -32,9 +38,9 @@ describe('switchMap var', () => {
     expect(switched.value).toBe("test4")
   })
 
-  it('should switch map', () => {
+  it("should switch map", () => {
     const var1 = new MutableVariable(0)
-    const switched = new SwitchMapVariable(var1, v => {
+    const switched = new SwitchMapVariable(var1, (v) => {
       return v === 1 ? createConst(0) : createTimerVar()
     })
 
@@ -82,10 +88,13 @@ describe('switchMap var', () => {
   })
 })
 
-function createTimerVar(delay: number = 1000): Variable<number> {
-  return new FuncVariable(vary => {
-    vary.value = 0
-    const interval = setInterval(() => vary.value++, delay)
-    return new DisposableAction(() => clearInterval(interval))
-  }, () => 0)
+function createTimerVar(delay = 1000): Variable<number> {
+  return new FuncVariable(
+    (vary) => {
+      vary.value = 0
+      const interval = setInterval(() => vary.value++, delay)
+      return new DisposableAction(() => clearInterval(interval))
+    },
+    () => 0,
+  )
 }

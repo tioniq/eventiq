@@ -1,7 +1,7 @@
-import {CombinedVariable, MutableVariable} from "../../src";
+import { CombinedVariable, MutableVariable } from "../../src"
 
-describe('combined var', () => {
-  it('should return combined array value', () => {
+describe("combined var", () => {
+  it("should return combined array value", () => {
     const var1 = new MutableVariable(1)
     const var2 = new MutableVariable(2)
     const combined = new CombinedVariable([var1, var2])
@@ -17,11 +17,11 @@ describe('combined var', () => {
     expect(combined.value).toEqual([7, 9])
   })
 
-  it('should throw an error when combined array is empty', () => {
+  it("should throw an error when combined array is empty", () => {
     expect(() => new CombinedVariable([])).toThrow("No variables provided")
   })
 
-  it('should notify subscribers when value is changed', () => {
+  it("should notify subscribers when value is changed", () => {
     const var1 = new MutableVariable(1)
     const var2 = new MutableVariable(2)
     const combined = new CombinedVariable([var1, var2])

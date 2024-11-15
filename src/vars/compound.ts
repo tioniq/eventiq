@@ -1,8 +1,12 @@
-import {Variable} from "../variable"
-import {defaultEqualityComparer, EqualityComparer, functionEqualityComparer} from "../comparer"
-import {LinkedChain} from "../linked-chain"
-import {Action, Func} from "../action"
-import {DisposableAction, Disposiq} from "@tioniq/disposiq"
+import { Variable } from "../variable"
+import {
+  defaultEqualityComparer,
+  type EqualityComparer,
+  functionEqualityComparer,
+} from "../comparer"
+import { LinkedChain } from "../linked-chain"
+import type { Action, Func } from "../action"
+import { DisposableAction, type Disposiq } from "@tioniq/disposiq"
 
 /**
  * A Variable class that is base for common compound variables. It provides a functionality to react on subscription
@@ -56,7 +60,7 @@ export abstract class CompoundVariable<T> extends Variable<T> {
       return
     }
     this._value = value
-    this._chain.forEach(a => a(value))
+    this._chain.forEach((a) => a(value))
   }
 
   subscribe(callback: Func<T, void>): Disposiq {
@@ -126,7 +130,7 @@ export abstract class CompoundVariable<T> extends Variable<T> {
    */
   protected setValueForce(value: T): void {
     this._value = value
-    this._chain.forEach(a => a(value))
+    this._chain.forEach((a) => a(value))
   }
 
   /**
@@ -135,6 +139,6 @@ export abstract class CompoundVariable<T> extends Variable<T> {
    */
   protected notify(): void {
     const value = this._value
-    this._chain.forEach(a => a(value))
+    this._chain.forEach((a) => a(value))
   }
 }

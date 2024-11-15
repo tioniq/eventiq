@@ -1,17 +1,20 @@
 import {
-  AndVariable, CombinedVariable,
-  FuncVariable, InvertVariable,
+  AndVariable,
+  CombinedVariable,
+  FuncVariable,
+  InvertVariable,
   MapVariable,
   MutableVariable,
-  OrVariable, SumVariable,
+  OrVariable,
+  SumVariable,
   SwitchMapVariable,
-  ThrottledVariable
-} from "../src";
-import {DisposableAction} from "@tioniq/disposiq";
-import {EventDispatcher} from "../src/events";
+  ThrottledVariable,
+} from "../src"
+import { DisposableAction } from "@tioniq/disposiq"
+import { EventDispatcher } from "../src"
 
-describe('extensions', () => {
-  it('should subscribeDisposable work correctly', () => {
+describe("extensions", () => {
+  it("should subscribeDisposable work correctly", () => {
     const disposableFnc = jest.fn()
     const variable = new MutableVariable(1)
     const disposable = variable.subscribeDisposable((_) => {
@@ -33,7 +36,7 @@ describe('extensions', () => {
     expect(disposableFnc).toHaveBeenCalledTimes(2)
   })
 
-  it('should subscribeOnceWhere trigger callback only once', () => {
+  it("should subscribeOnceWhere trigger callback only once", () => {
     const callback = jest.fn()
     const variable = new MutableVariable(1)
     const disposable = variable.subscribeOnceWhere(callback, (v) => v === 2)
@@ -58,7 +61,7 @@ describe('extensions', () => {
     expect(callback).toHaveBeenCalledTimes(1)
   })
 
-  it('should subscribeOnceWhere trigger callback immediately', () => {
+  it("should subscribeOnceWhere trigger callback immediately", () => {
     const callback = jest.fn()
     const variable = new MutableVariable(1)
     const disposable = variable.subscribeOnceWhere(callback, (v) => v === 1)
@@ -72,7 +75,7 @@ describe('extensions', () => {
     expect(callback).toHaveBeenCalledTimes(1)
   })
 
-  it('should map create MapVariable', () => {
+  it("should map create MapVariable", () => {
     const variable = new MutableVariable(1)
     const mapVariable = variable.map((v) => v + 1)
 
@@ -80,7 +83,7 @@ describe('extensions', () => {
     expect(mapVariable instanceof MapVariable).toBeTruthy()
   })
 
-  it('should or create OrVariable', () => {
+  it("should or create OrVariable", () => {
     const variable1 = new MutableVariable(true)
     const variable2 = new MutableVariable(false)
     const orVariable = variable1.or(variable2)
@@ -89,7 +92,7 @@ describe('extensions', () => {
     expect(orVariable instanceof OrVariable).toBeTruthy()
   })
 
-  it('should and create AndVariable', () => {
+  it("should and create AndVariable", () => {
     const variable1 = new MutableVariable(true)
     const variable2 = new MutableVariable(false)
     const andVariable = variable1.and(variable2)
@@ -98,7 +101,7 @@ describe('extensions', () => {
     expect(andVariable instanceof AndVariable).toBeTruthy()
   })
 
-  it('should invert create InvertVariable', () => {
+  it("should invert create InvertVariable", () => {
     const variable = new MutableVariable(true)
     const invertVariable = variable.invert()
 
@@ -106,7 +109,7 @@ describe('extensions', () => {
     expect(invertVariable instanceof InvertVariable).toBeTruthy()
   })
 
-  it('should with create CombinedVariable', () => {
+  it("should with create CombinedVariable", () => {
     const variable1 = new MutableVariable(1)
     const variable2 = new MutableVariable(2)
     const combinedVariable = variable1.with(variable2)
@@ -115,15 +118,17 @@ describe('extensions', () => {
     expect(combinedVariable instanceof CombinedVariable).toBeTruthy()
   })
 
-  it('should switchMap create SwitchMapVariable', () => {
+  it("should switchMap create SwitchMapVariable", () => {
     const variable = new MutableVariable(1)
-    const switchMapVariable = variable.switchMap((v) => new MutableVariable(v + 1))
+    const switchMapVariable = variable.switchMap(
+      (v) => new MutableVariable(v + 1),
+    )
 
     expect(switchMapVariable.value).toBe(2)
     expect(switchMapVariable instanceof SwitchMapVariable).toBeTruthy()
   })
 
-  it('should throttle create ThrottledVariable', () => {
+  it("should throttle create ThrottledVariable", () => {
     const variable = new MutableVariable(1)
     const throttledVariable = variable.throttle(1000)
 
@@ -137,7 +142,7 @@ describe('extensions', () => {
     expect(throttledVariable2 instanceof ThrottledVariable).toBeTruthy()
   })
 
-  it('should streamTo work correctly', () => {
+  it("should streamTo work correctly", () => {
     const variable = new MutableVariable(1)
     const receiver = new MutableVariable(0)
     const disposable = variable.streamTo(receiver)
@@ -155,13 +160,16 @@ describe('extensions', () => {
     expect(receiver.value).toBe(2)
   })
 
-  it('should startPersistent work correctly', () => {
-    const variable = new FuncVariable((vary) => {
-      vary.value = 2;
-      return new DisposableAction(() => {
-        vary.value = 0
-      })
-    }, () => 1)
+  it("should startPersistent work correctly", () => {
+    const variable = new FuncVariable(
+      (vary) => {
+        vary.value = 2
+        return new DisposableAction(() => {
+          vary.value = 0
+        })
+      },
+      () => 1,
+    )
 
     expect(variable.value).toBe(1)
 
@@ -178,7 +186,7 @@ describe('extensions', () => {
     expect(variable.value).toBe(1)
   })
 
-  it('should plus work correctly', () => {
+  it("should plus work correctly", () => {
     const variable1 = new MutableVariable(1)
     const variable2 = new MutableVariable(2)
     const sumVariable = variable1.plus(variable2)
@@ -192,7 +200,7 @@ describe('extensions', () => {
     expect(sumVariable2 instanceof MapVariable).toBeTruthy()
   })
 
-  it('should minus work correctly', () => {
+  it("should minus work correctly", () => {
     const variable1 = new MutableVariable(1)
     const variable2 = new MutableVariable(2)
     const sumVariable = variable1.minus(variable2)
@@ -206,7 +214,7 @@ describe('extensions', () => {
     expect(sumVariable2 instanceof MapVariable).toBeTruthy()
   })
 
-  it('should multiply work correctly', () => {
+  it("should multiply work correctly", () => {
     const variable1 = new MutableVariable(1)
     const variable2 = new MutableVariable(2)
     const sumVariable = variable1.multiply(variable2)
@@ -220,7 +228,7 @@ describe('extensions', () => {
     expect(sumVariable2 instanceof MapVariable).toBeTruthy()
   })
 
-  it('should divide work correctly', () => {
+  it("should divide work correctly", () => {
     const variable1 = new MutableVariable(1)
     const variable2 = new MutableVariable(2)
     const sumVariable = variable1.divide(variable2)
@@ -234,7 +242,7 @@ describe('extensions', () => {
     expect(sumVariable2 instanceof MapVariable).toBeTruthy()
   })
 
-  it('should round work correctly', () => {
+  it("should round work correctly", () => {
     const variable = new MutableVariable(1.5)
     const roundVariable = variable.round()
 
@@ -245,7 +253,7 @@ describe('extensions', () => {
     expect(roundVariable.value).toBe(1)
   })
 
-  it('should moreThan work correctly', () => {
+  it("should moreThan work correctly", () => {
     const variable1 = new MutableVariable(1)
     const variable2 = new MutableVariable(2)
     const moreThanVariable = variable1.moreThan(variable2)
@@ -264,7 +272,7 @@ describe('extensions', () => {
     expect(moreThanVariable2.value).toBe(false)
   })
 
-  it('should lessThan work correctly', () => {
+  it("should lessThan work correctly", () => {
     const variable1 = new MutableVariable(1)
     const variable2 = new MutableVariable(2)
     const lessThanVariable = variable1.lessThan(variable2)
@@ -283,7 +291,7 @@ describe('extensions', () => {
     expect(lessThanVariable2.value).toBe(true)
   })
 
-  it('should moreOrEqual work correctly', () => {
+  it("should moreOrEqual work correctly", () => {
     const variable1 = new MutableVariable(1)
     const variable2 = new MutableVariable(2)
     const moreOrEqualVariable = variable1.moreOrEqual(variable2)
@@ -302,7 +310,7 @@ describe('extensions', () => {
     expect(moreOrEqualVariable2.value).toBe(false)
   })
 
-  it('should lessOrEqual work correctly', () => {
+  it("should lessOrEqual work correctly", () => {
     const variable1 = new MutableVariable(1)
     const variable2 = new MutableVariable(2)
     const lessOrEqualVariable = variable1.lessOrEqual(variable2)
@@ -321,7 +329,7 @@ describe('extensions', () => {
     expect(lessOrEqualVariable2.value).toBe(true)
   })
 
-  it('should equal work correctly', () => {
+  it("should equal work correctly", () => {
     const variable1 = new MutableVariable(1)
     const variable2 = new MutableVariable(2)
     const equalVariable = variable1.equal(variable2)
@@ -340,7 +348,7 @@ describe('extensions', () => {
     expect(equalVariable2.value).toBe(false)
   })
 
-  it('should sealed work correctly', () => {
+  it("should sealed work correctly", () => {
     const variable = new MutableVariable(1)
     const sealedVariable = variable.sealed()
 
@@ -351,7 +359,7 @@ describe('extensions', () => {
     expect(sealedVariable.value).toBe(1)
   })
 
-  it('should sealWhen work correctly', () => {
+  it("should sealWhen work correctly", () => {
     const variable = new MutableVariable(1)
     const sealedVariable = variable.sealWhen(2)
 
@@ -373,6 +381,4 @@ describe('extensions', () => {
 
     expect(sealedVariable2.value).toBe(3)
   })
-
-
 })

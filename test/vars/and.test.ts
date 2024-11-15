@@ -1,7 +1,7 @@
-import {AndVariable, MutableVariable} from "../../src";
+import { AndVariable, MutableVariable } from "../../src"
 
-describe('and var', () => {
-  it('should return true when all vars are true', () => {
+describe("and var", () => {
+  it("should return true when all vars are true", () => {
     const var1 = new MutableVariable(true)
     const var2 = new MutableVariable(true)
     const and = new AndVariable([var1, var2])
@@ -25,7 +25,7 @@ describe('and var', () => {
     expect(and.value).toBe(true)
   })
 
-  it('should notify subscribers when value is changed', () => {
+  it("should notify subscribers when value is changed", () => {
     const var1 = new MutableVariable(true)
     const var2 = new MutableVariable(true)
     const and = new AndVariable([var1, var2])
@@ -57,7 +57,7 @@ describe('and var', () => {
     expect(fn).toHaveBeenCalledWith(true)
   })
 
-  it('should not notify subscriber when subscriber is disposed', () => {
+  it("should not notify subscriber when subscriber is disposed", () => {
     const var1 = new MutableVariable(true)
     const var2 = new MutableVariable(true)
     const and = new AndVariable([var1, var2])

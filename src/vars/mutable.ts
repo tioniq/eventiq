@@ -1,8 +1,12 @@
-import {Variable} from "../variable"
-import {defaultEqualityComparer, EqualityComparer, functionEqualityComparer} from "../comparer"
-import {Action, Func} from "../action"
-import {LinkedChain} from "../linked-chain"
-import {Disposiq} from "@tioniq/disposiq";
+import { Variable } from "../variable"
+import {
+  defaultEqualityComparer,
+  type EqualityComparer,
+  functionEqualityComparer,
+} from "../comparer"
+import type { Action, Func } from "../action"
+import { LinkedChain } from "../linked-chain"
+import type { Disposiq } from "@tioniq/disposiq"
 
 /**
  * A class that implements the Variable class and provides the ability to change the value of the variable.
@@ -44,7 +48,7 @@ export class MutableVariable<T> extends Variable<T> {
       return
     }
     this._value = value
-    this._chain.forEach(a => a(value))
+    this._chain.forEach((a) => a(value))
   }
 
   get equalityComparer(): EqualityComparer<T> {
@@ -78,6 +82,6 @@ export class MutableVariable<T> extends Variable<T> {
    */
   notify(): void {
     const value = this._value
-    this._chain.forEach(a => a(value))
+    this._chain.forEach((a) => a(value))
   }
 }

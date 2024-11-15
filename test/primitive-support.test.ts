@@ -1,8 +1,9 @@
-import {MutableVariable} from "../src";
+import { MutableVariable } from "../src"
 
-describe('primitive support', () => {
+describe("primitive support", () => {
   it("numbers", () => {
     const v1 = new MutableVariable(10)
-    expect((v1 as any + 10) as any).toBe(20)
+    // biome-ignore lint/suspicious/noExplicitAny: for testing valueOf override
+    expect(((v1 as any) + 10) as any).toBe(20)
   })
-});
+})
