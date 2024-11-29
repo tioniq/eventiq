@@ -19,9 +19,7 @@
   "types": "./dist/index.d.ts",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "tsup",
     "build:watch": "tsup --watch",
@@ -34,7 +32,7 @@
     "run:publish": "npm run run:publish:npm && npm run run:publish:jsr"
   },
   "dependencies": {
-    "@tioniq/disposiq": "^1.0.17"
+    "@tioniq/disposiq": "^1.0.19"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
@@ -81,7 +79,5 @@
     "covariant"
   ],
   "private": false,
-  "contributors": [
-    "Tim (https://github.com/Timoniann)"
-  ]
+  "contributors": ["Tim (https://github.com/Timoniann)"]
 }
