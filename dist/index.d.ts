@@ -99,6 +99,26 @@ interface EventDispatcher<T> {
 }
 
 /**
+ * A class that implements the EventObserver class and provides the ability to dispatch events by calling the `dispatch`
+ * method. The method `dispatch` will fire events and catch exceptions unlike {@link EventDispatcher}
+ * @typeparam T - the type of the event value
+ */
+declare class EventSafeDispatcher<T = void> extends EventObserver<T> {
+    subscribe(action: Action$1<T>): Disposiq;
+    /**
+     * Dispatches the event to all subscribers safely
+     * @param value the value of the event
+     * @param onError error callback
+     */
+    dispatch(value: T, onError?: (e: unknown) => void): void;
+    /**
+     * Checks if there are any subscriptions
+     * @returns true if there are any subscriptions, false otherwise
+     */
+    get hasSubscriptions(): boolean;
+}
+
+/**
  * A stub for the EventObserver class.
  * <p>
  *   The purpose of this class is to provide a stub for the EventObserver class that does nothing
@@ -1026,4 +1046,4 @@ declare class ObservableList<T> {
     private updateSorted;
 }
 
-export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, EventDispatcher, EventObserver, EventObserverStub, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, LazyEventDispatcher, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createConst as createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isDelegateVariable, isMutableVariable, isVariable, isVariableOf, max, merge, min, objectEqualityComparer, or, simpleEqualityComparer, strictEqualityComparer, sum };
+export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, EventDispatcher, EventObserver, EventObserverStub, EventSafeDispatcher, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, LazyEventDispatcher, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createConst as createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isDelegateVariable, isMutableVariable, isVariable, isVariableOf, max, merge, min, objectEqualityComparer, or, simpleEqualityComparer, strictEqualityComparer, sum };

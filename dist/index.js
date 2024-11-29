@@ -1553,6 +1553,41 @@ var EventDispatcher = class extends EventObserver {
   }
 };
 
+// src/events/safe-dispatcher.ts
+var EventSafeDispatcher = class extends EventObserver {
+  constructor() {
+    super(...arguments);
+    /**
+     * @internal
+     */
+    this._nodes = new LinkedChain(functionEqualityComparer);
+  }
+  subscribe(action) {
+    return this._nodes.add(action);
+  }
+  /**
+   * Dispatches the event to all subscribers safely
+   * @param value the value of the event
+   * @param onError error callback
+   */
+  dispatch(value, onError) {
+    this._nodes.forEach((a) => {
+      try {
+        a(value);
+      } catch (e) {
+        onError == null ? void 0 : onError(e);
+      }
+    });
+  }
+  /**
+   * Checks if there are any subscriptions
+   * @returns true if there are any subscriptions, false otherwise
+   */
+  get hasSubscriptions() {
+    return this._nodes.hasAny;
+  }
+};
+
 // src/events/stub.ts
 import { emptyDisposable as emptyDisposable4 } from "@tioniq/disposiq";
 var EventObserverStub = class extends EventObserver {
@@ -2405,6 +2440,7 @@ export {
   EventDispatcher,
   EventObserver,
   EventObserverStub,
+  EventSafeDispatcher,
   FuncVariable as FuncVar,
   FuncVariable,
   ConstantVariable as ImmutableVar,
