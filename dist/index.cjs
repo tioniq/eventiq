@@ -1743,6 +1743,12 @@ function merge(...observers) {
 
 // src/events/extensions.ts
 var import_disposiq20 = require("@tioniq/disposiq");
+
+// src/noop.ts
+var noop = Object.freeze(() => {
+});
+
+// src/events/extensions.ts
 EventObserver.prototype.subscribeOnce = function(callback) {
   const subscription = new import_disposiq20.DisposableContainer();
   subscription.set(
@@ -1787,6 +1793,37 @@ EventObserver.prototype.where = function(condition) {
   return new LazyEventDispatcher(
     (dispatcher) => this.subscribe((value) => {
       if (condition(value)) {
+        dispatcher.dispatch(value);
+      }
+    })
+  );
+};
+EventObserver.prototype.awaited = function(onRejection) {
+  if (typeof onRejection === "function") {
+    return new LazyEventDispatcher(
+      (dispatcher) => this.subscribe((value) => {
+        if (value instanceof Promise) {
+          value.then(
+            (v) => {
+              dispatcher.dispatch(v);
+            },
+            (e) => {
+              onRejection(e, value);
+            }
+          );
+        } else {
+          dispatcher.dispatch(value);
+        }
+      })
+    );
+  }
+  return new LazyEventDispatcher(
+    (dispatcher) => this.subscribe((value) => {
+      if (value instanceof Promise) {
+        value.then((v) => {
+          dispatcher.dispatch(v);
+        }, noop);
+      } else {
         dispatcher.dispatch(value);
       }
     })
@@ -1848,12 +1885,6 @@ function createDelayDispatcher(delay) {
 
 // src/extensions.ts
 var import_disposiq22 = require("@tioniq/disposiq");
-
-// src/noop.ts
-var noop = Object.freeze(() => {
-});
-
-// src/extensions.ts
 Variable.prototype.subscribeDisposable = function(callback) {
   const container = new import_disposiq22.DisposableContainer();
   const subscription = this.subscribe((v) => {

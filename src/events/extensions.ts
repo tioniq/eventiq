@@ -8,6 +8,7 @@ import { EventObserver } from "./observer"
 import type { Variable } from "../variable"
 import { LazyEventDispatcher } from "./lazy"
 import { EventDispatcher } from "./dispatcher"
+import { noop } from "../noop";
 
 EventObserver.prototype.subscribeOnce = function <T>(
   this: EventObserver<T>,
@@ -85,11 +86,44 @@ EventObserver.prototype.where = function <T>(
   )
 }
 
+EventObserver.prototype.awaited = function <T>(this: EventObserver<T>, onRejection?: (error: unknown, value: T) => void): EventObserver<Awaited<T>> {
+  if (typeof onRejection === "function") {
+    return new LazyEventDispatcher((dispatcher) =>
+      this.subscribe((value) => {
+        if (value instanceof Promise) {
+          value.then(
+            (v) => {
+              dispatcher.dispatch(v);
+            },
+            (e: unknown) => {
+              onRejection(e, value);
+            },
+          )
+        } else {
+          dispatcher.dispatch(value as Awaited<T>)
+        }
+      }),
+    )
+  }
+  return new LazyEventDispatcher((dispatcher) =>
+    this.subscribe((value) => {
+      if (value instanceof Promise) {
+        value.then((v) => {
+          dispatcher.dispatch(v);
+        }, noop)
+      } else {
+        dispatcher.dispatch(value as Awaited<T>)
+      }
+    }),
+  )
+}
+
 EventDispatcher.prototype.dispatchSafe = function <T>(
   this: EventDispatcher<T>,
   value: T,
 ): void {
   try {
     this.dispatch(value)
-  } catch (e) {}
+  } catch (e) {
+  }
 }

@@ -155,6 +155,68 @@ describe("extensions.where", () => {
   })
 })
 
+describe("extensions.awaited", () => {
+  it("should await event values", async () => {
+    const dispatcher = new EventDispatcher<number | Promise<number>>()
+    const observer: EventObserver<number | Promise<number>> = dispatcher
+    const callback = jest.fn()
+
+    observer.awaited().subscribe(callback)
+    dispatcher.dispatch(1)
+    dispatcher.dispatch(2)
+
+    expect(callback).toHaveBeenCalledTimes(2)
+    expect(callback).toHaveBeenCalledWith(1)
+    expect(callback).toHaveBeenCalledWith(2)
+
+    dispatcher.dispatch(Promise.resolve(3))
+
+    await Promise.resolve()
+
+    expect(callback).toHaveBeenCalledTimes(3)
+    expect(callback).toHaveBeenCalledWith(3)
+  })
+
+  it("should await event values when onRejection param is passed", async () => {
+    const dispatcher = new EventDispatcher<number | Promise<number>>()
+    const observer: EventObserver<number | Promise<number>> = dispatcher
+    const callback = jest.fn()
+
+    observer.awaited(() => {
+    }).subscribe(callback)
+    dispatcher.dispatch(1)
+    dispatcher.dispatch(2)
+
+    expect(callback).toHaveBeenCalledTimes(2)
+    expect(callback).toHaveBeenCalledWith(1)
+    expect(callback).toHaveBeenCalledWith(2)
+
+    dispatcher.dispatch(Promise.resolve(3))
+
+    await Promise.resolve()
+
+    expect(callback).toHaveBeenCalledTimes(3)
+    expect(callback).toHaveBeenCalledWith(3)
+  })
+
+  it("should call onRejection callback when a value is rejected", async () => {
+    const dispatcher = new EventDispatcher<number | Promise<number>>()
+    const observer: EventObserver<number | Promise<number>> = dispatcher
+    const callback = jest.fn()
+    const onRejection = jest.fn()
+
+    const rejection = Promise.reject("Error")
+    observer.awaited(onRejection).subscribe(callback)
+    dispatcher.dispatch(rejection)
+
+    await Promise.resolve()
+
+    expect(callback).not.toHaveBeenCalled()
+    expect(onRejection).toHaveBeenCalledTimes(1)
+    expect(onRejection).toHaveBeenCalledWith("Error", rejection)
+  })
+})
+
 describe("extensions.dispatchSafe", () => {
   it("should not throw an error when dispatching", () => {
     const dispatcher = new EventDispatcher<number>()

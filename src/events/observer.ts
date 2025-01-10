@@ -71,4 +71,16 @@ export interface EventObserver<T> {
    * @returns the new event observer
    */
   where(condition: Func<T, boolean>): EventObserver<T>
+
+  /**
+   * Maps the event observer to an awaited event observer. The observer will try to await every value and call the
+   * onRejection callback if the value is rejected
+   *
+   * @param onRejection the callback that will be called when the value is rejected
+   * @returns the awaited event observer
+   * @typeparam T - the type of the event value. If the event value is a promise, the awaited event observer will
+   *  await the promise and call the onRejection callback if the promise is rejected. If the event value is not a
+   *  promise, the awaited event observer will trigger an event with the value
+   */
+  awaited(onRejection?: (error: unknown, value: T) => void): EventObserver<Awaited<T>>
 }
