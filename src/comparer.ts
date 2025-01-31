@@ -14,6 +14,10 @@ export function simpleEqualityComparer<T>(a: T, b: T): boolean {
 export var defaultEqualityComparer: EqualityComparer<unknown> =
   strictEqualityComparer
 
+export function setDefaultEqualityComparer(comparer: EqualityComparer<unknown>) {
+  defaultEqualityComparer = comparer
+}
+
 // biome-ignore lint/complexity/noBannedTypes: need to use generic Function type
 export function functionEqualityComparer(a: Function, b: Function): boolean {
   return a === b

@@ -85,9 +85,10 @@ export interface Variable<out T> {
   /**
    * Maps the variable value to another value
    * @param mapper the mapper
+   * @param equalityComparer the equality comparer for the mapped value
    * @returns a new variable with the mapped value
    */
-  map<TOutput>(mapper: Func<T, TOutput>): Variable<TOutput>
+  map<TOutput>(mapper: Func<T, TOutput>, equalityComparer?: EqualityComparer<TOutput>): Variable<TOutput>
 
   /**
    * Creates a new variable that will return true if any of the variable values are true
@@ -121,9 +122,10 @@ export interface Variable<out T> {
   /**
    * Maps the variable value to another value using the mapper that returns a new variable to subscribe
    * @param mapper the mapper that returns another variable to subscribe
+   * @param equalityComparer the equality comparer for the mapped value
    * @returns a new variable with the mapped value
    */
-  switchMap<TResult>(mapper: SwitchMapMapper<T, TResult>): Variable<TResult>
+  switchMap<TResult>(mapper: SwitchMapMapper<T, TResult>, equalityComparer?: EqualityComparer<TResult>): Variable<TResult>
 
   /**
    * Throttles the variable value changes

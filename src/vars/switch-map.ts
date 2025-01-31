@@ -1,6 +1,7 @@
 import { CompoundVariable } from "./compound"
 import type { Variable } from "../variable"
 import { DisposableContainer } from "@tioniq/disposiq"
+import { EqualityComparer } from "../comparer";
 
 export type SwitchMapMapper<TInput, TResult> = (
   input: TInput,
@@ -38,9 +39,10 @@ export class SwitchMapVariable<
   constructor(
     vary: Variable<TInput>,
     mapper: SwitchMapMapper<TInput, TResult>,
+    equalityComparer?: EqualityComparer<TResult>,
   ) {
     // biome-ignore lint/style/noNonNullAssertion: base value will not be used
-    super(null!)
+    super(null!, equalityComparer)
     this._var = vary
     this._mapper = mapper
   }

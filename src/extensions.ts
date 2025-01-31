@@ -69,8 +69,9 @@ Variable.prototype.subscribeOnceWhere = function <T>(
 Variable.prototype.map = function <T, TOutput>(
   this: Variable<T>,
   mapper: Func<T, TOutput>,
+  equalityComparer?: EqualityComparer<TOutput>,
 ): Variable<TOutput> {
-  return new MapVariable<T, TOutput>(this, mapper)
+  return new MapVariable<T, TOutput>(this, mapper, equalityComparer)
 }
 
 Variable.prototype.or = function (
@@ -103,8 +104,9 @@ Variable.prototype.with = function <T, O extends unknown[]>(
 Variable.prototype.switchMap = function <TInput, TResult>(
   this: Variable<TInput>,
   mapper: SwitchMapMapper<TInput, TResult>,
+  equalityComparer?: EqualityComparer<TResult>,
 ): Variable<TResult> {
-  return new SwitchMapVariable<TInput, TResult>(this, mapper)
+  return new SwitchMapVariable<TInput, TResult>(this, mapper, equalityComparer)
 }
 
 Variable.prototype.throttle = function <T>(
