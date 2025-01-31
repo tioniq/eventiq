@@ -18,8 +18,8 @@ var __copyProps = (to, from, except, desc) => {
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/index.ts
-var src_exports = {};
-__export(src_exports, {
+var index_exports = {};
+__export(index_exports, {
   AndVariable: () => AndVariable,
   CombinedVariable: () => CombinedVariable,
   CompoundVariable: () => CompoundVariable,
@@ -79,11 +79,12 @@ __export(src_exports, {
   min: () => min,
   objectEqualityComparer: () => objectEqualityComparer,
   or: () => or,
+  setDefaultEqualityComparer: () => setDefaultEqualityComparer,
   simpleEqualityComparer: () => simpleEqualityComparer,
   strictEqualityComparer: () => strictEqualityComparer,
   sum: () => sum
 });
-module.exports = __toCommonJS(src_exports);
+module.exports = __toCommonJS(index_exports);
 
 // src/variable.ts
 var Variable = class {
@@ -115,6 +116,9 @@ function simpleEqualityComparer(a, b) {
   return a == b;
 }
 var defaultEqualityComparer = strictEqualityComparer;
+function setDefaultEqualityComparer(comparer) {
+  defaultEqualityComparer = comparer;
+}
 function functionEqualityComparer(a, b) {
   return a === b;
 }
@@ -1492,8 +1496,8 @@ var SumVariable = class extends CompoundVariable {
 // src/vars/switch-map.ts
 var import_disposiq15 = require("@tioniq/disposiq");
 var SwitchMapVariable = class extends CompoundVariable {
-  constructor(vary, mapper) {
-    super(null);
+  constructor(vary, mapper, equalityComparer) {
+    super(null, equalityComparer);
     /**
      * @internal
      */
@@ -1915,8 +1919,8 @@ Variable.prototype.subscribeOnceWhere = function(callback, condition) {
   callback(value);
   return import_disposiq22.emptyDisposable;
 };
-Variable.prototype.map = function(mapper) {
-  return new MapVariable(this, mapper);
+Variable.prototype.map = function(mapper, equalityComparer) {
+  return new MapVariable(this, mapper, equalityComparer);
 };
 Variable.prototype.or = function(other) {
   return new OrVariable([this, other]);
@@ -1930,8 +1934,8 @@ Variable.prototype.invert = function() {
 Variable.prototype.with = function(...others) {
   return new CombinedVariable([this, ...others]);
 };
-Variable.prototype.switchMap = function(mapper) {
-  return new SwitchMapVariable(this, mapper);
+Variable.prototype.switchMap = function(mapper, equalityComparer) {
+  return new SwitchMapVariable(this, mapper, equalityComparer);
 };
 Variable.prototype.throttle = function(delay, equalityComparer) {
   if (typeof delay === "number") {
@@ -2581,6 +2585,7 @@ var ObservableList = class {
   min,
   objectEqualityComparer,
   or,
+  setDefaultEqualityComparer,
   simpleEqualityComparer,
   strictEqualityComparer,
   sum

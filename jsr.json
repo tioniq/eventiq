@@ -1,5 +1,5 @@
 {
   "name": "@tioniq/eventiq",
-  "version": "1.1.7",
+  "version": "1.2.0",
   "exports": "./src/index.ts"
 }

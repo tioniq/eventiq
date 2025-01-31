@@ -178,6 +178,7 @@ type EqualityComparer<T> = (a: T, b: T) => boolean;
 declare function strictEqualityComparer<T>(a: T, b: T): boolean;
 declare function simpleEqualityComparer<T>(a: T, b: T): boolean;
 declare var defaultEqualityComparer: EqualityComparer<unknown>;
+declare function setDefaultEqualityComparer(comparer: EqualityComparer<unknown>): void;
 declare function functionEqualityComparer(a: Function, b: Function): boolean;
 declare function generalEqualityComparer<T>(a: T, b: T): boolean;
 declare function objectEqualityComparer<T extends object>(a: T, b: T): boolean;
@@ -249,9 +250,10 @@ interface Variable<out T> {
     /**
      * Maps the variable value to another value
      * @param mapper the mapper
+     * @param equalityComparer the equality comparer for the mapped value
      * @returns a new variable with the mapped value
      */
-    map<TOutput>(mapper: Func<T, TOutput>): Variable<TOutput>;
+    map<TOutput>(mapper: Func<T, TOutput>, equalityComparer?: EqualityComparer<TOutput>): Variable<TOutput>;
     /**
      * Creates a new variable that will return true if any of the variable values are true
      * @param other the other variable
@@ -280,9 +282,10 @@ interface Variable<out T> {
     /**
      * Maps the variable value to another value using the mapper that returns a new variable to subscribe
      * @param mapper the mapper that returns another variable to subscribe
+     * @param equalityComparer the equality comparer for the mapped value
      * @returns a new variable with the mapped value
      */
-    switchMap<TResult>(mapper: SwitchMapMapper<T, TResult>): Variable<TResult>;
+    switchMap<TResult>(mapper: SwitchMapMapper<T, TResult>, equalityComparer?: EqualityComparer<TResult>): Variable<TResult>;
     /**
      * Throttles the variable value changes
      * @param delay the delay in milliseconds
@@ -678,7 +681,7 @@ type SwitchMapMapper<TInput, TResult> = (input: TInput) => Variable<TResult>;
  * @typeparam TResult - the type of the output variable value
  */
 declare class SwitchMapVariable<TInput, TResult> extends CompoundVariable<TResult> {
-    constructor(vary: Variable<TInput>, mapper: SwitchMapMapper<TInput, TResult>);
+    constructor(vary: Variable<TInput>, mapper: SwitchMapMapper<TInput, TResult>, equalityComparer?: EqualityComparer<TResult>);
     protected activate(): void;
     protected deactivate(): void;
     protected getExactValue(): TResult;
@@ -1057,4 +1060,4 @@ declare class ObservableList<T> {
     private updateSorted;
 }
 
-export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, EventDispatcher, EventObserver, EventObserverStub, EventSafeDispatcher, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, LazyEventDispatcher, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createConst as createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isDelegateVariable, isMutableVariable, isVariable, isVariableOf, max, merge, min, objectEqualityComparer, or, simpleEqualityComparer, strictEqualityComparer, sum };
+export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, EventDispatcher, EventObserver, EventObserverStub, EventSafeDispatcher, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, LazyEventDispatcher, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createConst as createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isDelegateVariable, isMutableVariable, isVariable, isVariableOf, max, merge, min, objectEqualityComparer, or, setDefaultEqualityComparer, simpleEqualityComparer, strictEqualityComparer, sum };

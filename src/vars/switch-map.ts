@@ -1,7 +1,7 @@
 import { CompoundVariable } from "./compound"
 import type { Variable } from "../variable"
 import { DisposableContainer } from "@tioniq/disposiq"
-import { EqualityComparer } from "../comparer";
+import type { EqualityComparer } from "../comparer";
 
 export type SwitchMapMapper<TInput, TResult> = (
   input: TInput,

@@ -28,6 +28,9 @@ function simpleEqualityComparer(a, b) {
   return a == b;
 }
 var defaultEqualityComparer = strictEqualityComparer;
+function setDefaultEqualityComparer(comparer) {
+  defaultEqualityComparer = comparer;
+}
 function functionEqualityComparer(a, b) {
   return a === b;
 }
@@ -1419,8 +1422,8 @@ var SumVariable = class extends CompoundVariable {
 // src/vars/switch-map.ts
 import { DisposableContainer as DisposableContainer6 } from "@tioniq/disposiq";
 var SwitchMapVariable = class extends CompoundVariable {
-  constructor(vary, mapper) {
-    super(null);
+  constructor(vary, mapper, equalityComparer) {
+    super(null, equalityComparer);
     /**
      * @internal
      */
@@ -1854,8 +1857,8 @@ Variable.prototype.subscribeOnceWhere = function(callback, condition) {
   callback(value);
   return emptyDisposable6;
 };
-Variable.prototype.map = function(mapper) {
-  return new MapVariable(this, mapper);
+Variable.prototype.map = function(mapper, equalityComparer) {
+  return new MapVariable(this, mapper, equalityComparer);
 };
 Variable.prototype.or = function(other) {
   return new OrVariable([this, other]);
@@ -1869,8 +1872,8 @@ Variable.prototype.invert = function() {
 Variable.prototype.with = function(...others) {
   return new CombinedVariable([this, ...others]);
 };
-Variable.prototype.switchMap = function(mapper) {
-  return new SwitchMapVariable(this, mapper);
+Variable.prototype.switchMap = function(mapper, equalityComparer) {
+  return new SwitchMapVariable(this, mapper, equalityComparer);
 };
 Variable.prototype.throttle = function(delay, equalityComparer) {
   if (typeof delay === "number") {
@@ -2519,6 +2522,7 @@ export {
   min,
   objectEqualityComparer,
   or,
+  setDefaultEqualityComparer,
   simpleEqualityComparer,
   strictEqualityComparer,
   sum
