@@ -3,7 +3,7 @@ import {
   CombinedVariable,
   FuncVariable,
   InvertVariable,
-  MapVariable,
+  MapVariable, MutableVar,
   MutableVariable,
   OrVariable,
   SumVariable,
@@ -380,5 +380,35 @@ describe("extensions", () => {
     variable.value = 4
 
     expect(sealedVariable2.value).toBe(3)
+  })
+
+  it("should notifyOn work correctly", () => {
+    const variable = new MutableVar(1)
+    const dispatcher = new EventDispatcher()
+    const callback = jest.fn()
+    const notifyOnVar = variable.notifyOn(dispatcher)
+    const subscription = notifyOnVar.subscribe(callback)
+
+    expect(callback).toHaveBeenCalledTimes(1)
+
+    dispatcher.dispatch()
+
+    expect(callback).toHaveBeenCalledTimes(2)
+
+    dispatcher.dispatch()
+
+    expect(callback).toHaveBeenCalledTimes(3)
+
+    variable.value = 2
+
+    expect(callback).toHaveBeenCalledTimes(4)
+
+    subscription.dispose()
+
+    dispatcher.dispatch()
+
+    expect(callback).toHaveBeenCalledTimes(4)
+
+    expect(notifyOnVar.value).toBe(2)
   })
 })

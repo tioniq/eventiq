@@ -282,4 +282,11 @@ export interface Variable<out T> {
     condition: R,
     equalityComparer?: EqualityComparer<R>,
   ): Variable<R>
+
+  /**
+   * Creates a new variable that will stream the variable value and notify when the variable value is changed or the
+   * event is triggered
+   * @param event the event observer
+   */
+  notifyOn(event: EventObserver): Variable<T>
 }

@@ -26,6 +26,7 @@ import type { EventObserver } from "./events"
 import { noop } from "./noop"
 import { createDelayDispatcher } from "./functions"
 import { defaultEqualityComparer, type EqualityComparer } from "./comparer"
+import { FuncVar } from "./aliases";
 
 Variable.prototype.subscribeDisposable = function <T>(
   this: Variable<T>,
@@ -256,6 +257,24 @@ Variable.prototype.sealWhen = function <T>(
     (v) => comparer(v, condition),
   )
   return vary
+}
+
+Variable.prototype.notifyOn = function <T>(
+  this: Variable<T>,
+  event: EventObserver,
+): Variable<T> {
+  return new FuncVar(vary => {
+    const subscription1 = this.subscribe(v => {
+      vary.setValueForce(v)
+    })
+    const subscription2 = event.subscribe(() => {
+      vary.notify()
+    })
+    return new DisposableAction(() => {
+      subscription1.dispose()
+      subscription2.dispose()
+    })
+  }, () => this.value)
 }
 
 // biome-ignore lint/complexity/noUselessEmptyExport: required for extensions
