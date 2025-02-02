@@ -1970,6 +1970,20 @@ Variable.prototype.sealWhen = function(condition, equalityComparer) {
   );
   return vary;
 };
+Variable.prototype.notifyOn = function(event) {
+  return new FuncVariable((vary) => {
+    const subscription1 = this.subscribe((v) => {
+      vary.setValueForce(v);
+    });
+    const subscription2 = event.subscribe(() => {
+      vary.notify();
+    });
+    return new DisposableAction8(() => {
+      subscription1.dispose();
+      subscription2.dispose();
+    });
+  }, () => this.value);
+};
 
 // src/is.ts
 function isVariable(value) {
