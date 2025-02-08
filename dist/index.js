@@ -892,8 +892,8 @@ import {
   toDisposable
 } from "@tioniq/disposiq";
 var FuncVariable = class extends CompoundVariable {
-  constructor(activate, exactValue) {
-    super(null);
+  constructor(activate, exactValue, equalityComparer) {
+    super(null, equalityComparer);
     const disposable = new DisposableContainer2();
     this._activator = (self) => {
       disposable.disposeCurrent();
@@ -1828,8 +1828,8 @@ function isDelegateVariable(value) {
 function createVar(initialValue, equalityComparer) {
   return new MutableVariable(initialValue, equalityComparer);
 }
-function createFuncVar(activator, exactValue) {
-  return new FuncVariable(activator, exactValue);
+function createFuncVar(activator, exactValue, equalityComparer) {
+  return new FuncVariable(activator, exactValue, equalityComparer);
 }
 function createConst(value) {
   return new ConstantVariable(value);

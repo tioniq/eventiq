@@ -6,6 +6,7 @@ import {
   toDisposable,
 } from "@tioniq/disposiq"
 import type { IMutableVariable } from "../types";
+import type { EqualityComparer } from "../comparer";
 
 /**
  * A variable that reacts on subscription activation and deactivation using provided function called `activator`.
@@ -30,9 +31,10 @@ export class FuncVariable<T> extends CompoundVariable<T> implements IMutableVari
   constructor(
     activate: Func<FuncVariable<T>, DisposableLike>,
     exactValue: Func0<T>,
+    equalityComparer?: EqualityComparer<T>
   ) {
     // biome-ignore lint/style/noNonNullAssertion: base value will not be used
-    super(null!)
+    super(null!, equalityComparer)
     const disposable = new DisposableContainer()
     this._activator = (self) => {
       disposable.disposeCurrent()

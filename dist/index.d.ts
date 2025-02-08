@@ -562,7 +562,7 @@ interface IMutableVariable<T> extends Variable<T> {
  * If there is no subscription, the variable will return the exact value provided by the `exactValue` function
  */
 declare class FuncVariable<T> extends CompoundVariable<T> implements IMutableVariable<T> {
-    constructor(activate: Func<FuncVariable<T>, DisposableLike>, exactValue: Func0<T>);
+    constructor(activate: Func<FuncVariable<T>, DisposableLike>, exactValue: Func0<T>, equalityComparer?: EqualityComparer<T>);
     get value(): T;
     /**
      * Sets the value of the variable. If the value is the same as the current value, the method will do nothing
@@ -745,9 +745,10 @@ declare function createVar<T>(initialValue: T, equalityComparer?: EqualityCompar
  * Creates a new variable based on FuncVariable parameters
  * @param activator a function that will be called to activate the variable when it is subscribed
  * @param exactValue a function that returns the exact value of the variable when there is no subscriptions
+ * @param equalityComparer the equality comparer to use when checking for changes
  * @returns a new variable
  */
-declare function createFuncVar<T>(activator: Func<FuncVariable<T>, IDisposable>, exactValue: Func0<T>): Variable<T>;
+declare function createFuncVar<T>(activator: Func<FuncVariable<T>, IDisposable>, exactValue: Func0<T>, equalityComparer?: EqualityComparer<T>): Variable<T>;
 /**
  * Creates a new constant variable that will always have the same value
  * @param value the value of the variable

@@ -34,13 +34,15 @@ export function createVar<T>(initialValue: T, equalityComparer?: EqualityCompare
  * Creates a new variable based on FuncVariable parameters
  * @param activator a function that will be called to activate the variable when it is subscribed
  * @param exactValue a function that returns the exact value of the variable when there is no subscriptions
+ * @param equalityComparer the equality comparer to use when checking for changes
  * @returns a new variable
  */
 export function createFuncVar<T>(
   activator: Func<FuncVariable<T>, IDisposable>,
   exactValue: Func0<T>,
+  equalityComparer?: EqualityComparer<T>
 ): Variable<T> {
-  return new FuncVariable(activator, exactValue)
+  return new FuncVariable(activator, exactValue, equalityComparer)
 }
 
 /**
