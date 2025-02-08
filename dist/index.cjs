@@ -675,6 +675,7 @@ var CompoundVariable = class extends Variable {
    * A method for setting the value of the variable without notifying subscribers
    * @protected internal use only
    * @param value the new value of the variable
+   * @deprecated user `setSilent` instead
    */
   setValueSilent(value) {
     this._value = value;
@@ -683,8 +684,26 @@ var CompoundVariable = class extends Variable {
    * A method for setting the value of the variable and notifying subscribers without checking the equality
    * @protected internal use only
    * @param value the new value of the variable
+   * @deprecated user `setForce` instead
    */
   setValueForce(value) {
+    this._value = value;
+    this._chain.forEach((a) => a(value));
+  }
+  /**
+   * A method for setting the value of the variable without notifying subscribers
+   * @protected internal use only
+   * @param value the new value of the variable
+   */
+  setSilent(value) {
+    this._value = value;
+  }
+  /**
+   * A method for setting the value of the variable and notifying subscribers without checking the equality
+   * @protected internal use only
+   * @param value the new value of the variable
+   */
+  setForce(value) {
     this._value = value;
     this._chain.forEach((a) => a(value));
   }
@@ -782,12 +801,12 @@ var CombinedVariable = class extends CompoundVariable {
       this._subscriptions.add(
         vary.subscribeSilent((value) => {
           result[i] = value;
-          this.setValueForce(result);
+          this.setForce(result);
         })
       );
       result[i] = vary.value;
     }
-    this.setValueForce(result);
+    this.setForce(result);
   }
   deactivate() {
     this._subscriptions.disposeCurrent();
@@ -867,7 +886,7 @@ var DelegateVariable = class extends CompoundVariable {
     this._sourceSubscription.disposeCurrent();
     if (this.active) {
       this._sourceSubscription.set(
-        source.subscribeSilent((v) => this.setValueForce(v))
+        source.subscribeSilent((v) => this.setForce(v))
       );
       this.value = source.value;
     }
@@ -884,7 +903,7 @@ var DelegateVariable = class extends CompoundVariable {
     }
     this._sourceSubscription.disposeCurrent();
     this._sourceSubscription.set(
-      this._source.subscribeSilent((v) => this.setValueForce(v))
+      this._source.subscribeSilent((v) => this.setForce(v))
     );
     this.value = this._source.value;
   }
@@ -977,19 +996,25 @@ var FuncVariable = class extends CompoundVariable {
   set value(value) {
     super.value = value;
   }
+  setValueForce(value) {
+    super.setForce(value);
+  }
+  setValueSilent(value) {
+    super.setSilent(value);
+  }
   /**
    * A method for setting the value of the variable and notifying subscribers without checking the equality
    * @param value the new value of the variable
    */
-  setValueForce(value) {
-    super.setValueForce(value);
+  setForce(value) {
+    super.setForce(value);
   }
   /**
    * A method for setting the value of the variable without notifying subscribers
    * @param value the new value of the variable
    */
-  setValueSilent(value) {
-    super.setValueSilent(value);
+  setSilent(value) {
+    super.setSilent(value);
   }
   /**
    * A method for notifying subscribers about the value change
@@ -1227,6 +1252,9 @@ var MutableVariable = class extends Variable {
     this._value = value;
     this._chain.forEach((a) => a(value));
   }
+  /**
+   * Returns the equality comparer used to compare the old and new values of the variable
+   */
   get equalityComparer() {
     return this._equalityComparer;
   }
@@ -2062,7 +2090,7 @@ Variable.prototype.sealWhen = function(condition, equalityComparer) {
 Variable.prototype.notifyOn = function(event) {
   return new FuncVariable((vary) => {
     const subscription1 = this.subscribe((v) => {
-      vary.setValueForce(v);
+      vary.setForce(v);
     });
     const subscription2 = event.subscribe(() => {
       vary.notify();

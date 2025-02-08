@@ -439,14 +439,28 @@ declare abstract class CompoundVariable<T> extends Variable<T> {
      * A method for setting the value of the variable without notifying subscribers
      * @protected internal use only
      * @param value the new value of the variable
+     * @deprecated user `setSilent` instead
      */
     protected setValueSilent(value: T): void;
     /**
      * A method for setting the value of the variable and notifying subscribers without checking the equality
      * @protected internal use only
      * @param value the new value of the variable
+     * @deprecated user `setForce` instead
      */
     protected setValueForce(value: T): void;
+    /**
+     * A method for setting the value of the variable without notifying subscribers
+     * @protected internal use only
+     * @param value the new value of the variable
+     */
+    protected setSilent(value: T): void;
+    /**
+     * A method for setting the value of the variable and notifying subscribers without checking the equality
+     * @protected internal use only
+     * @param value the new value of the variable
+     */
+    protected setForce(value: T): void;
     /**
      * A method for notifying subscribers about the value change
      * @protected internal use only
@@ -534,11 +548,20 @@ declare class DirectVariable<T> extends Variable<T> {
     notify(): void;
 }
 
+type VariableOrValue<T> = T | Variable<T>;
+type VarOrVal<T> = VariableOrValue<T>;
+interface IMutableVariable<T> extends Variable<T> {
+    get value(): T;
+    set value(value: T);
+    setSilent(value: T): void;
+    notify(): void;
+}
+
 /**
  * A variable that reacts on subscription activation and deactivation using provided function called `activator`.
  * If there is no subscription, the variable will return the exact value provided by the `exactValue` function
  */
-declare class FuncVariable<T> extends CompoundVariable<T> {
+declare class FuncVariable<T> extends CompoundVariable<T> implements IMutableVariable<T> {
     constructor(activate: Func<FuncVariable<T>, DisposableLike>, exactValue: Func0<T>);
     get value(): T;
     /**
@@ -546,16 +569,18 @@ declare class FuncVariable<T> extends CompoundVariable<T> {
      * @param value the new value of the variable
      */
     set value(value: T);
+    setValueForce(value: T): void;
+    setValueSilent(value: T): void;
     /**
      * A method for setting the value of the variable and notifying subscribers without checking the equality
      * @param value the new value of the variable
      */
-    setValueForce(value: T): void;
+    setForce(value: T): void;
     /**
      * A method for setting the value of the variable without notifying subscribers
      * @param value the new value of the variable
      */
-    setValueSilent(value: T): void;
+    setSilent(value: T): void;
     /**
      * A method for notifying subscribers about the value change
      */
@@ -614,7 +639,7 @@ declare class MinVariable extends CompoundVariable<number> {
  * The value will be changed only if the new value is different from the old value (checked by the equality comparer)
  * @typeparam T - the type of the variable value
  */
-declare class MutableVariable<T> extends Variable<T> {
+declare class MutableVariable<T> extends Variable<T> implements IMutableVariable<T> {
     constructor(value: T, equalityComparer?: EqualityComparer<T>);
     get value(): T;
     /**
@@ -622,6 +647,9 @@ declare class MutableVariable<T> extends Variable<T> {
      * @param value the new value for the variable
      */
     set value(value: T);
+    /**
+     * Returns the equality comparer used to compare the old and new values of the variable
+     */
     get equalityComparer(): EqualityComparer<T>;
     subscribe(callback: Func<T, void>): Disposiq;
     subscribeSilent(callback: Func<T, void>): Disposiq;
@@ -705,9 +733,6 @@ declare class ThrottledVariable<T> extends CompoundVariable<T> {
     protected deactivate(): void;
     protected getExactValue(): T;
 }
-
-type VariableOrValue<T> = T | Variable<T>;
-type VarOrVal<T> = VariableOrValue<T>;
 
 /**
  * Creates a new mutable variable
@@ -1072,4 +1097,4 @@ declare class ObservableList<T> {
     private updateSorted;
 }
 
-export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, EventDispatcher, EventObserver, EventObserverStub, EventSafeDispatcher, FuncVariable as FuncVar, FuncVariable, ConstantVariable as ImmutableVar, InvertVariable, LazyEventDispatcher, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createConst as createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isDelegateVariable, isMutableVariable, isVariable, isVariableOf, max, merge, min, objectEqualityComparer, or, setDefaultEqualityComparer, simpleEqualityComparer, strictEqualityComparer, sum, toVariable };
+export { AndVariable, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, EventDispatcher, EventObserver, EventObserverStub, EventSafeDispatcher, FuncVariable as FuncVar, FuncVariable, type IMutableVariable as IMutableVar, type IMutableVariable, type IMutableVariable as IVary, ConstantVariable as ImmutableVar, InvertVariable, LazyEventDispatcher, FuncVariable as LazyVariable, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createConst as createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isDelegateVariable, isMutableVariable, isVariable, isVariableOf, max, merge, min, objectEqualityComparer, or, setDefaultEqualityComparer, simpleEqualityComparer, strictEqualityComparer, sum, toVariable };
