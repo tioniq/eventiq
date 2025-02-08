@@ -71,7 +71,7 @@ describe("func var", () => {
     expect(callback).toHaveBeenCalledWith(20)
   })
 
-  it("should set silent and notify", () => {
+  it("should set silent and notify deprecated", () => {
     const func = new FuncVariable(
       (v) => {
         v.value = 10
@@ -97,7 +97,33 @@ describe("func var", () => {
     expect(callback).toHaveBeenCalledWith(20)
   })
 
-  it("should set force and notify", () => {
+  it("should set silent and notify", () => {
+    const func = new FuncVariable(
+      (v) => {
+        v.value = 10
+        return emptyDisposable
+      },
+      () => 1,
+    )
+    expect(func.value).toBe(1)
+
+    const callback = jest.fn()
+    func.subscribe(callback)
+
+    expect(callback).toHaveBeenCalledTimes(1)
+    expect(callback).toHaveBeenCalledWith(10)
+
+    func.setSilent(20)
+
+    expect(callback).toHaveBeenCalledTimes(1)
+
+    func.notify()
+
+    expect(callback).toHaveBeenCalledTimes(2)
+    expect(callback).toHaveBeenCalledWith(20)
+  })
+
+  it("should set force and notify deprecated", () => {
     const func = new FuncVariable(
       (v) => {
         v.value = 10
@@ -114,6 +140,28 @@ describe("func var", () => {
     expect(callback).toHaveBeenCalledWith(10)
 
     func.setValueForce(20)
+
+    expect(callback).toHaveBeenCalledTimes(2)
+    expect(callback).toHaveBeenCalledWith(20)
+  })
+
+  it("should set force and notify", () => {
+    const func = new FuncVariable(
+      (v) => {
+        v.value = 10
+        return emptyDisposable
+      },
+      () => 1,
+    )
+    expect(func.value).toBe(1)
+
+    const callback = jest.fn()
+    func.subscribe(callback)
+
+    expect(callback).toHaveBeenCalledTimes(1)
+    expect(callback).toHaveBeenCalledWith(10)
+
+    func.setForce(20)
 
     expect(callback).toHaveBeenCalledTimes(2)
     expect(callback).toHaveBeenCalledWith(20)

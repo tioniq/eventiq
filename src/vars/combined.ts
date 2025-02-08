@@ -35,12 +35,12 @@ export class CombinedVariable<T extends unknown[]> extends CompoundVariable<T> {
       this._subscriptions.add(
         vary.subscribeSilent((value) => {
           result[i] = value
-          this.setValueForce(result)
+          this.setForce(result)
         }),
       )
       result[i] = vary.value
     }
-    this.setValueForce(result)
+    this.setForce(result)
   }
 
   protected deactivate(): void {

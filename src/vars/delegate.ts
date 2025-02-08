@@ -57,7 +57,7 @@ export class DelegateVariable<T> extends CompoundVariable<T> {
     this._sourceSubscription.disposeCurrent()
     if (this.active) {
       this._sourceSubscription.set(
-        source.subscribeSilent((v) => this.setValueForce(v)),
+        source.subscribeSilent((v) => this.setForce(v)),
       )
       this.value = source.value
     }
@@ -75,7 +75,7 @@ export class DelegateVariable<T> extends CompoundVariable<T> {
     }
     this._sourceSubscription.disposeCurrent()
     this._sourceSubscription.set(
-      this._source.subscribeSilent((v) => this.setValueForce(v)),
+      this._source.subscribeSilent((v) => this.setForce(v)),
     )
     this.value = this._source.value
   }

@@ -265,7 +265,7 @@ Variable.prototype.notifyOn = function <T>(
 ): Variable<T> {
   return new FuncVar(vary => {
     const subscription1 = this.subscribe(v => {
-      vary.setValueForce(v)
+      vary.setForce(v)
     })
     const subscription2 = event.subscribe(() => {
       vary.notify()

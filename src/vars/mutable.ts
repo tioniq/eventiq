@@ -7,13 +7,14 @@ import {
 import type { Action, Func } from "../action"
 import { LinkedChain } from "../linked-chain"
 import type { Disposiq } from "@tioniq/disposiq"
+import type { IMutableVariable } from "../types";
 
 /**
  * A class that implements the Variable class and provides the ability to change the value of the variable.
  * The value will be changed only if the new value is different from the old value (checked by the equality comparer)
  * @typeparam T - the type of the variable value
  */
-export class MutableVariable<T> extends Variable<T> {
+export class MutableVariable<T> extends Variable<T> implements IMutableVariable<T> {
   /**
    * @internal
    */
@@ -51,6 +52,9 @@ export class MutableVariable<T> extends Variable<T> {
     this._chain.forEach((a) => a(value))
   }
 
+  /**
+   * Returns the equality comparer used to compare the old and new values of the variable
+   */
   get equalityComparer(): EqualityComparer<T> {
     return this._equalityComparer
   }

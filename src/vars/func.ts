@@ -1,18 +1,17 @@
 import { CompoundVariable } from "./compound"
-// biome-ignore lint/style/useImportType: <explanation>
-import { Action, Func, Func0 } from "../action"
-// biome-ignore lint/style/useImportType: <explanation>
+import type { Action, Func, Func0 } from "../action"
 import {
   DisposableContainer,
-  DisposableLike,
+  type DisposableLike,
   toDisposable,
 } from "@tioniq/disposiq"
+import type { IMutableVariable } from "../types";
 
 /**
  * A variable that reacts on subscription activation and deactivation using provided function called `activator`.
  * If there is no subscription, the variable will return the exact value provided by the `exactValue` function
  */
-export class FuncVariable<T> extends CompoundVariable<T> {
+export class FuncVariable<T> extends CompoundVariable<T> implements IMutableVariable<T> {
   /**
    * @internal
    */
@@ -57,20 +56,28 @@ export class FuncVariable<T> extends CompoundVariable<T> {
     super.value = value
   }
 
+  setValueForce(value: T) {
+    super.setForce(value)
+  }
+
+  setValueSilent(value: T) {
+    super.setSilent(value)
+  }
+
   /**
    * A method for setting the value of the variable and notifying subscribers without checking the equality
    * @param value the new value of the variable
    */
-  setValueForce(value: T) {
-    super.setValueForce(value)
+  setForce(value: T) {
+    super.setForce(value)
   }
 
   /**
    * A method for setting the value of the variable without notifying subscribers
    * @param value the new value of the variable
    */
-  setValueSilent(value: T) {
-    super.setValueSilent(value)
+  setSilent(value: T) {
+    super.setSilent(value)
   }
 
   /**

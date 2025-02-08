@@ -118,6 +118,7 @@ export abstract class CompoundVariable<T> extends Variable<T> {
    * A method for setting the value of the variable without notifying subscribers
    * @protected internal use only
    * @param value the new value of the variable
+   * @deprecated user `setSilent` instead
    */
   protected setValueSilent(value: T): void {
     this._value = value
@@ -127,8 +128,28 @@ export abstract class CompoundVariable<T> extends Variable<T> {
    * A method for setting the value of the variable and notifying subscribers without checking the equality
    * @protected internal use only
    * @param value the new value of the variable
+   * @deprecated user `setForce` instead
    */
   protected setValueForce(value: T): void {
+    this._value = value
+    this._chain.forEach((a) => a(value))
+  }
+
+  /**
+   * A method for setting the value of the variable without notifying subscribers
+   * @protected internal use only
+   * @param value the new value of the variable
+   */
+  protected setSilent(value: T): void {
+    this._value = value
+  }
+
+  /**
+   * A method for setting the value of the variable and notifying subscribers without checking the equality
+   * @protected internal use only
+   * @param value the new value of the variable
+   */
+  protected setForce(value: T): void {
     this._value = value
     this._chain.forEach((a) => a(value))
   }
