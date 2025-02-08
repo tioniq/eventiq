@@ -1773,6 +1773,29 @@ EventDispatcher.prototype.dispatchSafe = function(value) {
   }
 };
 
+// src/is.ts
+function isVariable(value) {
+  return value instanceof Variable;
+}
+function isVariableOf(value, typeCheckerOrExampleValue) {
+  if (!(value instanceof Variable)) {
+    return false;
+  }
+  if (typeCheckerOrExampleValue == void 0) {
+    return true;
+  }
+  if (typeof typeCheckerOrExampleValue === "function") {
+    return typeCheckerOrExampleValue(value.value);
+  }
+  return typeof value.value === typeof typeCheckerOrExampleValue;
+}
+function isMutableVariable(value) {
+  return value instanceof MutableVariable;
+}
+function isDelegateVariable(value) {
+  return value instanceof DelegateVariable;
+}
+
 // src/functions.ts
 function createVar(initialValue, equalityComparer) {
   return new MutableVariable(initialValue, equalityComparer);
@@ -1818,6 +1841,9 @@ function createDelayDispatcher(delay) {
     const timeout = setTimeout(() => dispatcher.dispatch(), delay);
     return new DisposableAction7(() => clearTimeout(timeout));
   });
+}
+function toVariable(value) {
+  return isVariableOf(value) ? value : createConst(value);
 }
 
 // src/extensions.ts
@@ -1984,29 +2010,6 @@ Variable.prototype.notifyOn = function(event) {
     });
   }, () => this.value);
 };
-
-// src/is.ts
-function isVariable(value) {
-  return value instanceof Variable;
-}
-function isVariableOf(value, typeCheckerOrExampleValue) {
-  if (!(value instanceof Variable)) {
-    return false;
-  }
-  if (typeCheckerOrExampleValue == void 0) {
-    return true;
-  }
-  if (typeof typeCheckerOrExampleValue === "function") {
-    return typeCheckerOrExampleValue(value.value);
-  }
-  return typeof value.value === typeof typeCheckerOrExampleValue;
-}
-function isMutableVariable(value) {
-  return value instanceof MutableVariable;
-}
-function isDelegateVariable(value) {
-  return value instanceof DelegateVariable;
-}
 
 // src/list/observable-list.ts
 var ObservableList = class {
@@ -2539,5 +2542,6 @@ export {
   setDefaultEqualityComparer,
   simpleEqualityComparer,
   strictEqualityComparer,
-  sum
+  sum,
+  toVariable
 };

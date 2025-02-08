@@ -13,7 +13,7 @@ import {
   ConstantVariable,
   MutableVariable,
   createVar,
-  combine,
+  combine, toVariable,
 } from "../src"
 import { FuncVariable } from "../src"
 
@@ -33,7 +33,8 @@ describe("functions", () => {
     const variable = createFuncVar(
       (vary) => {
         vary.value = staticVar
-        return new DisposableAction(() => {})
+        return new DisposableAction(() => {
+        })
       },
       () => staticVar,
     )
@@ -177,5 +178,21 @@ describe("delay dispatcher function", () => {
     jest.advanceTimersByTime(1000)
 
     expect(spy).toHaveBeenCalledTimes(0)
+  })
+})
+
+describe('to variable function', () => {
+  it('should return the variable if it is already a variable', () => {
+    const variable = createConst(10)
+    expect(toVariable(variable)).toBe(variable)
+
+    const variable2 = createVar(20)
+    expect(toVariable(variable2)).toBe(variable2)
+  })
+
+  it('should return a new variable if the value is not a variable', () => {
+    const value = 10
+    const variable = toVariable(value)
+    expect(variable.value).toBe(value)
   })
 })

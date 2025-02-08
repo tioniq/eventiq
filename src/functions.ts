@@ -15,7 +15,10 @@ import { DisposableAction, type IDisposable } from "@tioniq/disposiq"
 import type { Func, Func0 } from "./action"
 import type { Variable } from "./variable"
 import { type EventObserver, LazyEventDispatcher } from "./events"
-import { EqualityComparer } from "./comparer";
+import type { EqualityComparer } from "./comparer";
+import type { VarOrVal } from "./types";
+import type { Var } from "./aliases";
+import { isVariableOf } from "./is";
 
 /**
  * Creates a new mutable variable
@@ -146,4 +149,13 @@ export function createDelayDispatcher(delay: number): EventObserver {
     const timeout = setTimeout(() => dispatcher.dispatch(), delay)
     return new DisposableAction(() => clearTimeout(timeout))
   })
+}
+
+/**
+ * Converts a value to a variable. If the value is already a variable, it will be returned as is
+ * @param value the value or variable to convert
+ * @returns if the value is a variable, it will be returned as is, otherwise a new constant variable will be created
+ */
+export function toVariable<T>(value: VarOrVal<T>): Var<T> {
+  return isVariableOf<T>(value) ? value : createConst(value)
 }
