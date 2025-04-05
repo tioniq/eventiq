@@ -1,27 +1,27 @@
 import type { Action, Func } from "./action"
 import { Variable } from "./variable"
 import {
+  AndVariable,
+  CombinedVariable,
   ConstantVariable,
+  InvertVariable,
   MapVariable,
   type MutableVariable,
+  OrVariable,
   SealVariable,
   SumVariable,
   type SwitchMapMapper,
   SwitchMapVariable,
+  ThrottledVariable,
 } from "./vars"
-import { OrVariable } from "./vars"
-import { AndVariable } from "./vars"
-import { InvertVariable } from "./vars"
 import {
   DisposableAction,
   DisposableContainer,
+  type DisposableLike,
   type Disposiq,
   emptyDisposable,
-  type IDisposable,
   toDisposable,
 } from "@tioniq/disposiq"
-import { CombinedVariable } from "./vars"
-import { ThrottledVariable } from "./vars"
 import type { EventObserver } from "./events"
 import { noop } from "./noop"
 import { createDelayDispatcher } from "./functions"
@@ -30,7 +30,7 @@ import { FuncVar } from "./aliases";
 
 Variable.prototype.subscribeDisposable = function <T>(
   this: Variable<T>,
-  callback: Func<T, IDisposable>,
+  callback: Func<T, DisposableLike | null | undefined>,
 ): Disposiq {
   const container = new DisposableContainer()
   const subscription = this.subscribe((v) => {
