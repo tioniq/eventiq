@@ -83,6 +83,25 @@ export interface Variable<out T> {
   subscribeOnceWhere(callback: Action<T>, condition: Func<T, boolean>): Disposiq
 
   /**
+   * Subscribes to a callback that will be executed only when a specified condition is met.
+   *
+   * @param callback the function to execute whenever the condition is fulfilled.
+   * @param condition a value that determines whether the given condition is satisfied.
+   * @param equalityComparer an optional equality comparer that will be used to compare the condition value with the
+   * @return a disposable object that can be used to unsubscribe from the subscription.
+   */
+  subscribeWhere(callback: Action<T>, condition: T, equalityComparer?: EqualityComparer<T>): Disposiq
+
+  /**
+   * Subscribes to a callback that will be executed only when a specified condition is met.
+   *
+   * @param callback the function to execute whenever the condition is fulfilled.
+   * @param condition a function that determines whether the given condition is satisfied.
+   * @return a disposable object that can be used to unsubscribe from the subscription.
+   */
+  subscribeWhere(callback: Action<T>, condition: Func<T, boolean>): Disposiq
+
+  /**
    * Maps the variable value to another value
    * @param mapper the mapper
    * @param equalityComparer the equality comparer for the mapped value

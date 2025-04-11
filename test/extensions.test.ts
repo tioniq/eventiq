@@ -75,6 +75,72 @@ describe("extensions", () => {
     expect(callback).toHaveBeenCalledTimes(1)
   })
 
+  it("should subscribeWhere work for function condition", () => {
+    const callback = jest.fn()
+    const variable = new MutableVariable(1)
+    const disposable = variable.subscribeWhere(callback, (v) => v === 2)
+
+    expect(callback).toHaveBeenCalledTimes(0)
+
+    variable.value = 10
+
+    expect(callback).toHaveBeenCalledTimes(0)
+
+    variable.value = 2
+
+    expect(callback).toHaveBeenCalledTimes(1)
+
+    variable.value = 3
+
+    expect(callback).toHaveBeenCalledTimes(1)
+
+    variable.value = 2
+
+    expect(callback).toHaveBeenCalledTimes(2)
+
+    variable.value = 1
+
+    expect(callback).toHaveBeenCalledTimes(2)
+
+    disposable.dispose()
+    variable.value = 2
+
+    expect(callback).toHaveBeenCalledTimes(2)
+  })
+
+  it("should subscribeWhere work for value condition", () => {
+    const callback = jest.fn()
+    const variable = new MutableVariable(1)
+    const disposable = variable.subscribeWhere(callback, 2)
+
+    expect(callback).toHaveBeenCalledTimes(0)
+
+    variable.value = 10
+
+    expect(callback).toHaveBeenCalledTimes(0)
+
+    variable.value = 2
+
+    expect(callback).toHaveBeenCalledTimes(1)
+
+    variable.value = 3
+
+    expect(callback).toHaveBeenCalledTimes(1)
+
+    variable.value = 2
+
+    expect(callback).toHaveBeenCalledTimes(2)
+
+    variable.value = 1
+
+    expect(callback).toHaveBeenCalledTimes(2)
+
+    disposable.dispose()
+    variable.value = 2
+
+    expect(callback).toHaveBeenCalledTimes(2)
+  })
+
   it("should map create MapVariable", () => {
     const variable = new MutableVariable(1)
     const mapVariable = variable.map((v) => v + 1)

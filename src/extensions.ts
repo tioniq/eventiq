@@ -67,6 +67,27 @@ Variable.prototype.subscribeOnceWhere = function <T>(
   return emptyDisposable
 }
 
+Variable.prototype.subscribeWhere = function <T>(
+  this: Variable<T>,
+  callback: Action<T>,
+  condition: Func<T, boolean> | T,
+  equalityComparer?: EqualityComparer<T>,
+): Disposiq {
+  if (typeof condition === "function") {
+    return this.subscribe((v) => {
+      if ((condition as Func<T, boolean>)(v)) {
+        callback(v)
+      }
+    })
+  }
+  const comparer = equalityComparer ?? defaultEqualityComparer
+  return this.subscribe((v) => {
+    if (comparer(v, condition)) {
+      callback(v)
+    }
+  })
+}
+
 Variable.prototype.map = function <T, TOutput>(
   this: Variable<T>,
   mapper: Func<T, TOutput>,
