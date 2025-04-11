@@ -1974,6 +1974,21 @@ Variable.prototype.subscribeOnceWhere = function(callback, condition) {
   callback(value);
   return import_disposiq22.emptyDisposable;
 };
+Variable.prototype.subscribeWhere = function(callback, condition, equalityComparer) {
+  if (typeof condition === "function") {
+    return this.subscribe((v) => {
+      if (condition(v)) {
+        callback(v);
+      }
+    });
+  }
+  const comparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
+  return this.subscribe((v) => {
+    if (comparer(v, condition)) {
+      callback(v);
+    }
+  });
+};
 Variable.prototype.map = function(mapper, equalityComparer) {
   return new MapVariable(this, mapper, equalityComparer);
 };
