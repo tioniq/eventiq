@@ -2053,6 +2053,12 @@ Variable.prototype.notifyOn = function(event) {
     });
   }, () => this.value);
 };
+Variable.prototype.flat = function(equalityComparer) {
+  return new MapVariable(this, (v) => v.flat(), equalityComparer);
+};
+Variable.prototype.join = function(separator) {
+  return new MapVariable(this, (v) => v.join(separator), strictEqualityComparer);
+};
 
 // src/list/observable-list.ts
 var ObservableList = class {
