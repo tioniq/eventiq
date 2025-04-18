@@ -25,7 +25,7 @@ import {
 import type { EventObserver } from "./events"
 import { noop } from "./noop"
 import { createDelayDispatcher } from "./functions"
-import { defaultEqualityComparer, type EqualityComparer } from "./comparer"
+import { defaultEqualityComparer, type EqualityComparer, strictEqualityComparer } from "./comparer"
 import { FuncVar } from "./aliases";
 
 Variable.prototype.subscribeDisposable = function <T>(
@@ -296,6 +296,20 @@ Variable.prototype.notifyOn = function <T>(
       subscription2.dispose()
     })
   }, () => this.value)
+}
+
+Variable.prototype.flat = function <R>(
+  this: Variable<Array<Array<R>>>,
+  equalityComparer?: EqualityComparer<Array<R>>
+): Variable<Array<R>> {
+  return new MapVariable<Array<Array<R>>, Array<R>>(this, v => v.flat(), equalityComparer)
+}
+
+Variable.prototype.join = function (
+  this: Variable<Array<string>>,
+  separator?: string
+): Variable<string> {
+  return new MapVariable<Array<string>, string>(this, v => v.join(separator), strictEqualityComparer)
 }
 
 // biome-ignore lint/complexity/noUselessEmptyExport: required for extensions

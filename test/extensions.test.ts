@@ -477,4 +477,37 @@ describe("extensions", () => {
 
     expect(notifyOnVar.value).toBe(2)
   })
+
+  it("should flat work correctly", () => {
+    const variable = new MutableVariable([[1, 2], [3, 4], [5, 6]])
+    const flatVariable = variable.flat()
+
+    expect(flatVariable.value).toEqual([1, 2, 3, 4, 5, 6])
+
+    variable.value = [[7, 8]]
+
+    expect(flatVariable.value).toEqual([7, 8])
+  })
+
+  it("should join work correctly", () => {
+    const variable = new MutableVariable(["1", "2", "3"])
+    const joinVariable = variable.join("")
+
+    expect(joinVariable.value).toEqual("123")
+
+    variable.value = ["4", "5", "6"]
+
+    expect(joinVariable.value).toEqual("456")
+  })
+
+  it("should join work correctly with separator", () => {
+    const variable = new MutableVariable(["1", "2", "3"])
+    const joinVariable = variable.join(",")
+
+    expect(joinVariable.value).toEqual("1,2,3")
+
+    variable.value = ["4", "5", "6"]
+
+    expect(joinVariable.value).toEqual("4,5,6")
+  })
 })

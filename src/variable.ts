@@ -308,4 +308,21 @@ export interface Variable<out T> {
    * @param event the event observer
    */
   notifyOn(event: EventObserver): Variable<T>
+
+  /**
+   * Flattens a two-dimensional array contained in the Variable instance into a one-dimensional array.
+   * The method works on arrays of type R, combining all inner arrays into a single array.
+   *
+   * @param equalityComparer the equality comparer for the flattened array
+   * @return A new Variable instance containing the flattened one-dimensional array.
+   */
+  flat<R>(this: Variable<Array<Array<R>>>, equalityComparer?: EqualityComparer<Array<R>>): Variable<Array<R>>
+
+  /**
+   * Joins the elements of the array into a single string using the specified separator.
+   *
+   * @param {string} separator - The string to separate each element in the array. If not provided, the default is a comma (",").
+   * @return {Variable<string>} A new string containing all elements of the array joined by the separator.
+   */
+  join(this: Variable<string[]>, separator?: string): Variable<string>
 }
