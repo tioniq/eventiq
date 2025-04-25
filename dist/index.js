@@ -1550,7 +1550,7 @@ var ThrottledVariable = class extends CompoundVariable {
 };
 
 // src/functions.ts
-import { DisposableAction as DisposableAction7 } from "@tioniq/disposiq";
+import { DisposableAction as DisposableAction8 } from "@tioniq/disposiq";
 
 // src/events/observer.ts
 var EventObserver = class {
@@ -1705,6 +1705,7 @@ function merge(...observers) {
 
 // src/events/extensions.ts
 import {
+  DisposableAction as DisposableAction7,
   DisposableContainer as DisposableContainer9,
   emptyDisposable as emptyDisposable5
 } from "@tioniq/disposiq";
@@ -1748,6 +1749,17 @@ EventObserver.prototype.subscribeOn = function(callback, condition) {
   return condition.subscribeDisposable(
     (value) => value ? this.subscribe(callback) : emptyDisposable5
   );
+};
+EventObserver.prototype.subscribeDisposable = function(callback) {
+  const container = new DisposableContainer9();
+  const subscription = this.subscribe((v) => {
+    container.disposeCurrent();
+    container.set(callback(v));
+  });
+  return new DisposableAction7(() => {
+    subscription.dispose();
+    container.dispose();
+  });
 };
 EventObserver.prototype.map = function(mapper) {
   return new LazyEventDispatcher(
@@ -1867,7 +1879,7 @@ function combine(...vars) {
 function createDelayDispatcher(delay) {
   return new LazyEventDispatcher((dispatcher) => {
     const timeout = setTimeout(() => dispatcher.dispatch(), delay);
-    return new DisposableAction7(() => clearTimeout(timeout));
+    return new DisposableAction8(() => clearTimeout(timeout));
   });
 }
 function toVariable(value) {
@@ -1876,18 +1888,17 @@ function toVariable(value) {
 
 // src/extensions.ts
 import {
-  DisposableAction as DisposableAction8,
+  DisposableAction as DisposableAction9,
   DisposableContainer as DisposableContainer10,
-  emptyDisposable as emptyDisposable6,
-  toDisposable as toDisposable3
+  emptyDisposable as emptyDisposable6
 } from "@tioniq/disposiq";
 Variable.prototype.subscribeDisposable = function(callback) {
   const container = new DisposableContainer10();
   const subscription = this.subscribe((v) => {
     container.disposeCurrent();
-    container.set(toDisposable3(callback(v)));
+    container.set(callback(v));
   });
-  return new DisposableAction8(() => {
+  return new DisposableAction9(() => {
     subscription.dispose();
     container.dispose();
   });
@@ -2047,7 +2058,7 @@ Variable.prototype.notifyOn = function(event) {
     const subscription2 = event.subscribe(() => {
       vary.notify();
     });
-    return new DisposableAction8(() => {
+    return new DisposableAction9(() => {
       subscription1.dispose();
       subscription2.dispose();
     });

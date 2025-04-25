@@ -1817,6 +1817,17 @@ EventObserver.prototype.subscribeOn = function(callback, condition) {
     (value) => value ? this.subscribe(callback) : import_disposiq20.emptyDisposable
   );
 };
+EventObserver.prototype.subscribeDisposable = function(callback) {
+  const container = new import_disposiq20.DisposableContainer();
+  const subscription = this.subscribe((v) => {
+    container.disposeCurrent();
+    container.set(callback(v));
+  });
+  return new import_disposiq20.DisposableAction(() => {
+    subscription.dispose();
+    container.dispose();
+  });
+};
 EventObserver.prototype.map = function(mapper) {
   return new LazyEventDispatcher(
     (dispatcher) => this.subscribe((value) => dispatcher.dispatch(mapper(value)))
@@ -1948,7 +1959,7 @@ Variable.prototype.subscribeDisposable = function(callback) {
   const container = new import_disposiq22.DisposableContainer();
   const subscription = this.subscribe((v) => {
     container.disposeCurrent();
-    container.set((0, import_disposiq22.toDisposable)(callback(v)));
+    container.set(callback(v));
   });
   return new import_disposiq22.DisposableAction(() => {
     subscription.dispose();

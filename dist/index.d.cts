@@ -1,4 +1,4 @@
-import { Disposiq, DisposableLike, IDisposable } from '@tioniq/disposiq';
+import { Disposiq, CanBeDisposable, DisposableLike, IDisposable } from '@tioniq/disposiq';
 
 type Action$1<T = void> = (value: T) => void;
 type Func0<R> = () => R;
@@ -54,6 +54,14 @@ interface EventObserver<T> {
      * @returns an object that can be used to unsubscribe
      */
     subscribeOn(callback: Action$1<T>, condition: Variable<boolean>): Disposiq;
+    /**
+     * Subscribes a callback function that can return a disposable resource, which will be automatically disposed of
+     * when a new event is dispatched or when the subscription is disposed of.
+     *
+     * @param callback the callback for the subscription, which can return a disposable resource
+     * @return an object that can be used to unsubscribe
+     */
+    subscribeDisposable(callback: Func<T, CanBeDisposable | null | undefined>): Disposiq;
     /**
      * Maps the event observer to a new event observer with a different type
      * @param mapper the function that maps the value of the event observer to a new value
