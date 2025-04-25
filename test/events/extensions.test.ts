@@ -122,6 +122,67 @@ describe("extensions.subscribeOn", () => {
   })
 })
 
+describe('extensions.subscribeDisposable', () => {
+  it("should not fail when return no subscription", () => {
+    const dispatcher = new EventDispatcher<number>()
+    const observer: EventObserver<number> = dispatcher
+    const callback = jest.fn()
+
+    observer.subscribeDisposable(() => {
+      callback()
+      return null
+    })
+
+    dispatcher.dispatch(1)
+
+    expect(callback).toHaveBeenCalledTimes(1)
+  })
+
+  it("should dispose the callback disposable when a new event is dispatched", () => {
+    const dispatcher = new EventDispatcher<number>()
+    const observer: EventObserver<number> = dispatcher
+    const callback = jest.fn()
+    const disposable = {
+      dispose: jest.fn(),
+    }
+
+    observer.subscribeDisposable(() => {
+      callback()
+      return disposable
+    })
+
+    dispatcher.dispatch(1)
+    expect(callback).toHaveBeenCalledTimes(1)
+    expect(disposable.dispose).toHaveBeenCalledTimes(0)
+
+    dispatcher.dispatch(2)
+    expect(callback).toHaveBeenCalledTimes(2)
+    expect(disposable.dispose).toHaveBeenCalledTimes(1)
+  })
+
+  it("should dispose the callback disposable when the subscription is disposed", () => {
+    const dispatcher = new EventDispatcher<number>()
+    const observer: EventObserver<number> = dispatcher
+    const callback = jest.fn()
+    const disposable = {
+      dispose: jest.fn(),
+    }
+
+    const subscription = observer.subscribeDisposable(() => {
+      callback()
+      return disposable
+    })
+
+    dispatcher.dispatch(1)
+
+    expect(disposable.dispose).toHaveBeenCalledTimes(0)
+
+    subscription.dispose()
+
+    expect(disposable.dispose).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe("extensions.map", () => {
   it("should map event values", () => {
     const dispatcher = new EventDispatcher<number>()

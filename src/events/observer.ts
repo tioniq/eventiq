@@ -1,5 +1,5 @@
 import type { Action, Func } from "../action"
-import type { Disposiq } from "@tioniq/disposiq"
+import type { CanBeDisposable, Disposiq } from "@tioniq/disposiq"
 import type { Variable } from "../variable"
 
 /**
@@ -56,6 +56,15 @@ export interface EventObserver<T> {
    * @returns an object that can be used to unsubscribe
    */
   subscribeOn(callback: Action<T>, condition: Variable<boolean>): Disposiq
+
+  /**
+   * Subscribes a callback function that can return a disposable resource, which will be automatically disposed of
+   * when a new event is dispatched or when the subscription is disposed of.
+   *
+   * @param callback the callback for the subscription, which can return a disposable resource
+   * @return an object that can be used to unsubscribe
+   */
+  subscribeDisposable(callback: Func<T, CanBeDisposable | null | undefined>): Disposiq
 
   /**
    * Maps the event observer to a new event observer with a different type

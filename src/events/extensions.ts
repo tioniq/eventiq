@@ -1,4 +1,6 @@
 import {
+  type CanBeDisposable,
+  DisposableAction,
   DisposableContainer,
   type Disposiq,
   emptyDisposable,
@@ -62,6 +64,21 @@ EventObserver.prototype.subscribeOn = function <T>(
   return condition.subscribeDisposable((value) =>
     value ? this.subscribe(callback) : emptyDisposable,
   )
+}
+
+EventObserver.prototype.subscribeDisposable = function <T>(
+  this: EventObserver<T>,
+  callback: Func<T, CanBeDisposable | null | undefined>,
+): Disposiq {
+  const container = new DisposableContainer()
+  const subscription = this.subscribe((v) => {
+    container.disposeCurrent()
+    container.set(callback(v))
+  })
+  return new DisposableAction(() => {
+    subscription.dispose()
+    container.dispose()
+  })
 }
 
 EventObserver.prototype.map = function <T, TOutput>(

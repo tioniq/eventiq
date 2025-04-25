@@ -20,7 +20,6 @@ import {
   type DisposableLike,
   type Disposiq,
   emptyDisposable,
-  toDisposable,
 } from "@tioniq/disposiq"
 import type { EventObserver } from "./events"
 import { noop } from "./noop"
@@ -35,7 +34,7 @@ Variable.prototype.subscribeDisposable = function <T>(
   const container = new DisposableContainer()
   const subscription = this.subscribe((v) => {
     container.disposeCurrent()
-    container.set(toDisposable(callback(v)))
+    container.set(callback(v))
   })
   return new DisposableAction(() => {
     subscription.dispose()
