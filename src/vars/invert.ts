@@ -1,12 +1,7 @@
-import {
-  DisposableAction,
-  DisposableContainer,
-  type Disposiq,
-} from "@tioniq/disposiq"
-import type { Action, Func } from "../action"
-import { functionEqualityComparer } from "../comparer"
+import { DisposableAction, DisposableContainer, type Disposiq, } from "@tioniq/disposiq"
+import type { Func } from "../action"
 import { Variable } from "../variable"
-import { LinkedChain } from "../linked-chain"
+import { LinkedActionChain } from "../linked-chain"
 
 /**
  * A variable that inverts the value of another variable
@@ -20,9 +15,7 @@ export class InvertVariable extends Variable<boolean> {
   /**
    * @internal
    */
-  private readonly _chain = new LinkedChain<Action<boolean>>(
-    functionEqualityComparer,
-  )
+  private readonly _chain = new LinkedActionChain<boolean>()
 
   /**
    * @internal
@@ -75,7 +68,7 @@ export class InvertVariable extends Variable<boolean> {
       this._variable.subscribeSilent((v) => {
         const value = !v
         this._value = value
-        this._chain.forEach((a) => a(value))
+        this._chain.forEach(value)
       }),
     )
     this._value = !this._variable.value

@@ -1,6 +1,5 @@
-import { LinkedChain } from "../linked-chain"
+import { LinkedActionChain } from "../linked-chain"
 import type { Action } from "../action"
-import { functionEqualityComparer } from "../comparer"
 import type { Disposiq } from "@tioniq/disposiq"
 import { EventObserver } from "./observer"
 
@@ -13,7 +12,7 @@ export class EventDispatcher<T = void> extends EventObserver<T> {
   /**
    * @internal
    */
-  private readonly _nodes = new LinkedChain<Action<T>>(functionEqualityComparer)
+  private readonly _nodes = new LinkedActionChain<T>()
 
   override subscribe(action: Action<T>): Disposiq {
     return this._nodes.add(action)
@@ -24,7 +23,7 @@ export class EventDispatcher<T = void> extends EventObserver<T> {
    * @param value the value of the event
    */
   dispatch(value: T): void {
-    this._nodes.forEach((a) => a(value))
+    this._nodes.forEach(value)
   }
 
   /**

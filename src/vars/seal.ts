@@ -1,17 +1,8 @@
 import { Variable } from "../variable"
-import {
-  DisposableAction,
-  DisposableContainer,
-  type Disposiq,
-  emptyDisposable,
-} from "@tioniq/disposiq"
-import type { Action, Func } from "../action"
-import { LinkedChain } from "../linked-chain"
-import {
-  defaultEqualityComparer,
-  type EqualityComparer,
-  functionEqualityComparer,
-} from "../comparer"
+import { DisposableAction, DisposableContainer, type Disposiq, emptyDisposable, } from "@tioniq/disposiq"
+import type { Func } from "../action"
+import { LinkedActionChain } from "../linked-chain"
+import { defaultEqualityComparer, type EqualityComparer, } from "../comparer"
 
 /**
  * A variable that seals the value of another variable. When sealed, the variable will not change its value
@@ -21,7 +12,7 @@ export class SealVariable<T> extends Variable<T> {
   /**
    * @internal
    */
-  private readonly _chain = new LinkedChain<Action<T>>(functionEqualityComparer)
+  private readonly _chain = new LinkedActionChain<T>()
 
   /**
    * @internal
@@ -41,8 +32,7 @@ export class SealVariable<T> extends Variable<T> {
   /**
    * @internal
    */
-
-  // biome-ignore lint/style/noNonNullAssertion: the field access is safe because it used only in the sealed state
+    // biome-ignore lint/style/noNonNullAssertion: the field access is safe because it used only in the sealed state
   private _value: T = null!
 
   /**
@@ -142,7 +132,7 @@ export class SealVariable<T> extends Variable<T> {
     this._varSubscription.set(
       this._var.subscribeSilent((v) => {
         this._value = v
-        this._chain.forEach((a) => a(v))
+        this._chain.forEach(v)
       }),
     )
     this._value = this._var.value
@@ -164,7 +154,7 @@ export class SealVariable<T> extends Variable<T> {
       return
     }
     this._value = value
-    this._chain.forEach((a) => a(value))
+    this._chain.forEach(value)
     this._chain.clear()
   }
 }

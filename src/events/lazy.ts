@@ -7,8 +7,7 @@ import {
   type Disposiq,
   toDisposable,
 } from "@tioniq/disposiq"
-import { functionEqualityComparer } from "../comparer"
-import { LinkedChain } from "../linked-chain"
+import { LinkedActionChain } from "../linked-chain"
 
 /**
  * A class that implements the EventObserver class in a lazy way. The implementation receives an activator function.
@@ -24,7 +23,7 @@ export class LazyEventDispatcher<T = void> extends EventObserver<T> {
   /**
    * @internal
    */
-  private readonly _nodes = new LinkedChain<Action<T>>(functionEqualityComparer)
+  private readonly _nodes = new LinkedActionChain<T>()
 
   /**
    * @internal
@@ -71,7 +70,7 @@ export class LazyEventDispatcher<T = void> extends EventObserver<T> {
    * @param value the value of the event
    */
   dispatch(value: T): void {
-    this._nodes.forEach((a) => a(value))
+    this._nodes.forEach(value)
   }
 
   /**

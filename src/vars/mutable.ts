@@ -1,11 +1,7 @@
 import { Variable } from "../variable"
-import {
-  defaultEqualityComparer,
-  type EqualityComparer,
-  functionEqualityComparer,
-} from "../comparer"
-import type { Action, Func } from "../action"
-import { LinkedChain } from "../linked-chain"
+import { defaultEqualityComparer, type EqualityComparer, } from "../comparer"
+import type { Func } from "../action"
+import { LinkedActionChain } from "../linked-chain"
 import type { Disposiq } from "@tioniq/disposiq"
 import type { IMutableVariable } from "../types";
 
@@ -18,7 +14,7 @@ export class MutableVariable<T> extends Variable<T> implements IMutableVariable<
   /**
    * @internal
    */
-  private readonly _chain = new LinkedChain<Action<T>>(functionEqualityComparer)
+  private readonly _chain = new LinkedActionChain<T>()
 
   /**
    * @internal
@@ -49,7 +45,7 @@ export class MutableVariable<T> extends Variable<T> implements IMutableVariable<
       return
     }
     this._value = value
-    this._chain.forEach((a) => a(value))
+    this._chain.forEach(value)
   }
 
   /**
@@ -85,7 +81,6 @@ export class MutableVariable<T> extends Variable<T> implements IMutableVariable<
    * @remarks Use this method only if you are sure what you are doing. Combine this method with the `setSilent` method
    */
   notify(): void {
-    const value = this._value
-    this._chain.forEach((a) => a(value))
+    this._chain.forEach(this._value)
   }
 }

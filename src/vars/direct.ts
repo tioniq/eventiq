@@ -1,12 +1,8 @@
 import { Variable } from "../variable"
 import type { Disposiq } from "@tioniq/disposiq"
-import type { Action, Func } from "../action"
-import {
-  defaultEqualityComparer,
-  type EqualityComparer,
-  functionEqualityComparer,
-} from "../comparer"
-import { LinkedChain } from "../linked-chain"
+import type { Func } from "../action"
+import { defaultEqualityComparer, type EqualityComparer, } from "../comparer"
+import { LinkedActionChain } from "../linked-chain"
 
 /**
  * A variable that can be changed by setting the value property. The 'direct' means that the change will not be checked
@@ -16,7 +12,7 @@ export class DirectVariable<T> extends Variable<T> {
   /**
    * @internal
    */
-  private readonly _chain = new LinkedChain<Action<T>>(functionEqualityComparer)
+  private readonly _chain = new LinkedActionChain<T>()
 
   /**
    * @internal
@@ -44,7 +40,7 @@ export class DirectVariable<T> extends Variable<T> {
    */
   set value(value: T) {
     this._value = value
-    this._chain.forEach((a) => a(value))
+    this._chain.forEach(value)
   }
 
   get equalityComparer(): EqualityComparer<T> {
@@ -77,7 +73,6 @@ export class DirectVariable<T> extends Variable<T> {
    * @remarks Use this method only if you are sure what you are doing. Combine this method with the `setSilent` method
    */
   notify(): void {
-    const value = this._value
-    this._chain.forEach((a) => a(value))
+    this._chain.forEach(this._value)
   }
 }

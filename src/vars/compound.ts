@@ -1,11 +1,7 @@
 import { Variable } from "../variable"
-import {
-  defaultEqualityComparer,
-  type EqualityComparer,
-  functionEqualityComparer,
-} from "../comparer"
-import { LinkedChain } from "../linked-chain"
-import type { Action, Func } from "../action"
+import { defaultEqualityComparer, type EqualityComparer, } from "../comparer"
+import { LinkedActionChain } from "../linked-chain"
+import type { Func } from "../action"
 import { DisposableAction, type Disposiq } from "@tioniq/disposiq"
 
 /**
@@ -17,7 +13,7 @@ export abstract class CompoundVariable<T> extends Variable<T> {
   /**
    * @internal
    */
-  private readonly _chain = new LinkedChain<Action<T>>(functionEqualityComparer)
+  private readonly _chain = new LinkedActionChain<T>()
 
   /**
    * @internal
@@ -60,7 +56,7 @@ export abstract class CompoundVariable<T> extends Variable<T> {
       return
     }
     this._value = value
-    this._chain.forEach((a) => a(value))
+    this._chain.forEach(value)
   }
 
   subscribe(callback: Func<T, void>): Disposiq {
@@ -132,7 +128,7 @@ export abstract class CompoundVariable<T> extends Variable<T> {
    */
   protected setValueForce(value: T): void {
     this._value = value
-    this._chain.forEach((a) => a(value))
+    this._chain.forEach(value)
   }
 
   /**
@@ -151,7 +147,7 @@ export abstract class CompoundVariable<T> extends Variable<T> {
    */
   protected setForce(value: T): void {
     this._value = value
-    this._chain.forEach((a) => a(value))
+    this._chain.forEach(value)
   }
 
   /**
@@ -160,6 +156,6 @@ export abstract class CompoundVariable<T> extends Variable<T> {
    */
   protected notify(): void {
     const value = this._value
-    this._chain.forEach((a) => a(value))
+    this._chain.forEach(value)
   }
 }

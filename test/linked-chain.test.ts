@@ -1,4 +1,4 @@
-import { LinkedChain } from "../src"
+import { LinkedActionChain, LinkedChain } from "../src"
 import type { Action } from "../src/action"
 
 describe("linked chain", () => {
@@ -222,16 +222,29 @@ describe("linked chain", () => {
   it("should addToBeginNode work properly", () => {
     const chain = new LinkedChain<number>()
     chain.add(10)
-    const node1 = chain.removeAll()!
+    const node1 = chain.removeAll()
+
+    expect(node1).not.toBeNull()
+
     chain.add(20)
-    const node2 = chain.removeAll()!
+    const node2 = chain.removeAll()
+
+    expect(node2).not.toBeNull()
+
     chain.add(30)
     chain.add(40)
-    const node3 = chain.removeAll()!
+    const node3 = chain.removeAll()
 
-    chain.addToBeginNode(node1)
-    chain.addToBeginNode(node2)
-    chain.addToBeginNode(node3)
+    expect(node3).not.toBeNull()
+
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    chain.addToBeginNode(node1!)
+
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    chain.addToBeginNode(node2!)
+
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    chain.addToBeginNode(node3!)
 
     expect(chain.count).toBe(4)
     expect(chain.toArray()).toEqual([30, 40, 20, 10])
@@ -240,13 +253,18 @@ describe("linked chain", () => {
   it("should not addToBeginNode add disposed nodes", () => {
     const chain = new LinkedChain<number>()
     chain.add(10)
-    const node1 = chain.removeAll()!
-    chain.addToBeginNode(node1)
+    const node1 = chain.removeAll()
+
+    expect(node1).not.toBeNull()
+
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    chain.addToBeginNode(node1!)
     chain.clear()
 
     expect(chain.count).toBe(0)
 
-    chain.addToBeginNode(node1)
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    chain.addToBeginNode(node1!)
 
     expect(chain.count).toBe(0)
   })
@@ -256,9 +274,12 @@ describe("linked chain", () => {
     chain.add(10)
     chain.add(20)
     chain.add(30)
-    const node = chain.removeAll()!
+    const node = chain.removeAll()
 
-    chain.addToBeginNode(node)
+    expect(node).not.toBeNull()
+
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    chain.addToBeginNode(node!)
 
     expect(chain.count).toBe(3)
     expect(chain.toArray()).toEqual([10, 20, 30])
@@ -291,6 +312,19 @@ describe("linked chain pending", () => {
     expect(chain.count).toBe(2)
   })
 
+  it("action should calc pending count", () => {
+    const chain = new LinkedActionChain()
+    const func2 = jest.fn()
+    const func1 = () => {
+      expect(chain.count).toBe(1)
+      chain.add(func2)
+      expect(chain.count).toBe(2)
+    }
+    chain.add(func1)
+    chain.forEach()
+    expect(chain.count).toBe(2)
+  })
+
   it("should return pending in toArray", () => {
     const chain = new LinkedChain<Action>()
     const func2 = jest.fn()
@@ -301,6 +335,19 @@ describe("linked chain pending", () => {
     }
     chain.add(func1)
     chain.forEach((a) => a())
+    expect(chain.toArray()).toEqual([func1, func2])
+  })
+
+  it("action should return pending in toArray", () => {
+    const chain = new LinkedActionChain()
+    const func2 = jest.fn()
+    const func1 = () => {
+      expect(chain.toArray()).toEqual([func1])
+      chain.add(func2)
+      expect(chain.toArray()).toEqual([func1, func2])
+    }
+    chain.add(func1)
+    chain.forEach()
     expect(chain.toArray()).toEqual([func1, func2])
   })
 
@@ -323,6 +370,25 @@ describe("linked chain pending", () => {
     expect(func3).toHaveBeenCalledTimes(1)
   })
 
+  it("action should add multiple actions to pending node", () => {
+    const chain = new LinkedActionChain()
+    const func2 = jest.fn()
+    const func3 = jest.fn()
+    const func1 = () => {
+      chain.addUnique(func2)
+      chain.addUnique(func3)
+    }
+    chain.add(func1)
+    chain.forEach()
+    expect(func2).toHaveBeenCalledTimes(0)
+    expect(func3).toHaveBeenCalledTimes(0)
+
+    chain.forEach()
+
+    expect(func2).toHaveBeenCalledTimes(1)
+    expect(func3).toHaveBeenCalledTimes(1)
+  })
+
   it("should clear pending", () => {
     const chain = new LinkedChain<Action>()
     const func2 = jest.fn()
@@ -332,6 +398,18 @@ describe("linked chain pending", () => {
     }
     chain.add(func1)
     chain.forEach((a) => a())
+    expect(chain.count).toBe(0)
+  })
+
+  it("action should clear pending", () => {
+    const chain = new LinkedActionChain()
+    const func2 = jest.fn()
+    const func1 = () => {
+      chain.add(func2)
+      chain.clear()
+    }
+    chain.add(func1)
+    chain.forEach()
     expect(chain.count).toBe(0)
   })
 
@@ -348,6 +426,19 @@ describe("linked chain pending", () => {
     expect(chain.toArray()).toEqual([func1])
   })
 
+  it("action should remove pending", () => {
+    const chain = new LinkedActionChain()
+    const func2 = jest.fn()
+    const func1 = () => {
+      chain.add(func2)
+      chain.remove(func2)
+    }
+    chain.add(func1)
+    chain.forEach()
+    expect(chain.count).toBe(1)
+    expect(chain.toArray()).toEqual([func1])
+  })
+
   it("should remove pending using disposable", () => {
     const chain = new LinkedChain<Action>()
     const func2 = jest.fn()
@@ -357,6 +448,19 @@ describe("linked chain pending", () => {
     }
     chain.add(func1)
     chain.forEach((a) => a())
+    expect(chain.count).toBe(1)
+    expect(chain.toArray()).toEqual([func1])
+  })
+
+  it("action should remove pending using disposable", () => {
+    const chain = new LinkedActionChain()
+    const func2 = jest.fn()
+    const func1 = () => {
+      const itemDisposable = chain.add(func2)
+      itemDisposable.dispose()
+    }
+    chain.add(func1)
+    chain.forEach()
     expect(chain.count).toBe(1)
     expect(chain.toArray()).toEqual([func1])
   })
@@ -377,6 +481,22 @@ describe("linked chain pending", () => {
     expect(chain.toArray()).toEqual([func1, func3])
   })
 
+  it("action should not fail on remove pending twice", () => {
+    const chain = new LinkedActionChain()
+    const func2 = jest.fn()
+    const func3 = jest.fn()
+    const func1 = () => {
+      chain.add(func2)
+      chain.add(func3)
+      chain.remove(func2)
+      chain.remove(func2)
+    }
+    chain.add(func1)
+    chain.forEach()
+    expect(chain.count).toBe(2)
+    expect(chain.toArray()).toEqual([func1, func3])
+  })
+
   it("should not add existing pending", () => {
     const chain = new LinkedChain<Action>()
     const func2 = jest.fn()
@@ -386,6 +506,19 @@ describe("linked chain pending", () => {
     }
     chain.add(func1)
     chain.forEach((a) => a())
+    expect(chain.count).toBe(2)
+    expect(chain.toArray()).toEqual([func1, func2])
+  })
+
+  it("action should not add existing pending", () => {
+    const chain = new LinkedActionChain()
+    const func2 = jest.fn()
+    const func1 = () => {
+      chain.add(func2)
+      chain.addUnique(func2)
+    }
+    chain.add(func1)
+    chain.forEach()
     expect(chain.count).toBe(2)
     expect(chain.toArray()).toEqual([func1, func2])
   })
@@ -403,6 +536,25 @@ describe("linked chain pending", () => {
     chain.add(func1)
 
     chain.forEach((a) => a())
+
+    chain.add(func4)
+
+    expect(chain.toArray()).toEqual([func1, func2, func4])
+  })
+
+  it("action should unlink pending tail properly", () => {
+    const chain = new LinkedActionChain()
+    const func2 = jest.fn()
+    const func3 = jest.fn()
+    const func4 = jest.fn()
+    const func1 = () => {
+      chain.add(func2)
+      chain.add(func3)
+      chain.remove(func3)
+    }
+    chain.add(func1)
+
+    chain.forEach()
 
     chain.add(func4)
 
@@ -429,6 +581,26 @@ describe("linked chain pending", () => {
     expect(func3).toHaveBeenCalledWith(2)
   })
 
+  it("action should support recursive forEach", () => {
+    const chain = new LinkedActionChain<number>()
+    const func2 = jest.fn()
+    const func3 = jest.fn()
+    const func1 = () => {
+      chain.forEach(2)
+      chain.remove(func1)
+      chain.add(func2)
+      chain.add(func3)
+    }
+    chain.add(func1)
+
+    chain.forEach(1)
+
+    expect(func2).toHaveBeenCalledTimes(1)
+    expect(func2).toHaveBeenCalledWith(2)
+    expect(func3).toHaveBeenCalledTimes(1)
+    expect(func3).toHaveBeenCalledWith(2)
+  })
+
   it("should support multiple pending recursive forEach-es", () => {
     const chain = new LinkedChain<Action<number>>()
     const func2 = jest.fn()
@@ -444,6 +616,33 @@ describe("linked chain pending", () => {
     chain.add(func1)
 
     chain.forEach((a) => a(1))
+
+    expect(func2).toHaveBeenCalledTimes(3)
+    expect(func2).toHaveBeenCalledWith(2)
+    expect(func2).toHaveBeenCalledWith(3)
+    expect(func2).toHaveBeenCalledWith(4)
+    expect(func3).toHaveBeenCalledTimes(3)
+    expect(func3).toHaveBeenCalledWith(2)
+    expect(func3).toHaveBeenCalledWith(3)
+    expect(func3).toHaveBeenCalledWith(4)
+  })
+
+
+  it("action should support multiple pending recursive forEach-es", () => {
+    const chain = new LinkedActionChain<number>()
+    const func2 = jest.fn()
+    const func3 = jest.fn()
+    const func1 = () => {
+      chain.forEach(2)
+      chain.forEach(3)
+      chain.forEach(4)
+      chain.remove(func1)
+      chain.add(func2)
+      chain.add(func3)
+    }
+    chain.add(func1)
+
+    chain.forEach(1)
 
     expect(func2).toHaveBeenCalledTimes(3)
     expect(func2).toHaveBeenCalledWith(2)
