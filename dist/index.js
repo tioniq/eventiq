@@ -103,7 +103,7 @@ function arrayEqualityComparer(a, b) {
 
 // src/linked-chain.ts
 import { DisposableAction } from "@tioniq/disposiq";
-var LinkedChain = class _LinkedChain {
+var BaseLinkedChain = class {
   constructor(equalityComparer) {
     /**
      * @internal
@@ -125,10 +125,6 @@ var LinkedChain = class _LinkedChain {
      * @internal
      */
     this._pendingTail = null;
-    /**
-     * @internal
-     */
-    this._actionHead = null;
     this._equalityComparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
   }
   /**
@@ -271,7 +267,7 @@ var LinkedChain = class _LinkedChain {
    * @remarks This method does not check if the node is already in a chain
    */
   addToBeginNode(node) {
-    let chainNode = _LinkedChain._clearNode(node);
+    let chainNode = _clearNode(node);
     if (chainNode === null) {
       return;
     }
@@ -349,61 +345,6 @@ var LinkedChain = class _LinkedChain {
     return node;
   }
   /**
-   * Iterates over the elements of the chain and invokes the specified action for each element
-   * @param valueHandler the action to invoke for each element
-   */
-  forEach(valueHandler) {
-    let handler = valueHandler;
-    while (handler !== null) {
-      if (this._head !== null) {
-        if (this._invoking) {
-          if (this._actionHead == null) {
-            this._actionHead = new ChainNode(handler);
-            return;
-          }
-          let actionTail = this._actionHead;
-          while (actionTail.next !== null) {
-            actionTail = actionTail.next;
-          }
-          actionTail.next = new ChainNode(handler, actionTail, null);
-          return;
-        }
-        this._invoking = true;
-        let node = this._head;
-        while (node !== null) {
-          if (!node.disposed) {
-            handler(node.value);
-          }
-          node = node.next;
-        }
-        this._invoking = false;
-        if (this._pendingHead != null) {
-          if (this._head == null) {
-            this._head = this._pendingHead;
-            this._tail = this._pendingTail;
-          } else {
-            this._pendingHead.previous = this._tail;
-            this._tail.next = this._pendingHead;
-            this._tail = this._pendingTail;
-          }
-          this._pendingHead = null;
-          this._pendingTail = null;
-        }
-      }
-      if (this._actionHead == null) {
-        return;
-      }
-      const nextActionNode = this._actionHead;
-      nextActionNode.disposed = true;
-      this._actionHead = nextActionNode.next;
-      if (this._actionHead != null) {
-        this._actionHead.previous = null;
-        nextActionNode.next = null;
-      }
-      handler = nextActionNode.value;
-    }
-  }
-  /**
    * @internal
    */
   _findNode(value) {
@@ -470,34 +411,133 @@ var LinkedChain = class _LinkedChain {
       node.next.previous = node.previous;
     }
   }
+};
+var LinkedChain = class extends BaseLinkedChain {
+  constructor() {
+    super(...arguments);
+    /**
+     * @internal
+     */
+    this._actionHead = null;
+  }
   /**
-   * @internal
+   * Iterates over the elements of the chain and invokes the specified action for each element
+   * @param valueHandler the action to invoke for each element
    */
-  static _clearNode(chainNode) {
-    let node = chainNode;
-    let root = null;
-    let tail = null;
-    let next = node;
-    while (next !== null) {
-      node = next;
-      next = node.next;
-      if (node.disposed) {
-        continue;
+  forEach(valueHandler) {
+    let handler = valueHandler;
+    while (handler !== null) {
+      if (this._head !== null) {
+        if (this._invoking) {
+          if (this._actionHead == null) {
+            this._actionHead = new ChainNode(handler);
+            return;
+          }
+          let actionTail = this._actionHead;
+          while (actionTail.next !== null) {
+            actionTail = actionTail.next;
+          }
+          actionTail.next = new ChainNode(handler, actionTail, null);
+          return;
+        }
+        this._invoking = true;
+        let node = this._head;
+        while (node !== null) {
+          if (!node.disposed) {
+            handler(node.value);
+          }
+          node = node.next;
+        }
+        this._invoking = false;
+        if (this._pendingHead != null) {
+          if (this._head == null) {
+            this._head = this._pendingHead;
+            this._tail = this._pendingTail;
+          } else {
+            this._pendingHead.previous = this._tail;
+            this._tail.next = this._pendingHead;
+            this._tail = this._pendingTail;
+          }
+          this._pendingHead = null;
+          this._pendingTail = null;
+        }
       }
-      if (root === null) {
-        root = node;
-        tail = node;
-        node.previous = null;
-        continue;
+      if (this._actionHead == null) {
+        return;
       }
-      tail.next = node;
-      node.previous = tail;
-      tail = node;
+      const nextActionNode = this._actionHead;
+      nextActionNode.disposed = true;
+      this._actionHead = nextActionNode.next;
+      if (this._actionHead != null) {
+        this._actionHead.previous = null;
+        nextActionNode.next = null;
+      }
+      handler = nextActionNode.value;
     }
-    if (tail !== null) {
-      tail.next = null;
+  }
+};
+var LinkedActionChain = class extends BaseLinkedChain {
+  constructor() {
+    super(functionEqualityComparer);
+    /**
+     * @internal
+     */
+    this._actionHead = null;
+  }
+  /**
+   * Iterates over the elements of the chain and invokes each element
+   * @param value the value to pass to each element
+   */
+  forEach(value) {
+    let theValue = value;
+    while (theValue !== null) {
+      if (this._head !== null) {
+        if (this._invoking) {
+          if (this._actionHead == null) {
+            this._actionHead = new ChainNode(theValue);
+            return;
+          }
+          let actionTail = this._actionHead;
+          while (actionTail.next !== null) {
+            actionTail = actionTail.next;
+          }
+          actionTail.next = new ChainNode(theValue, actionTail, null);
+          return;
+        }
+        this._invoking = true;
+        let node = this._head;
+        while (node !== null) {
+          if (!node.disposed) {
+            node.value(theValue);
+          }
+          node = node.next;
+        }
+        this._invoking = false;
+        if (this._pendingHead != null) {
+          if (this._head == null) {
+            this._head = this._pendingHead;
+            this._tail = this._pendingTail;
+          } else {
+            this._pendingHead.previous = this._tail;
+            this._tail.next = this._pendingHead;
+            this._tail = this._pendingTail;
+          }
+          this._pendingHead = null;
+          this._pendingTail = null;
+        }
+      }
+      if (this._actionHead == null) {
+        return;
+      }
+      const nextActionNode = this._actionHead;
+      nextActionNode.disposed = true;
+      this._actionHead = nextActionNode.next;
+      if (this._actionHead != null) {
+        this._actionHead.previous = null;
+        nextActionNode.next = null;
+      }
+      theValue = nextActionNode.value;
     }
-    return root;
   }
 };
 var ChainNode = class {
@@ -508,6 +548,32 @@ var ChainNode = class {
     this.next = next != null ? next : null;
   }
 };
+function _clearNode(chainNode) {
+  let node = chainNode;
+  let root = null;
+  let tail = null;
+  let next = node;
+  while (next !== null) {
+    node = next;
+    next = node.next;
+    if (node.disposed) {
+      continue;
+    }
+    if (root === null) {
+      root = node;
+      tail = node;
+      node.previous = null;
+      continue;
+    }
+    tail.next = node;
+    node.previous = tail;
+    tail = node;
+  }
+  if (tail !== null) {
+    tail.next = null;
+  }
+  return root;
+}
 
 // src/vars/compound.ts
 import { DisposableAction as DisposableAction2 } from "@tioniq/disposiq";
@@ -517,7 +583,7 @@ var CompoundVariable = class extends Variable {
     /**
      * @internal
      */
-    this._chain = new LinkedChain(functionEqualityComparer);
+    this._chain = new LinkedActionChain();
     this._value = initValue;
     this._equalityComparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
   }
@@ -544,7 +610,7 @@ var CompoundVariable = class extends Variable {
       return;
     }
     this._value = value;
-    this._chain.forEach((a) => a(value));
+    this._chain.forEach(value);
   }
   subscribe(callback) {
     if (this._chain.empty) {
@@ -599,7 +665,7 @@ var CompoundVariable = class extends Variable {
    */
   setValueForce(value) {
     this._value = value;
-    this._chain.forEach((a) => a(value));
+    this._chain.forEach(value);
   }
   /**
    * A method for setting the value of the variable without notifying subscribers
@@ -616,7 +682,7 @@ var CompoundVariable = class extends Variable {
    */
   setForce(value) {
     this._value = value;
-    this._chain.forEach((a) => a(value));
+    this._chain.forEach(value);
   }
   /**
    * A method for notifying subscribers about the value change
@@ -624,7 +690,7 @@ var CompoundVariable = class extends Variable {
    */
   notify() {
     const value = this._value;
-    this._chain.forEach((a) => a(value));
+    this._chain.forEach(value);
   }
 };
 
@@ -840,7 +906,7 @@ var DirectVariable = class extends Variable {
     /**
      * @internal
      */
-    this._chain = new LinkedChain(functionEqualityComparer);
+    this._chain = new LinkedActionChain();
     this._value = initialValue;
     this._equalityComparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
   }
@@ -853,7 +919,7 @@ var DirectVariable = class extends Variable {
    */
   set value(value) {
     this._value = value;
-    this._chain.forEach((a) => a(value));
+    this._chain.forEach(value);
   }
   get equalityComparer() {
     return this._equalityComparer;
@@ -881,8 +947,7 @@ var DirectVariable = class extends Variable {
    * @remarks Use this method only if you are sure what you are doing. Combine this method with the `setSilent` method
    */
   notify() {
-    const value = this._value;
-    this._chain.forEach((a) => a(value));
+    this._chain.forEach(this._value);
   }
 };
 
@@ -952,19 +1017,14 @@ var FuncVariable = class extends CompoundVariable {
 };
 
 // src/vars/invert.ts
-import {
-  DisposableAction as DisposableAction4,
-  DisposableContainer as DisposableContainer3
-} from "@tioniq/disposiq";
+import { DisposableAction as DisposableAction4, DisposableContainer as DisposableContainer3 } from "@tioniq/disposiq";
 var InvertVariable = class extends Variable {
   constructor(variable) {
     super();
     /**
      * @internal
      */
-    this._chain = new LinkedChain(
-      functionEqualityComparer
-    );
+    this._chain = new LinkedActionChain();
     /**
      * @internal
      */
@@ -1008,7 +1068,7 @@ var InvertVariable = class extends Variable {
       this._variable.subscribeSilent((v) => {
         const value = !v;
         this._value = value;
-        this._chain.forEach((a) => a(value));
+        this._chain.forEach(value);
       })
     );
     this._value = !this._variable.value;
@@ -1155,7 +1215,7 @@ var MutableVariable = class extends Variable {
     /**
      * @internal
      */
-    this._chain = new LinkedChain(functionEqualityComparer);
+    this._chain = new LinkedActionChain();
     this._value = value;
     this._equalityComparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
   }
@@ -1171,7 +1231,7 @@ var MutableVariable = class extends Variable {
       return;
     }
     this._value = value;
-    this._chain.forEach((a) => a(value));
+    this._chain.forEach(value);
   }
   /**
    * Returns the equality comparer used to compare the old and new values of the variable
@@ -1202,8 +1262,7 @@ var MutableVariable = class extends Variable {
    * @remarks Use this method only if you are sure what you are doing. Combine this method with the `setSilent` method
    */
   notify() {
-    const value = this._value;
-    this._chain.forEach((a) => a(value));
+    this._chain.forEach(this._value);
   }
 };
 
@@ -1269,18 +1328,14 @@ var OrVariable = class extends CompoundVariable {
 };
 
 // src/vars/seal.ts
-import {
-  DisposableAction as DisposableAction5,
-  DisposableContainer as DisposableContainer5,
-  emptyDisposable as emptyDisposable3
-} from "@tioniq/disposiq";
+import { DisposableAction as DisposableAction5, DisposableContainer as DisposableContainer5, emptyDisposable as emptyDisposable3 } from "@tioniq/disposiq";
 var SealVariable = class extends Variable {
   constructor(vary, equalityComparer) {
     super();
     /**
      * @internal
      */
-    this._chain = new LinkedChain(functionEqualityComparer);
+    this._chain = new LinkedActionChain();
     /**
      * @internal
      */
@@ -1373,7 +1428,7 @@ var SealVariable = class extends Variable {
     this._varSubscription.set(
       this._var.subscribeSilent((v) => {
         this._value = v;
-        this._chain.forEach((a) => a(v));
+        this._chain.forEach(v);
       })
     );
     this._value = this._var.value;
@@ -1393,7 +1448,7 @@ var SealVariable = class extends Variable {
       return;
     }
     this._value = value;
-    this._chain.forEach((a) => a(value));
+    this._chain.forEach(value);
     this._chain.clear();
   }
 };
@@ -1563,7 +1618,7 @@ var EventDispatcher = class extends EventObserver {
     /**
      * @internal
      */
-    this._nodes = new LinkedChain(functionEqualityComparer);
+    this._nodes = new LinkedActionChain();
   }
   subscribe(action) {
     return this._nodes.add(action);
@@ -1573,7 +1628,7 @@ var EventDispatcher = class extends EventObserver {
    * @param value the value of the event
    */
   dispatch(value) {
-    this._nodes.forEach((a) => a(value));
+    this._nodes.forEach(value);
   }
   /**
    * Checks if there are any subscriptions
@@ -1639,7 +1694,7 @@ var LazyEventDispatcher = class extends EventObserver {
     /**
      * @internal
      */
-    this._nodes = new LinkedChain(functionEqualityComparer);
+    this._nodes = new LinkedActionChain();
     /**
      * @internal
      */
@@ -1674,7 +1729,7 @@ var LazyEventDispatcher = class extends EventObserver {
    * @param value the value of the event
    */
   dispatch(value) {
-    this._nodes.forEach((a) => a(value));
+    this._nodes.forEach(value);
   }
   /**
    * @internal
@@ -2541,6 +2596,7 @@ var ObservableList = class {
 };
 export {
   AndVariable,
+  BaseLinkedChain,
   CombinedVariable,
   CompoundVariable,
   ConstantVariable as ConstVar,
@@ -2558,6 +2614,7 @@ export {
   InvertVariable,
   LazyEventDispatcher,
   FuncVariable as LazyVariable,
+  LinkedActionChain,
   LinkedChain,
   MapVariable,
   MaxVariable,
