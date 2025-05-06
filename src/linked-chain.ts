@@ -39,6 +39,13 @@ export class BaseLinkedChain<T> {
   }
 
   /**
+   * Represents a callback action triggered when a specific condition
+   * or state is determined to be empty.
+   *
+   */
+  onEmpty: Action<void> | null = null
+
+  /**
    * Checks if the chain has any elements
    */
   get hasAny(): boolean {
@@ -128,25 +135,23 @@ export class BaseLinkedChain<T> {
       if (this._pendingHead === null) {
         node = new ChainNode(value)
         this._pendingHead = node
-        this._pendingTail = node
       } else {
         node = new ChainNode(value, this._pendingTail, null)
         // biome-ignore lint/style/noNonNullAssertion: _pendingTail is always not null when _pendingHead is not null
         this._pendingTail!.next = node
-        this._pendingTail = node
       }
+      this._pendingTail = node
       return new DisposableAction(() => this._unlinkNode(node))
     }
     if (this._head === null) {
       node = new ChainNode(value)
       this._head = node
-      this._tail = node
     } else {
       node = new ChainNode(value, this._tail, null)
       // biome-ignore lint/style/noNonNullAssertion: _tail is always not null when _head is not null
       this._tail!.next = node
-      this._tail = node
     }
+    this._tail = node
     return new DisposableAction(() => this._unlinkNode(node))
   }
 
@@ -239,6 +244,9 @@ export class BaseLinkedChain<T> {
    */
   clear(): void {
     let node = this._head
+    if (node === null && this._pendingHead === null) {
+      return
+    }
     if (node !== null) {
       while (node !== null) {
         node.disposed = true
@@ -256,6 +264,7 @@ export class BaseLinkedChain<T> {
       this._pendingHead = null
       this._pendingTail = null
     }
+    this.onEmpty?.()
   }
 
   /**
@@ -264,8 +273,14 @@ export class BaseLinkedChain<T> {
    */
   removeAll(): ChainNode<T> | null {
     const node = this._head
+    if (node === null) {
+      return null
+    }
     this._head = null
     this._tail = null
+    if (this._pendingHead === null) {
+      this.onEmpty?.()
+    }
     return node
   }
 
@@ -304,6 +319,9 @@ export class BaseLinkedChain<T> {
       if (node.next === null) {
         this._head = null
         this._tail = null
+        if (this._pendingHead === null) {
+          this.onEmpty?.()
+        }
         return
       }
       this._head = node.next
@@ -317,9 +335,12 @@ export class BaseLinkedChain<T> {
       return
     }
     if (node === this._pendingHead) {
-      if (node.next == null) {
+      if (node.next === null) {
         this._pendingHead = null
         this._pendingTail = null
+        if (this._head === null) {
+          this.onEmpty?.()
+        }
         return
       }
       this._pendingHead = node.next
@@ -382,13 +403,12 @@ export class LinkedChain<T> extends BaseLinkedChain<T> {
         if (this._pendingHead != null) {
           if (this._head == null) {
             this._head = this._pendingHead
-            this._tail = this._pendingTail
           } else {
             this._pendingHead.previous = this._tail
             // biome-ignore lint/style/noNonNullAssertion: _tail is not null when _head is not null
             this._tail!.next = this._pendingHead
-            this._tail = this._pendingTail
           }
+          this._tail = this._pendingTail
           this._pendingHead = null
           this._pendingTail = null
         }
@@ -451,13 +471,12 @@ export class LinkedActionChain<T = void> extends BaseLinkedChain<Action<T>> {
         if (this._pendingHead != null) {
           if (this._head == null) {
             this._head = this._pendingHead
-            this._tail = this._pendingTail
           } else {
             this._pendingHead.previous = this._tail
             // biome-ignore lint/style/noNonNullAssertion: _tail is not null when _head is not null
             this._tail!.next = this._pendingHead
-            this._tail = this._pendingTail
           }
+          this._tail = this._pendingTail
           this._pendingHead = null
           this._pendingTail = null
         }

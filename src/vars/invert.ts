@@ -1,4 +1,4 @@
-import { DisposableAction, DisposableContainer, type Disposiq, } from "@tioniq/disposiq"
+import { DisposableContainer, type Disposiq, } from "@tioniq/disposiq"
 import type { Func } from "../action"
 import { Variable } from "../variable"
 import { LinkedActionChain } from "../linked-chain"
@@ -30,6 +30,7 @@ export class InvertVariable extends Variable<boolean> {
   constructor(variable: Variable<boolean>) {
     super()
     this._variable = variable
+    this._chain.onEmpty = () => this._deactivate()
   }
 
   get value(): boolean {
@@ -47,12 +48,7 @@ export class InvertVariable extends Variable<boolean> {
     if (added) {
       callback(this._value)
     }
-    return new DisposableAction(() => {
-      disposable.dispose()
-      if (this._chain.empty) {
-        this._deactivate()
-      }
-    })
+    return disposable
   }
 
   subscribeSilent(callback: Func<boolean, void>): Disposiq {

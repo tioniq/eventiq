@@ -47,6 +47,11 @@ export class SealVariable<T> extends Variable<T> {
       typeof equalityComparer === "function"
         ? equalityComparer
         : defaultEqualityComparer
+    this._chain.onEmpty = () => {
+      if (!this._sealed) {
+        this._deactivate()
+      }
+    }
   }
 
   get value(): T {
@@ -75,12 +80,7 @@ export class SealVariable<T> extends Variable<T> {
     if (added) {
       callback(this._value)
     }
-    return new DisposableAction(() => {
-      disposable.dispose()
-      if (!this._sealed && this._chain.empty) {
-        this._deactivate()
-      }
-    })
+    return disposable
   }
 
   subscribeSilent(callback: Func<T, void>): Disposiq {
@@ -90,13 +90,7 @@ export class SealVariable<T> extends Variable<T> {
     if (this._chain.empty) {
       this._activate()
     }
-    const disposable = this._chain.addUnique(callback)[0]
-    return new DisposableAction(() => {
-      disposable.dispose()
-      if (!this._sealed && this._chain.empty) {
-        this._deactivate()
-      }
-    })
+    return this._chain.addUnique(callback)[0]
   }
 
   /**

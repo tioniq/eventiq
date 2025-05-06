@@ -38,6 +38,7 @@ export class LazyEventDispatcher<T = void> extends EventObserver<T> {
   constructor(activator: Func<LazyEventDispatcher<T>, DisposableLike>) {
     super()
     this._activator = activator
+    this._nodes.onEmpty = () => this._deactivate()
   }
 
   /**
@@ -56,13 +57,7 @@ export class LazyEventDispatcher<T = void> extends EventObserver<T> {
     } else {
       subscription = this._nodes.add(callback)
     }
-    return new DisposableAction(() => {
-      subscription.dispose()
-      if (this._nodes.hasAny) {
-        return
-      }
-      this._deactivate()
-    })
+    return subscription
   }
 
   /**

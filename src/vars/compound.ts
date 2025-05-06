@@ -29,6 +29,7 @@ export abstract class CompoundVariable<T> extends Variable<T> {
     super()
     this._value = initValue
     this._equalityComparer = equalityComparer ?? defaultEqualityComparer
+    this._chain.onEmpty = () => this.deactivate()
   }
 
   /**
@@ -67,25 +68,14 @@ export abstract class CompoundVariable<T> extends Variable<T> {
     if (added) {
       callback(this._value)
     }
-    return new DisposableAction(() => {
-      disposable.dispose()
-      if (this._chain.empty) {
-        this.deactivate()
-      }
-    })
+    return disposable
   }
 
   subscribeSilent(callback: Func<T, void>): Disposiq {
     if (this._chain.empty) {
       this.activate()
     }
-    const disposable = this._chain.addUnique(callback)[0]
-    return new DisposableAction(() => {
-      disposable.dispose()
-      if (this._chain.empty) {
-        this.deactivate()
-      }
-    })
+    return this._chain.addUnique(callback)[0]
   }
 
   /**
