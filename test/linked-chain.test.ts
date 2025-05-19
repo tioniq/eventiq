@@ -653,4 +653,14 @@ describe("linked chain pending", () => {
     expect(func3).toHaveBeenCalledWith(3)
     expect(func3).toHaveBeenCalledWith(4)
   })
+
+  it("action should dispatch when the value is null", () => {
+    const chain = new LinkedActionChain<unknown>()
+    const func1 = jest.fn()
+    chain.add(func1)
+
+    chain.forEach(null)
+
+    expect(func1).toHaveBeenCalledTimes(1)
+  })
 })
