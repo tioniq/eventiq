@@ -102,7 +102,7 @@ function arrayEqualityComparer(a, b) {
 }
 
 // src/linked-chain.ts
-import { DisposableAction } from "@tioniq/disposiq";
+import { Disposiq } from "@tioniq/disposiq";
 var BaseLinkedChain = class {
   constructor(equalityComparer) {
     /**
@@ -125,6 +125,12 @@ var BaseLinkedChain = class {
      * @internal
      */
     this._pendingTail = null;
+    /**
+     * Represents a callback action triggered when a specific condition
+     * or state is determined to be empty.
+     *
+     */
+    this.onEmpty = null;
     this._equalityComparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
   }
   /**
@@ -197,7 +203,7 @@ var BaseLinkedChain = class {
   addUnique(value) {
     const existing = this._findNode(value);
     if (existing !== null) {
-      return [new DisposableAction(() => this._unlinkNode(existing)), false];
+      return [existing, false];
     }
     return [this.add(value), true];
   }
@@ -210,26 +216,24 @@ var BaseLinkedChain = class {
     let node;
     if (this._invoking) {
       if (this._pendingHead === null) {
-        node = new ChainNode(value);
+        node = new ChainNode(this, value);
         this._pendingHead = node;
-        this._pendingTail = node;
       } else {
-        node = new ChainNode(value, this._pendingTail, null);
+        node = new ChainNode(this, value, this._pendingTail, null);
         this._pendingTail.next = node;
-        this._pendingTail = node;
       }
-      return new DisposableAction(() => this._unlinkNode(node));
+      this._pendingTail = node;
+      return node;
     }
     if (this._head === null) {
-      node = new ChainNode(value);
+      node = new ChainNode(this, value);
       this._head = node;
-      this._tail = node;
     } else {
-      node = new ChainNode(value, this._tail, null);
+      node = new ChainNode(this, value, this._tail, null);
       this._tail.next = node;
-      this._tail = node;
     }
-    return new DisposableAction(() => this._unlinkNode(node));
+    this._tail = node;
+    return node;
   }
   /**
    * Adds an element to the beginning of the chain. If the element is already in the chain, it will not be added again.
@@ -239,7 +243,7 @@ var BaseLinkedChain = class {
   addToBeginUnique(value) {
     const existing = this._findNode(value);
     if (existing !== null) {
-      return [new DisposableAction(() => this._unlinkNode(existing)), false];
+      return [existing, false];
     }
     return [this.addToBegin(value), true];
   }
@@ -251,15 +255,15 @@ var BaseLinkedChain = class {
   addToBegin(value) {
     let node;
     if (this._head === null) {
-      node = new ChainNode(value);
+      node = new ChainNode(this, value);
       this._head = node;
       this._tail = node;
     } else {
-      node = new ChainNode(value, null, this._head);
+      node = new ChainNode(this, value, null, this._head);
       this._head.previous = node;
       this._head = node;
     }
-    return new DisposableAction(() => this._unlinkNode(node));
+    return node;
   }
   /**
    * Adds a node and its children to the end of the chain
@@ -296,7 +300,7 @@ var BaseLinkedChain = class {
     let checkNode = this._head;
     while (checkNode !== null) {
       if (this._equalityComparer(checkNode.value, value)) {
-        this._unlinkNode(checkNode);
+        checkNode.dispose();
         return true;
       }
       checkNode = checkNode.next;
@@ -304,7 +308,7 @@ var BaseLinkedChain = class {
     checkNode = this._pendingHead;
     while (checkNode !== null) {
       if (this._equalityComparer(checkNode.value, value)) {
-        this._unlinkNode(checkNode);
+        checkNode.dispose();
         return true;
       }
       checkNode = checkNode.next;
@@ -315,7 +319,11 @@ var BaseLinkedChain = class {
    * Removes all elements from the chain
    */
   clear() {
+    var _a;
     let node = this._head;
+    if (node === null && this._pendingHead === null) {
+      return;
+    }
     if (node !== null) {
       while (node !== null) {
         node.disposed = true;
@@ -333,15 +341,23 @@ var BaseLinkedChain = class {
       this._pendingHead = null;
       this._pendingTail = null;
     }
+    (_a = this.onEmpty) == null ? void 0 : _a.call(this);
   }
   /**
    * Removes all elements from the chain and returns the head node
    * @returns the head node of the chain or null if the chain is empty
    */
   removeAll() {
+    var _a;
     const node = this._head;
+    if (node === null) {
+      return null;
+    }
     this._head = null;
     this._tail = null;
+    if (this._pendingHead === null) {
+      (_a = this.onEmpty) == null ? void 0 : _a.call(this);
+    }
     return node;
   }
   /**
@@ -366,51 +382,6 @@ var BaseLinkedChain = class {
     }
     return null;
   }
-  /**
-   * @internal
-   */
-  _unlinkNode(node) {
-    if (node.disposed) {
-      return;
-    }
-    node.disposed = true;
-    if (node === this._head) {
-      if (node.next === null) {
-        this._head = null;
-        this._tail = null;
-        return;
-      }
-      this._head = node.next;
-      this._head.previous = null;
-      return;
-    }
-    if (node === this._tail) {
-      this._tail = node.previous;
-      this._tail.next = null;
-      return;
-    }
-    if (node === this._pendingHead) {
-      if (node.next == null) {
-        this._pendingHead = null;
-        this._pendingTail = null;
-        return;
-      }
-      this._pendingHead = node.next;
-      this._pendingHead.previous = null;
-      return;
-    }
-    if (node === this._pendingTail) {
-      this._pendingTail = node.previous;
-      this._pendingTail.next = null;
-      return;
-    }
-    if (node.previous !== null) {
-      node.previous.next = node.next;
-    }
-    if (node.next !== null) {
-      node.next.previous = node.previous;
-    }
-  }
 };
 var LinkedChain = class extends BaseLinkedChain {
   constructor() {
@@ -429,15 +400,11 @@ var LinkedChain = class extends BaseLinkedChain {
     while (handler !== null) {
       if (this._head !== null) {
         if (this._invoking) {
-          if (this._actionHead == null) {
-            this._actionHead = new ChainNode(handler);
+          if (this._actionHead === null) {
+            this._actionHead = [handler];
             return;
           }
-          let actionTail = this._actionHead;
-          while (actionTail.next !== null) {
-            actionTail = actionTail.next;
-          }
-          actionTail.next = new ChainNode(handler, actionTail, null);
+          this._actionHead.push(handler);
           return;
         }
         this._invoking = true;
@@ -452,27 +419,22 @@ var LinkedChain = class extends BaseLinkedChain {
         if (this._pendingHead != null) {
           if (this._head == null) {
             this._head = this._pendingHead;
-            this._tail = this._pendingTail;
           } else {
             this._pendingHead.previous = this._tail;
             this._tail.next = this._pendingHead;
-            this._tail = this._pendingTail;
           }
+          this._tail = this._pendingTail;
           this._pendingHead = null;
           this._pendingTail = null;
         }
       }
-      if (this._actionHead == null) {
+      if (this._actionHead === null) {
         return;
       }
-      const nextActionNode = this._actionHead;
-      nextActionNode.disposed = true;
-      this._actionHead = nextActionNode.next;
-      if (this._actionHead != null) {
-        this._actionHead.previous = null;
-        nextActionNode.next = null;
+      handler = this._actionHead.shift();
+      if (this._actionHead.length === 0) {
+        this._actionHead = null;
       }
-      handler = nextActionNode.value;
     }
   }
 };
@@ -490,18 +452,14 @@ var LinkedActionChain = class extends BaseLinkedChain {
    */
   forEach(value) {
     let theValue = value;
-    while (theValue !== null) {
+    while (true) {
       if (this._head !== null) {
         if (this._invoking) {
-          if (this._actionHead == null) {
-            this._actionHead = new ChainNode(theValue);
+          if (this._actionHead === null) {
+            this._actionHead = [theValue];
             return;
           }
-          let actionTail = this._actionHead;
-          while (actionTail.next !== null) {
-            actionTail = actionTail.next;
-          }
-          actionTail.next = new ChainNode(theValue, actionTail, null);
+          this._actionHead.push(theValue);
           return;
         }
         this._invoking = true;
@@ -516,36 +474,83 @@ var LinkedActionChain = class extends BaseLinkedChain {
         if (this._pendingHead != null) {
           if (this._head == null) {
             this._head = this._pendingHead;
-            this._tail = this._pendingTail;
           } else {
             this._pendingHead.previous = this._tail;
             this._tail.next = this._pendingHead;
-            this._tail = this._pendingTail;
           }
+          this._tail = this._pendingTail;
           this._pendingHead = null;
           this._pendingTail = null;
         }
       }
-      if (this._actionHead == null) {
+      if (this._actionHead === null) {
         return;
       }
-      const nextActionNode = this._actionHead;
-      nextActionNode.disposed = true;
-      this._actionHead = nextActionNode.next;
-      if (this._actionHead != null) {
-        this._actionHead.previous = null;
-        nextActionNode.next = null;
+      theValue = this._actionHead.shift();
+      if (this._actionHead.length === 0) {
+        this._actionHead = null;
       }
-      theValue = nextActionNode.value;
     }
   }
 };
-var ChainNode = class {
-  constructor(value, previous, next) {
+var ChainNode = class extends Disposiq {
+  constructor(chain, value, previous, next) {
+    super();
     this.disposed = false;
+    this.chain = chain;
     this.value = value;
     this.previous = previous != null ? previous : null;
     this.next = next != null ? next : null;
+  }
+  dispose() {
+    var _a, _b;
+    if (this.disposed) {
+      return;
+    }
+    this.disposed = true;
+    const chain = this.chain;
+    if (this === chain._head) {
+      if (this.next === null) {
+        chain._head = null;
+        chain._tail = null;
+        if (chain._pendingHead === null) {
+          (_a = chain.onEmpty) == null ? void 0 : _a.call(chain);
+        }
+        return;
+      }
+      chain._head = this.next;
+      chain._head.previous = null;
+      return;
+    }
+    if (this === chain._tail) {
+      chain._tail = this.previous;
+      chain._tail.next = null;
+      return;
+    }
+    if (this === chain._pendingHead) {
+      if (this.next === null) {
+        chain._pendingHead = null;
+        chain._pendingTail = null;
+        if (chain._head === null) {
+          (_b = chain.onEmpty) == null ? void 0 : _b.call(chain);
+        }
+        return;
+      }
+      chain._pendingHead = this.next;
+      chain._pendingHead.previous = null;
+      return;
+    }
+    if (this === chain._pendingTail) {
+      chain._pendingTail = this.previous;
+      chain._pendingTail.next = null;
+      return;
+    }
+    if (this.previous !== null) {
+      this.previous.next = this.next;
+    }
+    if (this.next !== null) {
+      this.next.previous = this.previous;
+    }
   }
 };
 function _clearNode(chainNode) {
@@ -576,7 +581,6 @@ function _clearNode(chainNode) {
 }
 
 // src/vars/compound.ts
-import { DisposableAction as DisposableAction2 } from "@tioniq/disposiq";
 var CompoundVariable = class extends Variable {
   constructor(initValue, equalityComparer) {
     super();
@@ -586,6 +590,7 @@ var CompoundVariable = class extends Variable {
     this._chain = new LinkedActionChain();
     this._value = initValue;
     this._equalityComparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
+    this._chain.onEmpty = () => this.deactivate();
   }
   /**
    * Checks if there are any subscriptions
@@ -620,24 +625,13 @@ var CompoundVariable = class extends Variable {
     if (added) {
       callback(this._value);
     }
-    return new DisposableAction2(() => {
-      disposable.dispose();
-      if (this._chain.empty) {
-        this.deactivate();
-      }
-    });
+    return disposable;
   }
   subscribeSilent(callback) {
     if (this._chain.empty) {
       this.activate();
     }
-    const disposable = this._chain.addUnique(callback)[0];
-    return new DisposableAction2(() => {
-      disposable.dispose();
-      if (this._chain.empty) {
-        this.deactivate();
-      }
-    });
+    return this._chain.addUnique(callback)[0];
   }
   /**
    * A method for getting the exact value of the variable. It is called when there are no subscriptions
@@ -824,7 +818,7 @@ var ConstantVariable = class extends Variable {
 
 // src/vars/delegate.ts
 import {
-  DisposableAction as DisposableAction3,
+  DisposableAction,
   DisposableContainer,
   emptyDisposable as emptyDisposable2
 } from "@tioniq/disposiq";
@@ -871,7 +865,7 @@ var DelegateVariable = class extends CompoundVariable {
       );
       this.value = source.value;
     }
-    return new DisposableAction3(() => {
+    return new DisposableAction(() => {
       if (this._source !== source) {
         return;
       }
@@ -1017,7 +1011,7 @@ var FuncVariable = class extends CompoundVariable {
 };
 
 // src/vars/invert.ts
-import { DisposableAction as DisposableAction4, DisposableContainer as DisposableContainer3 } from "@tioniq/disposiq";
+import { DisposableContainer as DisposableContainer3 } from "@tioniq/disposiq";
 var InvertVariable = class extends Variable {
   constructor(variable) {
     super();
@@ -1034,6 +1028,7 @@ var InvertVariable = class extends Variable {
      */
     this._subscription = new DisposableContainer3();
     this._variable = variable;
+    this._chain.onEmpty = () => this._deactivate();
   }
   get value() {
     if (this._chain.hasAny) {
@@ -1049,12 +1044,7 @@ var InvertVariable = class extends Variable {
     if (added) {
       callback(this._value);
     }
-    return new DisposableAction4(() => {
-      disposable.dispose();
-      if (this._chain.empty) {
-        this._deactivate();
-      }
-    });
+    return disposable;
   }
   subscribeSilent(callback) {
     return this._variable.subscribeSilent((value) => callback(!value));
@@ -1328,7 +1318,7 @@ var OrVariable = class extends CompoundVariable {
 };
 
 // src/vars/seal.ts
-import { DisposableAction as DisposableAction5, DisposableContainer as DisposableContainer5, emptyDisposable as emptyDisposable3 } from "@tioniq/disposiq";
+import { DisposableContainer as DisposableContainer5, emptyDisposable as emptyDisposable3 } from "@tioniq/disposiq";
 var SealVariable = class extends Variable {
   constructor(vary, equalityComparer) {
     super();
@@ -1351,6 +1341,11 @@ var SealVariable = class extends Variable {
     this._sealed = false;
     this._var = vary;
     this._equalityComparer = typeof equalityComparer === "function" ? equalityComparer : defaultEqualityComparer;
+    this._chain.onEmpty = () => {
+      if (!this._sealed) {
+        this._deactivate();
+      }
+    };
   }
   get value() {
     if (this._sealed) {
@@ -1376,12 +1371,7 @@ var SealVariable = class extends Variable {
     if (added) {
       callback(this._value);
     }
-    return new DisposableAction5(() => {
-      disposable.dispose();
-      if (!this._sealed && this._chain.empty) {
-        this._deactivate();
-      }
-    });
+    return disposable;
   }
   subscribeSilent(callback) {
     if (this._sealed) {
@@ -1390,13 +1380,7 @@ var SealVariable = class extends Variable {
     if (this._chain.empty) {
       this._activate();
     }
-    const disposable = this._chain.addUnique(callback)[0];
-    return new DisposableAction5(() => {
-      disposable.dispose();
-      if (!this._sealed && this._chain.empty) {
-        this._deactivate();
-      }
-    });
+    return this._chain.addUnique(callback)[0];
   }
   /**
    * Seals the variable. If the variable is already sealed, the method will do nothing
@@ -1605,7 +1589,7 @@ var ThrottledVariable = class extends CompoundVariable {
 };
 
 // src/functions.ts
-import { DisposableAction as DisposableAction8 } from "@tioniq/disposiq";
+import { DisposableAction as DisposableAction5 } from "@tioniq/disposiq";
 
 // src/events/observer.ts
 var EventObserver = class {
@@ -1684,7 +1668,6 @@ var EventObserverStub = class extends EventObserver {
 
 // src/events/lazy.ts
 import {
-  DisposableAction as DisposableAction6,
   DisposableContainer as DisposableContainer8,
   toDisposable as toDisposable2
 } from "@tioniq/disposiq";
@@ -1700,6 +1683,7 @@ var LazyEventDispatcher = class extends EventObserver {
      */
     this._subscription = new DisposableContainer8();
     this._activator = activator;
+    this._nodes.onEmpty = () => this._deactivate();
   }
   /**
    * Checks if there are any subscriptions
@@ -1716,13 +1700,7 @@ var LazyEventDispatcher = class extends EventObserver {
     } else {
       subscription = this._nodes.add(callback);
     }
-    return new DisposableAction6(() => {
-      subscription.dispose();
-      if (this._nodes.hasAny) {
-        return;
-      }
-      this._deactivate();
-    });
+    return subscription;
   }
   /**
    * Dispatches the event to all subscribers
@@ -1760,7 +1738,7 @@ function merge(...observers) {
 
 // src/events/extensions.ts
 import {
-  DisposableAction as DisposableAction7,
+  DisposableAction as DisposableAction4,
   DisposableContainer as DisposableContainer9,
   emptyDisposable as emptyDisposable5
 } from "@tioniq/disposiq";
@@ -1811,7 +1789,7 @@ EventObserver.prototype.subscribeDisposable = function(callback) {
     container.disposeCurrent();
     container.set(callback(v));
   });
-  return new DisposableAction7(() => {
+  return new DisposableAction4(() => {
     subscription.dispose();
     container.dispose();
   });
@@ -1934,7 +1912,7 @@ function combine(...vars) {
 function createDelayDispatcher(delay) {
   return new LazyEventDispatcher((dispatcher) => {
     const timeout = setTimeout(() => dispatcher.dispatch(), delay);
-    return new DisposableAction8(() => clearTimeout(timeout));
+    return new DisposableAction5(() => clearTimeout(timeout));
   });
 }
 function toVariable(value) {
@@ -1943,7 +1921,7 @@ function toVariable(value) {
 
 // src/extensions.ts
 import {
-  DisposableAction as DisposableAction9,
+  DisposableAction as DisposableAction6,
   DisposableContainer as DisposableContainer10,
   emptyDisposable as emptyDisposable6
 } from "@tioniq/disposiq";
@@ -1953,7 +1931,7 @@ Variable.prototype.subscribeDisposable = function(callback) {
     container.disposeCurrent();
     container.set(callback(v));
   });
-  return new DisposableAction9(() => {
+  return new DisposableAction6(() => {
     subscription.dispose();
     container.dispose();
   });
@@ -2113,7 +2091,7 @@ Variable.prototype.notifyOn = function(event) {
     const subscription2 = event.subscribe(() => {
       vary.notify();
     });
-    return new DisposableAction9(() => {
+    return new DisposableAction6(() => {
       subscription1.dispose();
       subscription2.dispose();
     });

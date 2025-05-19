@@ -898,6 +898,12 @@ type Action<T> = (value: T) => void;
 declare class BaseLinkedChain<T> {
     constructor(equalityComparer?: EqualityComparer<T>);
     /**
+     * Represents a callback action triggered when a specific condition
+     * or state is determined to be empty.
+     *
+     */
+    onEmpty: Action<void> | null;
+    /**
      * Checks if the chain has any elements
      */
     get hasAny(): boolean;
@@ -977,12 +983,14 @@ declare class LinkedActionChain<T = void> extends BaseLinkedChain<Action<T>> {
      */
     forEach(value: T): void;
 }
-declare class ChainNode<T> {
+declare class ChainNode<T> extends Disposiq {
     readonly value: T;
+    readonly chain: BaseLinkedChain<T>;
     next: ChainNode<T> | null;
     previous: ChainNode<T> | null;
     disposed: boolean;
-    constructor(value: T, previous?: ChainNode<T> | null, next?: ChainNode<T> | null);
+    constructor(chain: BaseLinkedChain<T>, value: T, previous?: ChainNode<T> | null, next?: ChainNode<T> | null);
+    dispose(): void;
 }
 
 type ObservableListChangeEvent<T> = ObservableListRemoveEvent<T> | ObservableListAddEvent<T> | ObservableListReplaceEvent<T> | ObservableListMoveEvent<T>;

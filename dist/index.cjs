@@ -216,6 +216,12 @@ var BaseLinkedChain = class {
      * @internal
      */
     this._pendingTail = null;
+    /**
+     * Represents a callback action triggered when a specific condition
+     * or state is determined to be empty.
+     *
+     */
+    this.onEmpty = null;
     this._equalityComparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
   }
   /**
@@ -288,7 +294,7 @@ var BaseLinkedChain = class {
   addUnique(value) {
     const existing = this._findNode(value);
     if (existing !== null) {
-      return [new import_disposiq.DisposableAction(() => this._unlinkNode(existing)), false];
+      return [existing, false];
     }
     return [this.add(value), true];
   }
@@ -301,26 +307,24 @@ var BaseLinkedChain = class {
     let node;
     if (this._invoking) {
       if (this._pendingHead === null) {
-        node = new ChainNode(value);
+        node = new ChainNode(this, value);
         this._pendingHead = node;
-        this._pendingTail = node;
       } else {
-        node = new ChainNode(value, this._pendingTail, null);
+        node = new ChainNode(this, value, this._pendingTail, null);
         this._pendingTail.next = node;
-        this._pendingTail = node;
       }
-      return new import_disposiq.DisposableAction(() => this._unlinkNode(node));
+      this._pendingTail = node;
+      return node;
     }
     if (this._head === null) {
-      node = new ChainNode(value);
+      node = new ChainNode(this, value);
       this._head = node;
-      this._tail = node;
     } else {
-      node = new ChainNode(value, this._tail, null);
+      node = new ChainNode(this, value, this._tail, null);
       this._tail.next = node;
-      this._tail = node;
     }
-    return new import_disposiq.DisposableAction(() => this._unlinkNode(node));
+    this._tail = node;
+    return node;
   }
   /**
    * Adds an element to the beginning of the chain. If the element is already in the chain, it will not be added again.
@@ -330,7 +334,7 @@ var BaseLinkedChain = class {
   addToBeginUnique(value) {
     const existing = this._findNode(value);
     if (existing !== null) {
-      return [new import_disposiq.DisposableAction(() => this._unlinkNode(existing)), false];
+      return [existing, false];
     }
     return [this.addToBegin(value), true];
   }
@@ -342,15 +346,15 @@ var BaseLinkedChain = class {
   addToBegin(value) {
     let node;
     if (this._head === null) {
-      node = new ChainNode(value);
+      node = new ChainNode(this, value);
       this._head = node;
       this._tail = node;
     } else {
-      node = new ChainNode(value, null, this._head);
+      node = new ChainNode(this, value, null, this._head);
       this._head.previous = node;
       this._head = node;
     }
-    return new import_disposiq.DisposableAction(() => this._unlinkNode(node));
+    return node;
   }
   /**
    * Adds a node and its children to the end of the chain
@@ -387,7 +391,7 @@ var BaseLinkedChain = class {
     let checkNode = this._head;
     while (checkNode !== null) {
       if (this._equalityComparer(checkNode.value, value)) {
-        this._unlinkNode(checkNode);
+        checkNode.dispose();
         return true;
       }
       checkNode = checkNode.next;
@@ -395,7 +399,7 @@ var BaseLinkedChain = class {
     checkNode = this._pendingHead;
     while (checkNode !== null) {
       if (this._equalityComparer(checkNode.value, value)) {
-        this._unlinkNode(checkNode);
+        checkNode.dispose();
         return true;
       }
       checkNode = checkNode.next;
@@ -406,7 +410,11 @@ var BaseLinkedChain = class {
    * Removes all elements from the chain
    */
   clear() {
+    var _a;
     let node = this._head;
+    if (node === null && this._pendingHead === null) {
+      return;
+    }
     if (node !== null) {
       while (node !== null) {
         node.disposed = true;
@@ -424,15 +432,23 @@ var BaseLinkedChain = class {
       this._pendingHead = null;
       this._pendingTail = null;
     }
+    (_a = this.onEmpty) == null ? void 0 : _a.call(this);
   }
   /**
    * Removes all elements from the chain and returns the head node
    * @returns the head node of the chain or null if the chain is empty
    */
   removeAll() {
+    var _a;
     const node = this._head;
+    if (node === null) {
+      return null;
+    }
     this._head = null;
     this._tail = null;
+    if (this._pendingHead === null) {
+      (_a = this.onEmpty) == null ? void 0 : _a.call(this);
+    }
     return node;
   }
   /**
@@ -457,51 +473,6 @@ var BaseLinkedChain = class {
     }
     return null;
   }
-  /**
-   * @internal
-   */
-  _unlinkNode(node) {
-    if (node.disposed) {
-      return;
-    }
-    node.disposed = true;
-    if (node === this._head) {
-      if (node.next === null) {
-        this._head = null;
-        this._tail = null;
-        return;
-      }
-      this._head = node.next;
-      this._head.previous = null;
-      return;
-    }
-    if (node === this._tail) {
-      this._tail = node.previous;
-      this._tail.next = null;
-      return;
-    }
-    if (node === this._pendingHead) {
-      if (node.next == null) {
-        this._pendingHead = null;
-        this._pendingTail = null;
-        return;
-      }
-      this._pendingHead = node.next;
-      this._pendingHead.previous = null;
-      return;
-    }
-    if (node === this._pendingTail) {
-      this._pendingTail = node.previous;
-      this._pendingTail.next = null;
-      return;
-    }
-    if (node.previous !== null) {
-      node.previous.next = node.next;
-    }
-    if (node.next !== null) {
-      node.next.previous = node.previous;
-    }
-  }
 };
 var LinkedChain = class extends BaseLinkedChain {
   constructor() {
@@ -520,15 +491,11 @@ var LinkedChain = class extends BaseLinkedChain {
     while (handler !== null) {
       if (this._head !== null) {
         if (this._invoking) {
-          if (this._actionHead == null) {
-            this._actionHead = new ChainNode(handler);
+          if (this._actionHead === null) {
+            this._actionHead = [handler];
             return;
           }
-          let actionTail = this._actionHead;
-          while (actionTail.next !== null) {
-            actionTail = actionTail.next;
-          }
-          actionTail.next = new ChainNode(handler, actionTail, null);
+          this._actionHead.push(handler);
           return;
         }
         this._invoking = true;
@@ -543,27 +510,22 @@ var LinkedChain = class extends BaseLinkedChain {
         if (this._pendingHead != null) {
           if (this._head == null) {
             this._head = this._pendingHead;
-            this._tail = this._pendingTail;
           } else {
             this._pendingHead.previous = this._tail;
             this._tail.next = this._pendingHead;
-            this._tail = this._pendingTail;
           }
+          this._tail = this._pendingTail;
           this._pendingHead = null;
           this._pendingTail = null;
         }
       }
-      if (this._actionHead == null) {
+      if (this._actionHead === null) {
         return;
       }
-      const nextActionNode = this._actionHead;
-      nextActionNode.disposed = true;
-      this._actionHead = nextActionNode.next;
-      if (this._actionHead != null) {
-        this._actionHead.previous = null;
-        nextActionNode.next = null;
+      handler = this._actionHead.shift();
+      if (this._actionHead.length === 0) {
+        this._actionHead = null;
       }
-      handler = nextActionNode.value;
     }
   }
 };
@@ -581,18 +543,14 @@ var LinkedActionChain = class extends BaseLinkedChain {
    */
   forEach(value) {
     let theValue = value;
-    while (theValue !== null) {
+    while (true) {
       if (this._head !== null) {
         if (this._invoking) {
-          if (this._actionHead == null) {
-            this._actionHead = new ChainNode(theValue);
+          if (this._actionHead === null) {
+            this._actionHead = [theValue];
             return;
           }
-          let actionTail = this._actionHead;
-          while (actionTail.next !== null) {
-            actionTail = actionTail.next;
-          }
-          actionTail.next = new ChainNode(theValue, actionTail, null);
+          this._actionHead.push(theValue);
           return;
         }
         this._invoking = true;
@@ -607,36 +565,83 @@ var LinkedActionChain = class extends BaseLinkedChain {
         if (this._pendingHead != null) {
           if (this._head == null) {
             this._head = this._pendingHead;
-            this._tail = this._pendingTail;
           } else {
             this._pendingHead.previous = this._tail;
             this._tail.next = this._pendingHead;
-            this._tail = this._pendingTail;
           }
+          this._tail = this._pendingTail;
           this._pendingHead = null;
           this._pendingTail = null;
         }
       }
-      if (this._actionHead == null) {
+      if (this._actionHead === null) {
         return;
       }
-      const nextActionNode = this._actionHead;
-      nextActionNode.disposed = true;
-      this._actionHead = nextActionNode.next;
-      if (this._actionHead != null) {
-        this._actionHead.previous = null;
-        nextActionNode.next = null;
+      theValue = this._actionHead.shift();
+      if (this._actionHead.length === 0) {
+        this._actionHead = null;
       }
-      theValue = nextActionNode.value;
     }
   }
 };
-var ChainNode = class {
-  constructor(value, previous, next) {
+var ChainNode = class extends import_disposiq.Disposiq {
+  constructor(chain, value, previous, next) {
+    super();
     this.disposed = false;
+    this.chain = chain;
     this.value = value;
     this.previous = previous != null ? previous : null;
     this.next = next != null ? next : null;
+  }
+  dispose() {
+    var _a, _b;
+    if (this.disposed) {
+      return;
+    }
+    this.disposed = true;
+    const chain = this.chain;
+    if (this === chain._head) {
+      if (this.next === null) {
+        chain._head = null;
+        chain._tail = null;
+        if (chain._pendingHead === null) {
+          (_a = chain.onEmpty) == null ? void 0 : _a.call(chain);
+        }
+        return;
+      }
+      chain._head = this.next;
+      chain._head.previous = null;
+      return;
+    }
+    if (this === chain._tail) {
+      chain._tail = this.previous;
+      chain._tail.next = null;
+      return;
+    }
+    if (this === chain._pendingHead) {
+      if (this.next === null) {
+        chain._pendingHead = null;
+        chain._pendingTail = null;
+        if (chain._head === null) {
+          (_b = chain.onEmpty) == null ? void 0 : _b.call(chain);
+        }
+        return;
+      }
+      chain._pendingHead = this.next;
+      chain._pendingHead.previous = null;
+      return;
+    }
+    if (this === chain._pendingTail) {
+      chain._pendingTail = this.previous;
+      chain._pendingTail.next = null;
+      return;
+    }
+    if (this.previous !== null) {
+      this.previous.next = this.next;
+    }
+    if (this.next !== null) {
+      this.next.previous = this.previous;
+    }
   }
 };
 function _clearNode(chainNode) {
@@ -667,7 +672,6 @@ function _clearNode(chainNode) {
 }
 
 // src/vars/compound.ts
-var import_disposiq2 = require("@tioniq/disposiq");
 var CompoundVariable = class extends Variable {
   constructor(initValue, equalityComparer) {
     super();
@@ -677,6 +681,7 @@ var CompoundVariable = class extends Variable {
     this._chain = new LinkedActionChain();
     this._value = initValue;
     this._equalityComparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
+    this._chain.onEmpty = () => this.deactivate();
   }
   /**
    * Checks if there are any subscriptions
@@ -711,24 +716,13 @@ var CompoundVariable = class extends Variable {
     if (added) {
       callback(this._value);
     }
-    return new import_disposiq2.DisposableAction(() => {
-      disposable.dispose();
-      if (this._chain.empty) {
-        this.deactivate();
-      }
-    });
+    return disposable;
   }
   subscribeSilent(callback) {
     if (this._chain.empty) {
       this.activate();
     }
-    const disposable = this._chain.addUnique(callback)[0];
-    return new import_disposiq2.DisposableAction(() => {
-      disposable.dispose();
-      if (this._chain.empty) {
-        this.deactivate();
-      }
-    });
+    return this._chain.addUnique(callback)[0];
   }
   /**
    * A method for getting the exact value of the variable. It is called when there are no subscriptions
@@ -786,7 +780,7 @@ var CompoundVariable = class extends Variable {
 };
 
 // src/vars/and.ts
-var import_disposiq3 = require("@tioniq/disposiq");
+var import_disposiq2 = require("@tioniq/disposiq");
 var AndVariable = class extends CompoundVariable {
   constructor(variables) {
     super(false);
@@ -800,7 +794,7 @@ var AndVariable = class extends CompoundVariable {
     this._listen(0);
   }
   deactivate() {
-    (0, import_disposiq3.disposeAll)(this._subscriptions);
+    (0, import_disposiq2.disposeAll)(this._subscriptions);
   }
   getExactValue() {
     const variables = this._variables;
@@ -847,7 +841,7 @@ var AndVariable = class extends CompoundVariable {
 };
 
 // src/vars/combined.ts
-var import_disposiq4 = require("@tioniq/disposiq");
+var import_disposiq3 = require("@tioniq/disposiq");
 var CombinedVariable = class extends CompoundVariable {
   constructor(vars) {
     if (!(vars == null ? void 0 : vars.length)) {
@@ -857,7 +851,7 @@ var CombinedVariable = class extends CompoundVariable {
     /**
      * @internal
      */
-    this._subscriptions = new import_disposiq4.DisposableStore();
+    this._subscriptions = new import_disposiq3.DisposableStore();
     this._vars = vars.slice();
   }
   activate() {
@@ -891,7 +885,7 @@ var CombinedVariable = class extends CompoundVariable {
 var stubArray = Object.freeze([]);
 
 // src/vars/constant.ts
-var import_disposiq5 = require("@tioniq/disposiq");
+var import_disposiq4 = require("@tioniq/disposiq");
 var ConstantVariable = class extends Variable {
   constructor(value, equalityComparer) {
     super();
@@ -906,15 +900,15 @@ var ConstantVariable = class extends Variable {
   }
   subscribe(callback) {
     callback(this._value);
-    return import_disposiq5.emptyDisposable;
+    return import_disposiq4.emptyDisposable;
   }
   subscribeSilent(_) {
-    return import_disposiq5.emptyDisposable;
+    return import_disposiq4.emptyDisposable;
   }
 };
 
 // src/vars/delegate.ts
-var import_disposiq6 = require("@tioniq/disposiq");
+var import_disposiq5 = require("@tioniq/disposiq");
 var DelegateVariable = class extends CompoundVariable {
   constructor(sourceOrDefaultValue) {
     super(
@@ -929,7 +923,7 @@ var DelegateVariable = class extends CompoundVariable {
     /**
      * @internal
      */
-    this._sourceSubscription = new import_disposiq6.DisposableContainer();
+    this._sourceSubscription = new import_disposiq5.DisposableContainer();
     if (sourceOrDefaultValue instanceof Variable) {
       this._source = sourceOrDefaultValue;
     } else {
@@ -948,7 +942,7 @@ var DelegateVariable = class extends CompoundVariable {
         this._source = null;
       }
       this._sourceSubscription.disposeCurrent();
-      return import_disposiq6.emptyDisposable;
+      return import_disposiq5.emptyDisposable;
     }
     this._source = source;
     this._sourceSubscription.disposeCurrent();
@@ -958,7 +952,7 @@ var DelegateVariable = class extends CompoundVariable {
       );
       this.value = source.value;
     }
-    return new import_disposiq6.DisposableAction(() => {
+    return new import_disposiq5.DisposableAction(() => {
       if (this._source !== source) {
         return;
       }
@@ -1039,14 +1033,14 @@ var DirectVariable = class extends Variable {
 };
 
 // src/vars/func.ts
-var import_disposiq7 = require("@tioniq/disposiq");
+var import_disposiq6 = require("@tioniq/disposiq");
 var FuncVariable = class extends CompoundVariable {
   constructor(activate, exactValue, equalityComparer) {
     super(null, equalityComparer);
-    const disposable = new import_disposiq7.DisposableContainer();
+    const disposable = new import_disposiq6.DisposableContainer();
     this._activator = (self) => {
       disposable.disposeCurrent();
-      disposable.set((0, import_disposiq7.toDisposable)(activate(self)));
+      disposable.set((0, import_disposiq6.toDisposable)(activate(self)));
     };
     this._deactivator = () => {
       disposable.disposeCurrent();
@@ -1101,7 +1095,7 @@ var FuncVariable = class extends CompoundVariable {
 };
 
 // src/vars/invert.ts
-var import_disposiq8 = require("@tioniq/disposiq");
+var import_disposiq7 = require("@tioniq/disposiq");
 var InvertVariable = class extends Variable {
   constructor(variable) {
     super();
@@ -1116,8 +1110,9 @@ var InvertVariable = class extends Variable {
     /**
      * @internal
      */
-    this._subscription = new import_disposiq8.DisposableContainer();
+    this._subscription = new import_disposiq7.DisposableContainer();
     this._variable = variable;
+    this._chain.onEmpty = () => this._deactivate();
   }
   get value() {
     if (this._chain.hasAny) {
@@ -1133,12 +1128,7 @@ var InvertVariable = class extends Variable {
     if (added) {
       callback(this._value);
     }
-    return new import_disposiq8.DisposableAction(() => {
-      disposable.dispose();
-      if (this._chain.empty) {
-        this._deactivate();
-      }
-    });
+    return disposable;
   }
   subscribeSilent(callback) {
     return this._variable.subscribeSilent((value) => callback(!value));
@@ -1166,14 +1156,14 @@ var InvertVariable = class extends Variable {
 };
 
 // src/vars/map.ts
-var import_disposiq9 = require("@tioniq/disposiq");
+var import_disposiq8 = require("@tioniq/disposiq");
 var MapVariable = class extends CompoundVariable {
   constructor(variable, mapper, equalityComparer) {
     super(mapper(variable.value), equalityComparer);
     /**
      * @internal
      */
-    this._subscription = new import_disposiq9.DisposableContainer();
+    this._subscription = new import_disposiq8.DisposableContainer();
     /**
      * @internal
      */
@@ -1197,14 +1187,14 @@ var MapVariable = class extends CompoundVariable {
 };
 
 // src/vars/max.ts
-var import_disposiq10 = require("@tioniq/disposiq");
+var import_disposiq9 = require("@tioniq/disposiq");
 var MaxVariable = class extends CompoundVariable {
   constructor(vars) {
     super(0);
     /**
      * @internal
      */
-    this._subscriptions = new import_disposiq10.DisposableStore();
+    this._subscriptions = new import_disposiq9.DisposableStore();
     this._vars = vars.slice();
   }
   activate() {
@@ -1245,14 +1235,14 @@ var MaxVariable = class extends CompoundVariable {
 };
 
 // src/vars/min.ts
-var import_disposiq11 = require("@tioniq/disposiq");
+var import_disposiq10 = require("@tioniq/disposiq");
 var MinVariable = class extends CompoundVariable {
   constructor(vars) {
     super(0);
     /**
      * @internal
      */
-    this._subscriptions = new import_disposiq11.DisposableStore();
+    this._subscriptions = new import_disposiq10.DisposableStore();
     this._vars = vars.slice();
   }
   activate() {
@@ -1351,7 +1341,7 @@ var MutableVariable = class extends Variable {
 };
 
 // src/vars/or.ts
-var import_disposiq12 = require("@tioniq/disposiq");
+var import_disposiq11 = require("@tioniq/disposiq");
 var OrVariable = class extends CompoundVariable {
   constructor(variables) {
     super(false);
@@ -1365,7 +1355,7 @@ var OrVariable = class extends CompoundVariable {
     this._listen(0);
   }
   deactivate() {
-    (0, import_disposiq12.disposeAll)(this._subscriptions);
+    (0, import_disposiq11.disposeAll)(this._subscriptions);
   }
   getExactValue() {
     const variables = this._variables;
@@ -1412,7 +1402,7 @@ var OrVariable = class extends CompoundVariable {
 };
 
 // src/vars/seal.ts
-var import_disposiq13 = require("@tioniq/disposiq");
+var import_disposiq12 = require("@tioniq/disposiq");
 var SealVariable = class extends Variable {
   constructor(vary, equalityComparer) {
     super();
@@ -1423,7 +1413,7 @@ var SealVariable = class extends Variable {
     /**
      * @internal
      */
-    this._varSubscription = new import_disposiq13.DisposableContainer();
+    this._varSubscription = new import_disposiq12.DisposableContainer();
     /**
      * @internal
      */
@@ -1435,6 +1425,11 @@ var SealVariable = class extends Variable {
     this._sealed = false;
     this._var = vary;
     this._equalityComparer = typeof equalityComparer === "function" ? equalityComparer : defaultEqualityComparer;
+    this._chain.onEmpty = () => {
+      if (!this._sealed) {
+        this._deactivate();
+      }
+    };
   }
   get value() {
     if (this._sealed) {
@@ -1451,7 +1446,7 @@ var SealVariable = class extends Variable {
   subscribe(callback) {
     if (this._sealed) {
       callback(this._value);
-      return import_disposiq13.emptyDisposable;
+      return import_disposiq12.emptyDisposable;
     }
     if (this._chain.empty) {
       this._activate();
@@ -1460,27 +1455,16 @@ var SealVariable = class extends Variable {
     if (added) {
       callback(this._value);
     }
-    return new import_disposiq13.DisposableAction(() => {
-      disposable.dispose();
-      if (!this._sealed && this._chain.empty) {
-        this._deactivate();
-      }
-    });
+    return disposable;
   }
   subscribeSilent(callback) {
     if (this._sealed) {
-      return import_disposiq13.emptyDisposable;
+      return import_disposiq12.emptyDisposable;
     }
     if (this._chain.empty) {
       this._activate();
     }
-    const disposable = this._chain.addUnique(callback)[0];
-    return new import_disposiq13.DisposableAction(() => {
-      disposable.dispose();
-      if (!this._sealed && this._chain.empty) {
-        this._deactivate();
-      }
-    });
+    return this._chain.addUnique(callback)[0];
   }
   /**
    * Seals the variable. If the variable is already sealed, the method will do nothing
@@ -1538,14 +1522,14 @@ var SealVariable = class extends Variable {
 };
 
 // src/vars/sum.ts
-var import_disposiq14 = require("@tioniq/disposiq");
+var import_disposiq13 = require("@tioniq/disposiq");
 var SumVariable = class extends CompoundVariable {
   constructor(vars) {
     super(0);
     /**
      * @internal
      */
-    this._subscriptions = new import_disposiq14.DisposableStore();
+    this._subscriptions = new import_disposiq13.DisposableStore();
     this._vars = vars.slice();
   }
   activate() {
@@ -1587,18 +1571,18 @@ var SumVariable = class extends CompoundVariable {
 };
 
 // src/vars/switch-map.ts
-var import_disposiq15 = require("@tioniq/disposiq");
+var import_disposiq14 = require("@tioniq/disposiq");
 var SwitchMapVariable = class extends CompoundVariable {
   constructor(vary, mapper, equalityComparer) {
     super(null, equalityComparer);
     /**
      * @internal
      */
-    this._switchSubscription = new import_disposiq15.DisposableContainer();
+    this._switchSubscription = new import_disposiq14.DisposableContainer();
     /**
      * @internal
      */
-    this._varSubscription = new import_disposiq15.DisposableContainer();
+    this._varSubscription = new import_disposiq14.DisposableContainer();
     this._var = vary;
     this._mapper = mapper;
   }
@@ -1632,7 +1616,7 @@ var SwitchMapVariable = class extends CompoundVariable {
 };
 
 // src/vars/throttled.ts
-var import_disposiq16 = require("@tioniq/disposiq");
+var import_disposiq15 = require("@tioniq/disposiq");
 var noScheduledValue = Object.freeze({});
 var ThrottledVariable = class extends CompoundVariable {
   constructor(vary, onUpdate, equalityComparer) {
@@ -1640,11 +1624,11 @@ var ThrottledVariable = class extends CompoundVariable {
     /**
      * @internal
      */
-    this._subscription = new import_disposiq16.DisposableContainer();
+    this._subscription = new import_disposiq15.DisposableContainer();
     /**
      * @internal
      */
-    this._updateSubscription = new import_disposiq16.DisposableContainer();
+    this._updateSubscription = new import_disposiq15.DisposableContainer();
     /**
      * @internal
      */
@@ -1689,7 +1673,7 @@ var ThrottledVariable = class extends CompoundVariable {
 };
 
 // src/functions.ts
-var import_disposiq21 = require("@tioniq/disposiq");
+var import_disposiq20 = require("@tioniq/disposiq");
 
 // src/events/observer.ts
 var EventObserver = class {
@@ -1759,15 +1743,15 @@ var EventSafeDispatcher = class extends EventObserver {
 };
 
 // src/events/stub.ts
-var import_disposiq17 = require("@tioniq/disposiq");
+var import_disposiq16 = require("@tioniq/disposiq");
 var EventObserverStub = class extends EventObserver {
   subscribe() {
-    return import_disposiq17.emptyDisposable;
+    return import_disposiq16.emptyDisposable;
   }
 };
 
 // src/events/lazy.ts
-var import_disposiq18 = require("@tioniq/disposiq");
+var import_disposiq17 = require("@tioniq/disposiq");
 var LazyEventDispatcher = class extends EventObserver {
   constructor(activator) {
     super();
@@ -1778,8 +1762,9 @@ var LazyEventDispatcher = class extends EventObserver {
     /**
      * @internal
      */
-    this._subscription = new import_disposiq18.DisposableContainer();
+    this._subscription = new import_disposiq17.DisposableContainer();
     this._activator = activator;
+    this._nodes.onEmpty = () => this._deactivate();
   }
   /**
    * Checks if there are any subscriptions
@@ -1796,13 +1781,7 @@ var LazyEventDispatcher = class extends EventObserver {
     } else {
       subscription = this._nodes.add(callback);
     }
-    return new import_disposiq18.DisposableAction(() => {
-      subscription.dispose();
-      if (this._nodes.hasAny) {
-        return;
-      }
-      this._deactivate();
-    });
+    return subscription;
   }
   /**
    * Dispatches the event to all subscribers
@@ -1816,7 +1795,7 @@ var LazyEventDispatcher = class extends EventObserver {
    */
   _activate() {
     this._subscription.disposeCurrent();
-    this._subscription.set((0, import_disposiq18.toDisposable)(this._activator(this)));
+    this._subscription.set((0, import_disposiq17.toDisposable)(this._activator(this)));
   }
   /**
    * @internal
@@ -1827,10 +1806,10 @@ var LazyEventDispatcher = class extends EventObserver {
 };
 
 // src/events/functions.ts
-var import_disposiq19 = require("@tioniq/disposiq");
+var import_disposiq18 = require("@tioniq/disposiq");
 function merge(...observers) {
   return new LazyEventDispatcher((dispatcher) => {
-    const disposableStore = new import_disposiq19.DisposableStore();
+    const disposableStore = new import_disposiq18.DisposableStore();
     for (const t of observers) {
       disposableStore.add(t.subscribe((v) => dispatcher.dispatch(v)));
     }
@@ -1839,7 +1818,7 @@ function merge(...observers) {
 }
 
 // src/events/extensions.ts
-var import_disposiq20 = require("@tioniq/disposiq");
+var import_disposiq19 = require("@tioniq/disposiq");
 
 // src/noop.ts
 var noop = Object.freeze(() => {
@@ -1847,7 +1826,7 @@ var noop = Object.freeze(() => {
 
 // src/events/extensions.ts
 EventObserver.prototype.subscribeOnce = function(callback) {
-  const subscription = new import_disposiq20.DisposableContainer();
+  const subscription = new import_disposiq19.DisposableContainer();
   subscription.set(
     this.subscribe((value) => {
       subscription.dispose();
@@ -1857,7 +1836,7 @@ EventObserver.prototype.subscribeOnce = function(callback) {
   return subscription;
 };
 EventObserver.prototype.subscribeOnceWhere = function(callback, condition) {
-  const subscription = new import_disposiq20.DisposableContainer();
+  const subscription = new import_disposiq19.DisposableContainer();
   subscription.set(
     this.subscribe((value) => {
       if (!condition(value)) {
@@ -1878,16 +1857,16 @@ EventObserver.prototype.subscribeWhere = function(callback, condition) {
 };
 EventObserver.prototype.subscribeOn = function(callback, condition) {
   return condition.subscribeDisposable(
-    (value) => value ? this.subscribe(callback) : import_disposiq20.emptyDisposable
+    (value) => value ? this.subscribe(callback) : import_disposiq19.emptyDisposable
   );
 };
 EventObserver.prototype.subscribeDisposable = function(callback) {
-  const container = new import_disposiq20.DisposableContainer();
+  const container = new import_disposiq19.DisposableContainer();
   const subscription = this.subscribe((v) => {
     container.disposeCurrent();
     container.set(callback(v));
   });
-  return new import_disposiq20.DisposableAction(() => {
+  return new import_disposiq19.DisposableAction(() => {
     subscription.dispose();
     container.dispose();
   });
@@ -2010,7 +1989,7 @@ function combine(...vars) {
 function createDelayDispatcher(delay) {
   return new LazyEventDispatcher((dispatcher) => {
     const timeout = setTimeout(() => dispatcher.dispatch(), delay);
-    return new import_disposiq21.DisposableAction(() => clearTimeout(timeout));
+    return new import_disposiq20.DisposableAction(() => clearTimeout(timeout));
   });
 }
 function toVariable(value) {
@@ -2018,20 +1997,20 @@ function toVariable(value) {
 }
 
 // src/extensions.ts
-var import_disposiq22 = require("@tioniq/disposiq");
+var import_disposiq21 = require("@tioniq/disposiq");
 Variable.prototype.subscribeDisposable = function(callback) {
-  const container = new import_disposiq22.DisposableContainer();
+  const container = new import_disposiq21.DisposableContainer();
   const subscription = this.subscribe((v) => {
     container.disposeCurrent();
     container.set(callback(v));
   });
-  return new import_disposiq22.DisposableAction(() => {
+  return new import_disposiq21.DisposableAction(() => {
     subscription.dispose();
     container.dispose();
   });
 };
 Variable.prototype.subscribeOnceWhere = function(callback, condition) {
-  const container = new import_disposiq22.DisposableContainer();
+  const container = new import_disposiq21.DisposableContainer();
   container.set(
     this.subscribeSilent((v) => {
       if (!condition(v)) {
@@ -2047,7 +2026,7 @@ Variable.prototype.subscribeOnceWhere = function(callback, condition) {
   }
   container.dispose();
   callback(value);
-  return import_disposiq22.emptyDisposable;
+  return import_disposiq21.emptyDisposable;
 };
 Variable.prototype.subscribeWhere = function(callback, condition, equalityComparer) {
   if (typeof condition === "function") {
@@ -2185,7 +2164,7 @@ Variable.prototype.notifyOn = function(event) {
     const subscription2 = event.subscribe(() => {
       vary.notify();
     });
-    return new import_disposiq22.DisposableAction(() => {
+    return new import_disposiq21.DisposableAction(() => {
       subscription1.dispose();
       subscription2.dispose();
     });
