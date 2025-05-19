@@ -1,4 +1,4 @@
-import { DisposableAction, type Disposiq } from "@tioniq/disposiq"
+import { Disposiq } from "@tioniq/disposiq"
 import { defaultEqualityComparer, type EqualityComparer, functionEqualityComparer } from "./comparer"
 
 type Action<T> = (value: T) => void
@@ -16,11 +16,11 @@ export class BaseLinkedChain<T> {
   /**
    * @internal
    */
-  protected _head: ChainNode<T> | null = null
+  _head: ChainNode<T> | null = null
   /**
    * @internal
    */
-  protected _tail: ChainNode<T> | null = null
+  _tail: ChainNode<T> | null = null
   /**
    * @internal
    */
@@ -28,11 +28,11 @@ export class BaseLinkedChain<T> {
   /**
    * @internal
    */
-  protected _pendingHead: ChainNode<T> | null = null
+  _pendingHead: ChainNode<T> | null = null
   /**
    * @internal
    */
-  protected _pendingTail: ChainNode<T> | null = null
+  _pendingTail: ChainNode<T> | null = null
 
   constructor(equalityComparer?: EqualityComparer<T>) {
     this._equalityComparer = equalityComparer ?? defaultEqualityComparer
@@ -119,7 +119,7 @@ export class BaseLinkedChain<T> {
   addUnique(value: T): [subscription: Disposiq, added: boolean] {
     const existing = this._findNode(value)
     if (existing !== null) {
-      return [new DisposableAction(() => this._unlinkNode(existing)), false]
+      return [existing, false]
     }
     return [this.add(value), true]
   }
@@ -133,26 +133,26 @@ export class BaseLinkedChain<T> {
     let node: ChainNode<T>
     if (this._invoking) {
       if (this._pendingHead === null) {
-        node = new ChainNode(value)
+        node = new ChainNode(this, value)
         this._pendingHead = node
       } else {
-        node = new ChainNode(value, this._pendingTail, null)
+        node = new ChainNode(this, value, this._pendingTail, null)
         // biome-ignore lint/style/noNonNullAssertion: _pendingTail is always not null when _pendingHead is not null
         this._pendingTail!.next = node
       }
       this._pendingTail = node
-      return new DisposableAction(() => this._unlinkNode(node))
+      return node
     }
     if (this._head === null) {
-      node = new ChainNode(value)
+      node = new ChainNode(this, value)
       this._head = node
     } else {
-      node = new ChainNode(value, this._tail, null)
+      node = new ChainNode(this, value, this._tail, null)
       // biome-ignore lint/style/noNonNullAssertion: _tail is always not null when _head is not null
       this._tail!.next = node
     }
     this._tail = node
-    return new DisposableAction(() => this._unlinkNode(node))
+    return node
   }
 
   /**
@@ -163,7 +163,7 @@ export class BaseLinkedChain<T> {
   addToBeginUnique(value: T): [subscription: Disposiq, added: boolean] {
     const existing = this._findNode(value)
     if (existing !== null) {
-      return [new DisposableAction(() => this._unlinkNode(existing)), false]
+      return [existing, false]
     }
     return [this.addToBegin(value), true]
   }
@@ -176,15 +176,15 @@ export class BaseLinkedChain<T> {
   addToBegin(value: T): Disposiq {
     let node: ChainNode<T>
     if (this._head === null) {
-      node = new ChainNode(value)
+      node = new ChainNode(this, value)
       this._head = node
       this._tail = node
     } else {
-      node = new ChainNode(value, null, this._head)
+      node = new ChainNode(this, value, null, this._head)
       this._head.previous = node
       this._head = node
     }
-    return new DisposableAction(() => this._unlinkNode(node))
+    return node
   }
 
   /**
@@ -223,7 +223,7 @@ export class BaseLinkedChain<T> {
     let checkNode = this._head
     while (checkNode !== null) {
       if (this._equalityComparer(checkNode.value, value)) {
-        this._unlinkNode(checkNode)
+        checkNode.dispose()
         return true
       }
       checkNode = checkNode.next
@@ -231,7 +231,7 @@ export class BaseLinkedChain<T> {
     checkNode = this._pendingHead
     while (checkNode !== null) {
       if (this._equalityComparer(checkNode.value, value)) {
-        this._unlinkNode(checkNode)
+        checkNode.dispose()
         return true
       }
       checkNode = checkNode.next
@@ -306,68 +306,13 @@ export class BaseLinkedChain<T> {
     }
     return null
   }
-
-  /**
-   * @internal
-   */
-  private _unlinkNode(node: ChainNode<T>): void {
-    if (node.disposed) {
-      return
-    }
-    node.disposed = true
-    if (node === this._head) {
-      if (node.next === null) {
-        this._head = null
-        this._tail = null
-        if (this._pendingHead === null) {
-          this.onEmpty?.()
-        }
-        return
-      }
-      this._head = node.next
-      this._head.previous = null
-      return
-    }
-    if (node === this._tail) {
-      this._tail = node.previous
-      // biome-ignore lint/style/noNonNullAssertion: _tail is not null because the chain has more one node
-      this._tail!.next = null
-      return
-    }
-    if (node === this._pendingHead) {
-      if (node.next === null) {
-        this._pendingHead = null
-        this._pendingTail = null
-        if (this._head === null) {
-          this.onEmpty?.()
-        }
-        return
-      }
-      this._pendingHead = node.next
-      this._pendingHead.previous = null
-      return
-    }
-    if (node === this._pendingTail) {
-      this._pendingTail = node.previous
-      // biome-ignore lint/style/noNonNullAssertion: _pendingTail is not null because the pending chain has more one node
-      this._pendingTail!.next = null
-      return
-    }
-    if (node.previous !== null) {
-      node.previous.next = node.next
-    }
-    if (node.next !== null) {
-      node.next.previous = node.previous
-    }
-  }
-
 }
 
 export class LinkedChain<T> extends BaseLinkedChain<T> {
   /**
    * @internal
    */
-  private _actionHead: ChainNode<Action<T>> | null = null
+  private _actionHead: Action<T>[] | null = null
 
 
   /**
@@ -379,15 +324,11 @@ export class LinkedChain<T> extends BaseLinkedChain<T> {
     while (handler !== null) {
       if (this._head !== null) {
         if (this._invoking) {
-          if (this._actionHead == null) {
-            this._actionHead = new ChainNode<Action<T>>(handler)
+          if (this._actionHead === null) {
+            this._actionHead = [handler]
             return
           }
-          let actionTail = this._actionHead
-          while (actionTail.next !== null) {
-            actionTail = actionTail.next
-          }
-          actionTail.next = new ChainNode<Action<T>>(handler, actionTail, null)
+          this._actionHead.push(handler)
           return
         }
         this._invoking = true
@@ -413,17 +354,13 @@ export class LinkedChain<T> extends BaseLinkedChain<T> {
           this._pendingTail = null
         }
       }
-      if (this._actionHead == null) {
+      if (this._actionHead === null) {
         return
       }
-      const nextActionNode = this._actionHead
-      nextActionNode.disposed = true
-      this._actionHead = nextActionNode.next
-      if (this._actionHead != null) {
-        this._actionHead.previous = null
-        nextActionNode.next = null
+      handler = this._actionHead.shift() as Action<T>
+      if (this._actionHead.length === 0) {
+        this._actionHead = null
       }
-      handler = nextActionNode.value
     }
   }
 }
@@ -432,7 +369,7 @@ export class LinkedActionChain<T = void> extends BaseLinkedChain<Action<T>> {
   /**
    * @internal
    */
-  private _actionHead: ChainNode<T> | null = null
+  private _actionHead: Array<T> | null = null
 
   constructor() {
     super(functionEqualityComparer)
@@ -447,15 +384,11 @@ export class LinkedActionChain<T = void> extends BaseLinkedChain<Action<T>> {
     while (theValue !== null) {
       if (this._head !== null) {
         if (this._invoking) {
-          if (this._actionHead == null) {
-            this._actionHead = new ChainNode<T>(theValue)
+          if (this._actionHead === null) {
+            this._actionHead = [theValue]
             return
           }
-          let actionTail = this._actionHead
-          while (actionTail.next !== null) {
-            actionTail = actionTail.next
-          }
-          actionTail.next = new ChainNode<T>(theValue, actionTail, null)
+          this._actionHead.push(theValue)
           return
         }
         this._invoking = true
@@ -481,35 +414,87 @@ export class LinkedActionChain<T = void> extends BaseLinkedChain<Action<T>> {
           this._pendingTail = null
         }
       }
-      if (this._actionHead == null) {
+      if (this._actionHead === null) {
         return
       }
-      const nextActionNode = this._actionHead
-      nextActionNode.disposed = true
-      this._actionHead = nextActionNode.next
-      if (this._actionHead != null) {
-        this._actionHead.previous = null
-        nextActionNode.next = null
+      theValue = this._actionHead.shift() as T
+      if (this._actionHead.length === 0) {
+        this._actionHead = null
       }
-      theValue = nextActionNode.value
     }
   }
 }
 
-class ChainNode<T> {
+class ChainNode<T> extends Disposiq {
   readonly value: T
+  readonly chain: BaseLinkedChain<T>
   next: ChainNode<T> | null
   previous: ChainNode<T> | null
   disposed = false
 
   constructor(
+    chain: BaseLinkedChain<T>,
     value: T,
     previous?: ChainNode<T> | null,
     next?: ChainNode<T> | null,
   ) {
+    super()
+    this.chain = chain
     this.value = value
     this.previous = previous ?? null
     this.next = next ?? null
+  }
+
+  dispose() {
+    if (this.disposed) {
+      return
+    }
+    this.disposed = true
+    const chain = this.chain
+    if (this === chain._head) {
+      if (this.next === null) {
+        chain._head = null
+        chain._tail = null
+        if (chain._pendingHead === null) {
+          chain.onEmpty?.()
+        }
+        return
+      }
+      chain._head = this.next
+      chain._head.previous = null
+      return
+    }
+    if (this === chain._tail) {
+      chain._tail = this.previous
+      // biome-ignore lint/style/noNonNullAssertion: _tail is not null because the chain has more one node
+      chain._tail!.next = null
+      return
+    }
+    if (this === chain._pendingHead) {
+      if (this.next === null) {
+        chain._pendingHead = null
+        chain._pendingTail = null
+        if (chain._head === null) {
+          chain.onEmpty?.()
+        }
+        return
+      }
+      chain._pendingHead = this.next
+      chain._pendingHead.previous = null
+      return
+    }
+    if (this === chain._pendingTail) {
+      chain._pendingTail = this.previous
+      // biome-ignore lint/style/noNonNullAssertion: _pendingTail is not null because the pending chain has more one node
+      chain._pendingTail!.next = null
+      return
+    }
+    if (this.previous !== null) {
+      this.previous.next = this.next
+    }
+    if (this.next !== null) {
+      this.next.previous = this.previous
+    }
   }
 }
 
