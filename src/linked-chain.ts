@@ -381,7 +381,7 @@ export class LinkedActionChain<T = void> extends BaseLinkedChain<Action<T>> {
    */
   forEach(value: T): void {
     let theValue = value
-    while (theValue !== null) {
+    while (true) {
       if (this._head !== null) {
         if (this._invoking) {
           if (this._actionHead === null) {
