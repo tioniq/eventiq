@@ -317,14 +317,14 @@ interface Variable<out T> {
      * @param equalityComparer the equality comparer
      * @returns a new variable with the throttled value
      */
-    throttle<T>(delay: number, equalityComparer?: EqualityComparer<T>): Variable<T>;
+    throttle(delay: number, equalityComparer?: EqualityComparer<T>): Variable<T>;
     /**
      * Throttles the variable value changes
      * @param onUpdate the event observer that will be used to throttle the value changes
      * @param equalityComparer the equality comparer
      * @returns a new variable with the throttled value
      */
-    throttle<T>(onUpdate: EventObserver, equalityComparer?: EqualityComparer<T>): Variable<T>;
+    throttle(onUpdate: EventObserver, equalityComparer?: EqualityComparer<T>): Variable<T>;
     /**
      * Streams the variable value to another mutable variable
      * @param receiver the receiver variable

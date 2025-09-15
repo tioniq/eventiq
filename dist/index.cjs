@@ -687,6 +687,7 @@ var CompoundVariable = class extends Variable {
    * Checks if there are any subscriptions
    * @returns true if there are any subscriptions, false otherwise
    */
+  // TODO: should return true during `subscribe`
   get active() {
     return this._chain.hasAny;
   }
@@ -1159,7 +1160,7 @@ var InvertVariable = class extends Variable {
 var import_disposiq8 = require("@tioniq/disposiq");
 var MapVariable = class extends CompoundVariable {
   constructor(variable, mapper, equalityComparer) {
-    super(mapper(variable.value), equalityComparer);
+    super(null, equalityComparer);
     /**
      * @internal
      */
