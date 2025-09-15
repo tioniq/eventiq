@@ -30,7 +30,7 @@ export class MapVariable<TInput, TOutput> extends CompoundVariable<TOutput> {
     mapper: Func<TInput, TOutput>,
     equalityComparer?: EqualityComparer<TOutput>,
   ) {
-    super(mapper(variable.value), equalityComparer)
+    super((null as unknown as TOutput), equalityComparer)
     this._variable = variable
     this._mapper = mapper
   }
