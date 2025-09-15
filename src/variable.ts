@@ -152,7 +152,7 @@ export interface Variable<out T> {
    * @param equalityComparer the equality comparer
    * @returns a new variable with the throttled value
    */
-  throttle<T>(
+  throttle(
     delay: number,
     equalityComparer?: EqualityComparer<T>,
   ): Variable<T>
@@ -163,7 +163,7 @@ export interface Variable<out T> {
    * @param equalityComparer the equality comparer
    * @returns a new variable with the throttled value
    */
-  throttle<T>(
+  throttle(
     onUpdate: EventObserver,
     equalityComparer?: EqualityComparer<T>,
   ): Variable<T>
