@@ -2,7 +2,7 @@ import { Variable } from "../variable"
 import { defaultEqualityComparer, type EqualityComparer, } from "../comparer"
 import { LinkedActionChain } from "../linked-chain"
 import type { Func } from "../action"
-import { DisposableAction, type Disposiq } from "@tioniq/disposiq"
+import type { Disposiq } from "@tioniq/disposiq"
 
 /**
  * A Variable class that is base for common compound variables. It provides a functionality to react on subscription
@@ -36,6 +36,7 @@ export abstract class CompoundVariable<T> extends Variable<T> {
    * Checks if there are any subscriptions
    * @returns true if there are any subscriptions, false otherwise
    */
+  // TODO: should return true during `subscribe`
   protected get active(): boolean {
     return this._chain.hasAny
   }
