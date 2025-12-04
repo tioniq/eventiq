@@ -59,8 +59,8 @@ __export(index_exports, {
   and: () => and,
   arrayEqualityComparer: () => arrayEqualityComparer,
   combine: () => combine,
-  createConst: () => createConst,
-  createConstVar: () => createConst,
+  createConst: () => createConstVar,
+  createConstVar: () => createConstVar,
   createDelayDispatcher: () => createDelayDispatcher,
   createDelegate: () => createDelegate,
   createDelegateVar: () => createDelegate,
@@ -70,6 +70,10 @@ __export(index_exports, {
   createLazyVar: () => createFuncVar,
   createVar: () => createVar,
   defaultEqualityComparer: () => defaultEqualityComparer,
+  emptyString: () => emptyStringVariable,
+  emptyStringVariable: () => emptyStringVariable,
+  falseVar: () => falseVariable,
+  falseVariable: () => falseVariable,
   functionEqualityComparer: () => functionEqualityComparer,
   generalEqualityComparer: () => generalEqualityComparer,
   isDelegateVariable: () => isDelegateVariable,
@@ -79,37 +83,29 @@ __export(index_exports, {
   max: () => max,
   merge: () => merge,
   min: () => min,
+  nullVar: () => nullVariable,
+  nullVariable: () => nullVariable,
   objectEqualityComparer: () => objectEqualityComparer,
   or: () => or,
   setDefaultEqualityComparer: () => setDefaultEqualityComparer,
   simpleEqualityComparer: () => simpleEqualityComparer,
   strictEqualityComparer: () => strictEqualityComparer,
   sum: () => sum,
-  toVariable: () => toVariable
+  toVariable: () => toVariable,
+  trueVar: () => trueVariable,
+  trueVariable: () => trueVariable,
+  undefinedVar: () => undefinedVariable,
+  undefinedVariable: () => undefinedVariable,
+  zeroVar: () => zeroVariable,
+  zeroVariable: () => zeroVariable
 });
 module.exports = __toCommonJS(index_exports);
 
-// src/variable.ts
-var Variable = class {
-  /**
-   * Overload of the `toString` method. Returns the string representation of the value of the variable
-   * @returns the string representation of the value of the variable
-   */
-  toString() {
-    const _value = this.value;
-    if (_value === null || _value === void 0) {
-      return `${_value}`;
-    }
-    return _value.toString();
-  }
-  /**
-   * Overload of the `valueOf` method. Converts the variable to a primitive value, in this case, the value of the variable
-   * @returns the primitive value of the variable
-   */
-  valueOf() {
-    return this.value;
-  }
-};
+// src/functions.ts
+var import_disposiq20 = require("@tioniq/disposiq");
+
+// src/linked-chain.ts
+var import_disposiq = require("@tioniq/disposiq");
 
 // src/comparer.ts
 function strictEqualityComparer(a, b) {
@@ -193,7 +189,6 @@ function arrayEqualityComparer(a, b) {
 }
 
 // src/linked-chain.ts
-var import_disposiq = require("@tioniq/disposiq");
 var BaseLinkedChain = class {
   constructor(equalityComparer) {
     /**
@@ -671,6 +666,281 @@ function _clearNode(chainNode) {
   return root;
 }
 
+// src/events/observer.ts
+var EventObserver = class {
+};
+
+// src/events/dispatcher.ts
+var EventDispatcher = class extends EventObserver {
+  constructor() {
+    super(...arguments);
+    /**
+     * @internal
+     */
+    this._nodes = new LinkedActionChain();
+  }
+  subscribe(action) {
+    return this._nodes.add(action);
+  }
+  /**
+   * Dispatches the event to all subscribers
+   * @param value the value of the event
+   */
+  dispatch(value) {
+    this._nodes.forEach(value);
+  }
+  /**
+   * Checks if there are any subscriptions
+   * @returns true if there are any subscriptions, false otherwise
+   */
+  get hasSubscriptions() {
+    return this._nodes.hasAny;
+  }
+};
+
+// src/events/functions.ts
+var import_disposiq3 = require("@tioniq/disposiq");
+
+// src/events/lazy.ts
+var import_disposiq2 = require("@tioniq/disposiq");
+var LazyEventDispatcher = class extends EventObserver {
+  constructor(activator) {
+    super();
+    /**
+     * @internal
+     */
+    this._nodes = new LinkedActionChain();
+    /**
+     * @internal
+     */
+    this._subscription = new import_disposiq2.DisposableContainer();
+    this._activator = activator;
+    this._nodes.onEmpty = () => this._deactivate();
+  }
+  /**
+   * Checks if there are any subscriptions
+   * @returns true if there are any subscriptions, false otherwise
+   */
+  get hasSubscription() {
+    return this._nodes.hasAny;
+  }
+  subscribe(callback) {
+    let subscription;
+    if (this._nodes.empty) {
+      subscription = this._nodes.add(callback);
+      this._activate();
+    } else {
+      subscription = this._nodes.add(callback);
+    }
+    return subscription;
+  }
+  /**
+   * Dispatches the event to all subscribers
+   * @param value the value of the event
+   */
+  dispatch(value) {
+    this._nodes.forEach(value);
+  }
+  /**
+   * @internal
+   */
+  _activate() {
+    this._subscription.disposeCurrent();
+    this._subscription.set((0, import_disposiq2.toDisposable)(this._activator(this)));
+  }
+  /**
+   * @internal
+   */
+  _deactivate() {
+    this._subscription.disposeCurrent();
+  }
+};
+
+// src/events/functions.ts
+function merge(...observers) {
+  return new LazyEventDispatcher((dispatcher) => {
+    const disposableStore = new import_disposiq3.DisposableStore();
+    for (const t of observers) {
+      disposableStore.add(t.subscribe((v) => dispatcher.dispatch(v)));
+    }
+    return disposableStore;
+  });
+}
+
+// src/events/safe-dispatcher.ts
+var EventSafeDispatcher = class extends EventObserver {
+  constructor() {
+    super(...arguments);
+    /**
+     * @internal
+     */
+    this._nodes = new LinkedChain(functionEqualityComparer);
+  }
+  subscribe(action) {
+    return this._nodes.add(action);
+  }
+  /**
+   * Dispatches the event to all subscribers safely
+   * @param value the value of the event
+   * @param onError error callback
+   */
+  dispatch(value, onError) {
+    this._nodes.forEach((a) => {
+      try {
+        a(value);
+      } catch (e) {
+        onError == null ? void 0 : onError(e);
+      }
+    });
+  }
+  /**
+   * Checks if there are any subscriptions
+   * @returns true if there are any subscriptions, false otherwise
+   */
+  get hasSubscriptions() {
+    return this._nodes.hasAny;
+  }
+};
+
+// src/events/stub.ts
+var import_disposiq4 = require("@tioniq/disposiq");
+var EventObserverStub = class extends EventObserver {
+  subscribe() {
+    return import_disposiq4.emptyDisposable;
+  }
+};
+
+// src/events/extensions.ts
+var import_disposiq5 = require("@tioniq/disposiq");
+
+// src/noop.ts
+var noop = Object.freeze(() => {
+});
+
+// src/events/extensions.ts
+EventObserver.prototype.subscribeOnce = function(callback) {
+  const subscription = new import_disposiq5.DisposableContainer();
+  subscription.set(
+    this.subscribe((value) => {
+      subscription.dispose();
+      callback(value);
+    })
+  );
+  return subscription;
+};
+EventObserver.prototype.subscribeOnceWhere = function(callback, condition) {
+  const subscription = new import_disposiq5.DisposableContainer();
+  subscription.set(
+    this.subscribe((value) => {
+      if (!condition(value)) {
+        return;
+      }
+      subscription.dispose();
+      callback(value);
+    })
+  );
+  return subscription;
+};
+EventObserver.prototype.subscribeWhere = function(callback, condition) {
+  return this.subscribe((value) => {
+    if (condition(value)) {
+      callback(value);
+    }
+  });
+};
+EventObserver.prototype.subscribeOn = function(callback, condition) {
+  return condition.subscribeDisposable(
+    (value) => value ? this.subscribe(callback) : import_disposiq5.emptyDisposable
+  );
+};
+EventObserver.prototype.subscribeDisposable = function(callback) {
+  const container = new import_disposiq5.DisposableContainer();
+  const subscription = this.subscribe((v) => {
+    container.disposeCurrent();
+    container.set(callback(v));
+  });
+  return new import_disposiq5.DisposableAction(() => {
+    subscription.dispose();
+    container.dispose();
+  });
+};
+EventObserver.prototype.map = function(mapper) {
+  return new LazyEventDispatcher(
+    (dispatcher) => this.subscribe((value) => dispatcher.dispatch(mapper(value)))
+  );
+};
+EventObserver.prototype.where = function(condition) {
+  return new LazyEventDispatcher(
+    (dispatcher) => this.subscribe((value) => {
+      if (condition(value)) {
+        dispatcher.dispatch(value);
+      }
+    })
+  );
+};
+EventObserver.prototype.awaited = function(onRejection) {
+  if (typeof onRejection === "function") {
+    return new LazyEventDispatcher(
+      (dispatcher) => this.subscribe((value) => {
+        if (value instanceof Promise) {
+          value.then(
+            (v) => {
+              dispatcher.dispatch(v);
+            },
+            (e) => {
+              onRejection(e, value);
+            }
+          );
+        } else {
+          dispatcher.dispatch(value);
+        }
+      })
+    );
+  }
+  return new LazyEventDispatcher(
+    (dispatcher) => this.subscribe((value) => {
+      if (value instanceof Promise) {
+        value.then((v) => {
+          dispatcher.dispatch(v);
+        }, noop);
+      } else {
+        dispatcher.dispatch(value);
+      }
+    })
+  );
+};
+EventDispatcher.prototype.dispatchSafe = function(value) {
+  try {
+    this.dispatch(value);
+  } catch (_e) {
+  }
+};
+
+// src/variable.ts
+var Variable = class {
+  /**
+   * Overload of the `toString` method. Returns the string representation of the value of the variable
+   * @returns the string representation of the value of the variable
+   */
+  toString() {
+    const _value = this.value;
+    if (_value === null || _value === void 0) {
+      return `${_value}`;
+    }
+    return _value.toString();
+  }
+  /**
+   * Overload of the `valueOf` method. Converts the variable to a primitive value, in this case, the value of the variable
+   * @returns the primitive value of the variable
+   */
+  valueOf() {
+    return this.value;
+  }
+};
+
+// src/vars/and.ts
+var import_disposiq6 = require("@tioniq/disposiq");
+
 // src/vars/compound.ts
 var CompoundVariable = class extends Variable {
   constructor(initValue, equalityComparer) {
@@ -781,7 +1051,6 @@ var CompoundVariable = class extends Variable {
 };
 
 // src/vars/and.ts
-var import_disposiq2 = require("@tioniq/disposiq");
 var AndVariable = class extends CompoundVariable {
   constructor(variables) {
     super(false);
@@ -795,7 +1064,7 @@ var AndVariable = class extends CompoundVariable {
     this._listen(0);
   }
   deactivate() {
-    (0, import_disposiq2.disposeAll)(this._subscriptions);
+    (0, import_disposiq6.disposeAll)(this._subscriptions);
   }
   getExactValue() {
     const variables = this._variables;
@@ -842,7 +1111,7 @@ var AndVariable = class extends CompoundVariable {
 };
 
 // src/vars/combined.ts
-var import_disposiq3 = require("@tioniq/disposiq");
+var import_disposiq7 = require("@tioniq/disposiq");
 var CombinedVariable = class extends CompoundVariable {
   constructor(vars) {
     if (!(vars == null ? void 0 : vars.length)) {
@@ -852,7 +1121,7 @@ var CombinedVariable = class extends CompoundVariable {
     /**
      * @internal
      */
-    this._subscriptions = new import_disposiq3.DisposableStore();
+    this._subscriptions = new import_disposiq7.DisposableStore();
     this._vars = vars.slice();
   }
   activate() {
@@ -886,7 +1155,7 @@ var CombinedVariable = class extends CompoundVariable {
 var stubArray = Object.freeze([]);
 
 // src/vars/constant.ts
-var import_disposiq4 = require("@tioniq/disposiq");
+var import_disposiq8 = require("@tioniq/disposiq");
 var ConstantVariable = class extends Variable {
   constructor(value, equalityComparer) {
     super();
@@ -901,15 +1170,15 @@ var ConstantVariable = class extends Variable {
   }
   subscribe(callback) {
     callback(this._value);
-    return import_disposiq4.emptyDisposable;
+    return import_disposiq8.emptyDisposable;
   }
   subscribeSilent(_) {
-    return import_disposiq4.emptyDisposable;
+    return import_disposiq8.emptyDisposable;
   }
 };
 
 // src/vars/delegate.ts
-var import_disposiq5 = require("@tioniq/disposiq");
+var import_disposiq9 = require("@tioniq/disposiq");
 var DelegateVariable = class extends CompoundVariable {
   constructor(sourceOrDefaultValue) {
     super(
@@ -924,7 +1193,7 @@ var DelegateVariable = class extends CompoundVariable {
     /**
      * @internal
      */
-    this._sourceSubscription = new import_disposiq5.DisposableContainer();
+    this._sourceSubscription = new import_disposiq9.DisposableContainer();
     if (sourceOrDefaultValue instanceof Variable) {
       this._source = sourceOrDefaultValue;
     } else {
@@ -943,7 +1212,7 @@ var DelegateVariable = class extends CompoundVariable {
         this._source = null;
       }
       this._sourceSubscription.disposeCurrent();
-      return import_disposiq5.emptyDisposable;
+      return import_disposiq9.emptyDisposable;
     }
     this._source = source;
     this._sourceSubscription.disposeCurrent();
@@ -953,7 +1222,7 @@ var DelegateVariable = class extends CompoundVariable {
       );
       this.value = source.value;
     }
-    return new import_disposiq5.DisposableAction(() => {
+    return new import_disposiq9.DisposableAction(() => {
       if (this._source !== source) {
         return;
       }
@@ -1034,14 +1303,14 @@ var DirectVariable = class extends Variable {
 };
 
 // src/vars/func.ts
-var import_disposiq6 = require("@tioniq/disposiq");
+var import_disposiq10 = require("@tioniq/disposiq");
 var FuncVariable = class extends CompoundVariable {
   constructor(activate, exactValue, equalityComparer) {
     super(null, equalityComparer);
-    const disposable = new import_disposiq6.DisposableContainer();
+    const disposable = new import_disposiq10.DisposableContainer();
     this._activator = (self) => {
       disposable.disposeCurrent();
-      disposable.set((0, import_disposiq6.toDisposable)(activate(self)));
+      disposable.set((0, import_disposiq10.toDisposable)(activate(self)));
     };
     this._deactivator = () => {
       disposable.disposeCurrent();
@@ -1096,7 +1365,7 @@ var FuncVariable = class extends CompoundVariable {
 };
 
 // src/vars/invert.ts
-var import_disposiq7 = require("@tioniq/disposiq");
+var import_disposiq11 = require("@tioniq/disposiq");
 var InvertVariable = class extends Variable {
   constructor(variable) {
     super();
@@ -1111,7 +1380,7 @@ var InvertVariable = class extends Variable {
     /**
      * @internal
      */
-    this._subscription = new import_disposiq7.DisposableContainer();
+    this._subscription = new import_disposiq11.DisposableContainer();
     this._variable = variable;
     this._chain.onEmpty = () => this._deactivate();
   }
@@ -1157,14 +1426,14 @@ var InvertVariable = class extends Variable {
 };
 
 // src/vars/map.ts
-var import_disposiq8 = require("@tioniq/disposiq");
+var import_disposiq12 = require("@tioniq/disposiq");
 var MapVariable = class extends CompoundVariable {
   constructor(variable, mapper, equalityComparer) {
     super(null, equalityComparer);
     /**
      * @internal
      */
-    this._subscription = new import_disposiq8.DisposableContainer();
+    this._subscription = new import_disposiq12.DisposableContainer();
     /**
      * @internal
      */
@@ -1188,14 +1457,14 @@ var MapVariable = class extends CompoundVariable {
 };
 
 // src/vars/max.ts
-var import_disposiq9 = require("@tioniq/disposiq");
+var import_disposiq13 = require("@tioniq/disposiq");
 var MaxVariable = class extends CompoundVariable {
   constructor(vars) {
     super(0);
     /**
      * @internal
      */
-    this._subscriptions = new import_disposiq9.DisposableStore();
+    this._subscriptions = new import_disposiq13.DisposableStore();
     this._vars = vars.slice();
   }
   activate() {
@@ -1236,14 +1505,14 @@ var MaxVariable = class extends CompoundVariable {
 };
 
 // src/vars/min.ts
-var import_disposiq10 = require("@tioniq/disposiq");
+var import_disposiq14 = require("@tioniq/disposiq");
 var MinVariable = class extends CompoundVariable {
   constructor(vars) {
     super(0);
     /**
      * @internal
      */
-    this._subscriptions = new import_disposiq10.DisposableStore();
+    this._subscriptions = new import_disposiq14.DisposableStore();
     this._vars = vars.slice();
   }
   activate() {
@@ -1342,7 +1611,7 @@ var MutableVariable = class extends Variable {
 };
 
 // src/vars/or.ts
-var import_disposiq11 = require("@tioniq/disposiq");
+var import_disposiq15 = require("@tioniq/disposiq");
 var OrVariable = class extends CompoundVariable {
   constructor(variables) {
     super(false);
@@ -1356,7 +1625,7 @@ var OrVariable = class extends CompoundVariable {
     this._listen(0);
   }
   deactivate() {
-    (0, import_disposiq11.disposeAll)(this._subscriptions);
+    (0, import_disposiq15.disposeAll)(this._subscriptions);
   }
   getExactValue() {
     const variables = this._variables;
@@ -1403,7 +1672,7 @@ var OrVariable = class extends CompoundVariable {
 };
 
 // src/vars/seal.ts
-var import_disposiq12 = require("@tioniq/disposiq");
+var import_disposiq16 = require("@tioniq/disposiq");
 var SealVariable = class extends Variable {
   constructor(vary, equalityComparer) {
     super();
@@ -1414,7 +1683,7 @@ var SealVariable = class extends Variable {
     /**
      * @internal
      */
-    this._varSubscription = new import_disposiq12.DisposableContainer();
+    this._varSubscription = new import_disposiq16.DisposableContainer();
     /**
      * @internal
      */
@@ -1447,7 +1716,7 @@ var SealVariable = class extends Variable {
   subscribe(callback) {
     if (this._sealed) {
       callback(this._value);
-      return import_disposiq12.emptyDisposable;
+      return import_disposiq16.emptyDisposable;
     }
     if (this._chain.empty) {
       this._activate();
@@ -1460,7 +1729,7 @@ var SealVariable = class extends Variable {
   }
   subscribeSilent(callback) {
     if (this._sealed) {
-      return import_disposiq12.emptyDisposable;
+      return import_disposiq16.emptyDisposable;
     }
     if (this._chain.empty) {
       this._activate();
@@ -1523,14 +1792,14 @@ var SealVariable = class extends Variable {
 };
 
 // src/vars/sum.ts
-var import_disposiq13 = require("@tioniq/disposiq");
+var import_disposiq17 = require("@tioniq/disposiq");
 var SumVariable = class extends CompoundVariable {
   constructor(vars) {
     super(0);
     /**
      * @internal
      */
-    this._subscriptions = new import_disposiq13.DisposableStore();
+    this._subscriptions = new import_disposiq17.DisposableStore();
     this._vars = vars.slice();
   }
   activate() {
@@ -1572,18 +1841,18 @@ var SumVariable = class extends CompoundVariable {
 };
 
 // src/vars/switch-map.ts
-var import_disposiq14 = require("@tioniq/disposiq");
+var import_disposiq18 = require("@tioniq/disposiq");
 var SwitchMapVariable = class extends CompoundVariable {
   constructor(vary, mapper, equalityComparer) {
     super(null, equalityComparer);
     /**
      * @internal
      */
-    this._switchSubscription = new import_disposiq14.DisposableContainer();
+    this._switchSubscription = new import_disposiq18.DisposableContainer();
     /**
      * @internal
      */
-    this._varSubscription = new import_disposiq14.DisposableContainer();
+    this._varSubscription = new import_disposiq18.DisposableContainer();
     this._var = vary;
     this._mapper = mapper;
   }
@@ -1617,7 +1886,7 @@ var SwitchMapVariable = class extends CompoundVariable {
 };
 
 // src/vars/throttled.ts
-var import_disposiq15 = require("@tioniq/disposiq");
+var import_disposiq19 = require("@tioniq/disposiq");
 var noScheduledValue = Object.freeze({});
 var ThrottledVariable = class extends CompoundVariable {
   constructor(vary, onUpdate, equalityComparer) {
@@ -1625,11 +1894,11 @@ var ThrottledVariable = class extends CompoundVariable {
     /**
      * @internal
      */
-    this._subscription = new import_disposiq15.DisposableContainer();
+    this._subscription = new import_disposiq19.DisposableContainer();
     /**
      * @internal
      */
-    this._updateSubscription = new import_disposiq15.DisposableContainer();
+    this._updateSubscription = new import_disposiq19.DisposableContainer();
     /**
      * @internal
      */
@@ -1673,257 +1942,6 @@ var ThrottledVariable = class extends CompoundVariable {
   }
 };
 
-// src/functions.ts
-var import_disposiq20 = require("@tioniq/disposiq");
-
-// src/events/observer.ts
-var EventObserver = class {
-};
-
-// src/events/dispatcher.ts
-var EventDispatcher = class extends EventObserver {
-  constructor() {
-    super(...arguments);
-    /**
-     * @internal
-     */
-    this._nodes = new LinkedActionChain();
-  }
-  subscribe(action) {
-    return this._nodes.add(action);
-  }
-  /**
-   * Dispatches the event to all subscribers
-   * @param value the value of the event
-   */
-  dispatch(value) {
-    this._nodes.forEach(value);
-  }
-  /**
-   * Checks if there are any subscriptions
-   * @returns true if there are any subscriptions, false otherwise
-   */
-  get hasSubscriptions() {
-    return this._nodes.hasAny;
-  }
-};
-
-// src/events/safe-dispatcher.ts
-var EventSafeDispatcher = class extends EventObserver {
-  constructor() {
-    super(...arguments);
-    /**
-     * @internal
-     */
-    this._nodes = new LinkedChain(functionEqualityComparer);
-  }
-  subscribe(action) {
-    return this._nodes.add(action);
-  }
-  /**
-   * Dispatches the event to all subscribers safely
-   * @param value the value of the event
-   * @param onError error callback
-   */
-  dispatch(value, onError) {
-    this._nodes.forEach((a) => {
-      try {
-        a(value);
-      } catch (e) {
-        onError == null ? void 0 : onError(e);
-      }
-    });
-  }
-  /**
-   * Checks if there are any subscriptions
-   * @returns true if there are any subscriptions, false otherwise
-   */
-  get hasSubscriptions() {
-    return this._nodes.hasAny;
-  }
-};
-
-// src/events/stub.ts
-var import_disposiq16 = require("@tioniq/disposiq");
-var EventObserverStub = class extends EventObserver {
-  subscribe() {
-    return import_disposiq16.emptyDisposable;
-  }
-};
-
-// src/events/lazy.ts
-var import_disposiq17 = require("@tioniq/disposiq");
-var LazyEventDispatcher = class extends EventObserver {
-  constructor(activator) {
-    super();
-    /**
-     * @internal
-     */
-    this._nodes = new LinkedActionChain();
-    /**
-     * @internal
-     */
-    this._subscription = new import_disposiq17.DisposableContainer();
-    this._activator = activator;
-    this._nodes.onEmpty = () => this._deactivate();
-  }
-  /**
-   * Checks if there are any subscriptions
-   * @returns true if there are any subscriptions, false otherwise
-   */
-  get hasSubscription() {
-    return this._nodes.hasAny;
-  }
-  subscribe(callback) {
-    let subscription;
-    if (this._nodes.empty) {
-      subscription = this._nodes.add(callback);
-      this._activate();
-    } else {
-      subscription = this._nodes.add(callback);
-    }
-    return subscription;
-  }
-  /**
-   * Dispatches the event to all subscribers
-   * @param value the value of the event
-   */
-  dispatch(value) {
-    this._nodes.forEach(value);
-  }
-  /**
-   * @internal
-   */
-  _activate() {
-    this._subscription.disposeCurrent();
-    this._subscription.set((0, import_disposiq17.toDisposable)(this._activator(this)));
-  }
-  /**
-   * @internal
-   */
-  _deactivate() {
-    this._subscription.disposeCurrent();
-  }
-};
-
-// src/events/functions.ts
-var import_disposiq18 = require("@tioniq/disposiq");
-function merge(...observers) {
-  return new LazyEventDispatcher((dispatcher) => {
-    const disposableStore = new import_disposiq18.DisposableStore();
-    for (const t of observers) {
-      disposableStore.add(t.subscribe((v) => dispatcher.dispatch(v)));
-    }
-    return disposableStore;
-  });
-}
-
-// src/events/extensions.ts
-var import_disposiq19 = require("@tioniq/disposiq");
-
-// src/noop.ts
-var noop = Object.freeze(() => {
-});
-
-// src/events/extensions.ts
-EventObserver.prototype.subscribeOnce = function(callback) {
-  const subscription = new import_disposiq19.DisposableContainer();
-  subscription.set(
-    this.subscribe((value) => {
-      subscription.dispose();
-      callback(value);
-    })
-  );
-  return subscription;
-};
-EventObserver.prototype.subscribeOnceWhere = function(callback, condition) {
-  const subscription = new import_disposiq19.DisposableContainer();
-  subscription.set(
-    this.subscribe((value) => {
-      if (!condition(value)) {
-        return;
-      }
-      subscription.dispose();
-      callback(value);
-    })
-  );
-  return subscription;
-};
-EventObserver.prototype.subscribeWhere = function(callback, condition) {
-  return this.subscribe((value) => {
-    if (condition(value)) {
-      callback(value);
-    }
-  });
-};
-EventObserver.prototype.subscribeOn = function(callback, condition) {
-  return condition.subscribeDisposable(
-    (value) => value ? this.subscribe(callback) : import_disposiq19.emptyDisposable
-  );
-};
-EventObserver.prototype.subscribeDisposable = function(callback) {
-  const container = new import_disposiq19.DisposableContainer();
-  const subscription = this.subscribe((v) => {
-    container.disposeCurrent();
-    container.set(callback(v));
-  });
-  return new import_disposiq19.DisposableAction(() => {
-    subscription.dispose();
-    container.dispose();
-  });
-};
-EventObserver.prototype.map = function(mapper) {
-  return new LazyEventDispatcher(
-    (dispatcher) => this.subscribe((value) => dispatcher.dispatch(mapper(value)))
-  );
-};
-EventObserver.prototype.where = function(condition) {
-  return new LazyEventDispatcher(
-    (dispatcher) => this.subscribe((value) => {
-      if (condition(value)) {
-        dispatcher.dispatch(value);
-      }
-    })
-  );
-};
-EventObserver.prototype.awaited = function(onRejection) {
-  if (typeof onRejection === "function") {
-    return new LazyEventDispatcher(
-      (dispatcher) => this.subscribe((value) => {
-        if (value instanceof Promise) {
-          value.then(
-            (v) => {
-              dispatcher.dispatch(v);
-            },
-            (e) => {
-              onRejection(e, value);
-            }
-          );
-        } else {
-          dispatcher.dispatch(value);
-        }
-      })
-    );
-  }
-  return new LazyEventDispatcher(
-    (dispatcher) => this.subscribe((value) => {
-      if (value instanceof Promise) {
-        value.then((v) => {
-          dispatcher.dispatch(v);
-        }, noop);
-      } else {
-        dispatcher.dispatch(value);
-      }
-    })
-  );
-};
-EventDispatcher.prototype.dispatchSafe = function(value) {
-  try {
-    this.dispatch(value);
-  } catch (e) {
-  }
-};
-
 // src/is.ts
 function isVariable(value) {
   return value instanceof Variable;
@@ -1954,7 +1972,7 @@ function createVar(initialValue, equalityComparer) {
 function createFuncVar(activator, exactValue, equalityComparer) {
   return new FuncVariable(activator, exactValue, equalityComparer);
 }
-function createConst(value) {
+function createConstVar(value) {
   return new ConstantVariable(value);
 }
 function createDelegate(sourceOrDefaultValue) {
@@ -1994,24 +2012,82 @@ function createDelayDispatcher(delay) {
   });
 }
 function toVariable(value) {
-  return isVariableOf(value) ? value : createConst(value);
+  return isVariableOf(value) ? value : createConstVar(value);
 }
 
+// src/constants.ts
+var nullVariable = createConstVar(null);
+var undefinedVariable = createConstVar(void 0);
+var falseVariable = createConstVar(false);
+var trueVariable = createConstVar(true);
+var zeroVariable = createConstVar(0);
+var emptyStringVariable = createConstVar("");
+
 // src/extensions.ts
+var import_disposiq22 = require("@tioniq/disposiq");
+
+// src/vars/equal.ts
 var import_disposiq21 = require("@tioniq/disposiq");
+var EqualsToValueVariable = class extends CompoundVariable {
+  constructor(variable, value, equalityComparer) {
+    super(false);
+    this._subscription = new import_disposiq21.DisposableContainer();
+    this._variable = variable;
+    this.__value = value;
+    this.__equalityComparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
+  }
+  activate() {
+    this._subscription.disposeCurrent();
+    this._subscription.set(this._variable.subscribe((v) => {
+      this.value = this.__equalityComparer(this.__value, v);
+    }));
+  }
+  deactivate() {
+    this._subscription.disposeCurrent();
+  }
+  getExactValue() {
+    return this.__equalityComparer(this.__value, this._variable.value);
+  }
+};
+var EqualsToVariableVariable = class extends CompoundVariable {
+  constructor(variable, otherVariable, equalityComparer) {
+    super(false);
+    this._subscription = new import_disposiq21.DisposableStore();
+    this._variable = variable;
+    this._otherVariable = otherVariable;
+    this.__equalityComparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
+  }
+  activate() {
+    this._subscription.disposeCurrent();
+    this._subscription.add(this._variable.subscribeSilent((v) => {
+      this.value = this.__equalityComparer(v, this._otherVariable.value);
+    }));
+    this._subscription.add(this._otherVariable.subscribe((v) => {
+      this.value = this.__equalityComparer(this._variable.value, v);
+    }));
+  }
+  deactivate() {
+    this._subscription.disposeCurrent();
+  }
+  getExactValue() {
+    return this.__equalityComparer(this._variable.value, this._otherVariable.value);
+  }
+};
+
+// src/extensions.ts
 Variable.prototype.subscribeDisposable = function(callback) {
-  const container = new import_disposiq21.DisposableContainer();
+  const container = new import_disposiq22.DisposableContainer();
   const subscription = this.subscribe((v) => {
     container.disposeCurrent();
     container.set(callback(v));
   });
-  return new import_disposiq21.DisposableAction(() => {
+  return new import_disposiq22.DisposableAction(() => {
     subscription.dispose();
     container.dispose();
   });
 };
 Variable.prototype.subscribeOnceWhere = function(callback, condition) {
-  const container = new import_disposiq21.DisposableContainer();
+  const container = new import_disposiq22.DisposableContainer();
   container.set(
     this.subscribeSilent((v) => {
       if (!condition(v)) {
@@ -2027,7 +2103,7 @@ Variable.prototype.subscribeOnceWhere = function(callback, condition) {
   }
   container.dispose();
   callback(value);
-  return import_disposiq21.emptyDisposable;
+  return import_disposiq22.emptyDisposable;
 };
 Variable.prototype.subscribeWhere = function(callback, condition, equalityComparer) {
   if (typeof condition === "function") {
@@ -2137,9 +2213,13 @@ Variable.prototype.lessOrEqual = function(other) {
 Variable.prototype.equal = function(other, equalityComparer) {
   const comparer = equalityComparer != null ? equalityComparer : defaultEqualityComparer;
   if (other instanceof Variable) {
-    return this.with(other).map(([a, b]) => comparer(a, b));
+    return new EqualsToVariableVariable(this, other, comparer);
   }
-  return new MapVariable(this, (v) => comparer(v, other));
+  return new EqualsToValueVariable(this, other, comparer);
+};
+Variable.prototype.notEqual = function(other, equalityComparer) {
+  const comparer = equalityComparer ? (v1, v2) => !equalityComparer(v1, v2) : (v1, v2) => !defaultEqualityComparer(v1, v2);
+  return this.equal(other, comparer);
 };
 Variable.prototype.sealed = function() {
   return new ConstantVariable(this.value);
@@ -2165,7 +2245,7 @@ Variable.prototype.notifyOn = function(event) {
     const subscription2 = event.subscribe(() => {
       vary.notify();
     });
-    return new import_disposiq21.DisposableAction(() => {
+    return new import_disposiq22.DisposableAction(() => {
       subscription1.dispose();
       subscription2.dispose();
     });
@@ -2698,6 +2778,10 @@ var ObservableList = class {
   createLazyVar,
   createVar,
   defaultEqualityComparer,
+  emptyString,
+  emptyStringVariable,
+  falseVar,
+  falseVariable,
   functionEqualityComparer,
   generalEqualityComparer,
   isDelegateVariable,
@@ -2707,11 +2791,19 @@ var ObservableList = class {
   max,
   merge,
   min,
+  nullVar,
+  nullVariable,
   objectEqualityComparer,
   or,
   setDefaultEqualityComparer,
   simpleEqualityComparer,
   strictEqualityComparer,
   sum,
-  toVariable
+  toVariable,
+  trueVar,
+  trueVariable,
+  undefinedVar,
+  undefinedVariable,
+  zeroVar,
+  zeroVariable
 });

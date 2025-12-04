@@ -1,13 +1,14 @@
 import { createConstVar } from "./functions";
+import type { Variable } from "./variable";
 
-export const nullVariable = createConstVar(null)
+export const nullVariable: Variable<null> = createConstVar(null)
 
-export const undefinedVariable = createConstVar(undefined)
+export const undefinedVariable: Variable<undefined> = createConstVar(undefined)
 
-export const falseVariable = createConstVar(false)
+export const falseVariable: Variable<false> = createConstVar(false)
 
-export const trueVariable = createConstVar(true)
+export const trueVariable: Variable<true> = createConstVar(true)
 
-export const zeroVariable = createConstVar(0)
+export const zeroVariable: Variable<0> = createConstVar(0)
 
-export const emptyStringVariable = createConstVar("")
+export const emptyStringVariable: Variable<""> = createConstVar("")

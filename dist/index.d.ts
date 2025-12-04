@@ -4,6 +4,16 @@ type Action$1<T = void> = (value: T) => void;
 type Func0<R> = () => R;
 type Func<T, R> = (arg: T) => R;
 
+type EqualityComparer<T> = (a: T, b: T) => boolean;
+declare function strictEqualityComparer<T>(a: T, b: T): boolean;
+declare function simpleEqualityComparer<T>(a: T, b: T): boolean;
+declare var defaultEqualityComparer: EqualityComparer<unknown>;
+declare function setDefaultEqualityComparer(comparer: EqualityComparer<unknown>): void;
+declare function functionEqualityComparer(a: Function, b: Function): boolean;
+declare function generalEqualityComparer<T>(a: T, b: T): boolean;
+declare function objectEqualityComparer<T extends object>(a: T, b: T): boolean;
+declare function arrayEqualityComparer<K, T extends ArrayLike<K>>(a: T, b: T): boolean;
+
 /**
  * A base class for event observers. **All event observers should extend this class**.
  * <p>
@@ -118,6 +128,40 @@ interface EventDispatcher<T> {
 }
 
 /**
+ * Merges multiple event observers into a single event observer. The resulting event observer will dispatch events
+ * from all the given event observers.
+ * @param observers the event observers to merge
+ * @returns the merged event observer
+ * @typeparam T - the type of the event value
+ */
+declare function merge<T>(...observers: EventObserver<T>[]): EventObserver<T>;
+
+/**
+ * A class that implements the EventObserver class in a lazy way. The implementation receives an activator function.
+ * The activator will be activated only when there is at least one subscription. When the last subscription is disposed,
+ * the activator will be deactivated. The activator can be reactivated when a new subscription is added.
+ * <p>
+ *   This class is useful when you need to activate some resources only when there are subscribers.
+ *   subscribers.
+ * </p>
+ * @typeparam T - the type of the event value
+ */
+declare class LazyEventDispatcher<T = void> extends EventObserver<T> {
+    constructor(activator: Func<LazyEventDispatcher<T>, DisposableLike>);
+    /**
+     * Checks if there are any subscriptions
+     * @returns true if there are any subscriptions, false otherwise
+     */
+    get hasSubscription(): boolean;
+    subscribe(callback: Action$1<T>): Disposiq;
+    /**
+     * Dispatches the event to all subscribers
+     * @param value the value of the event
+     */
+    dispatch(value: T): void;
+}
+
+/**
  * A class that implements the EventObserver class and provides the ability to dispatch events by calling the `dispatch`
  * method. The method `dispatch` will fire events and catch exceptions unlike {@link EventDispatcher}
  * @typeparam T - the type of the event value
@@ -146,295 +190,6 @@ declare class EventSafeDispatcher<T = void> extends EventObserver<T> {
  */
 declare class EventObserverStub<T> extends EventObserver<T> {
     subscribe(): Disposiq;
-}
-
-/**
- * A class that implements the EventObserver class in a lazy way. The implementation receives an activator function.
- * The activator will be activated only when there is at least one subscription. When the last subscription is disposed,
- * the activator will be deactivated. The activator can be reactivated when a new subscription is added.
- * <p>
- *   This class is useful when you need to activate some resources only when there are subscribers.
- *   subscribers.
- * </p>
- * @typeparam T - the type of the event value
- */
-declare class LazyEventDispatcher<T = void> extends EventObserver<T> {
-    constructor(activator: Func<LazyEventDispatcher<T>, DisposableLike>);
-    /**
-     * Checks if there are any subscriptions
-     * @returns true if there are any subscriptions, false otherwise
-     */
-    get hasSubscription(): boolean;
-    subscribe(callback: Action$1<T>): Disposiq;
-    /**
-     * Dispatches the event to all subscribers
-     * @param value the value of the event
-     */
-    dispatch(value: T): void;
-}
-
-/**
- * Merges multiple event observers into a single event observer. The resulting event observer will dispatch events
- * from all the given event observers.
- * @param observers the event observers to merge
- * @returns the merged event observer
- * @typeparam T - the type of the event value
- */
-declare function merge<T>(...observers: EventObserver<T>[]): EventObserver<T>;
-
-type EqualityComparer<T> = (a: T, b: T) => boolean;
-declare function strictEqualityComparer<T>(a: T, b: T): boolean;
-declare function simpleEqualityComparer<T>(a: T, b: T): boolean;
-declare var defaultEqualityComparer: EqualityComparer<unknown>;
-declare function setDefaultEqualityComparer(comparer: EqualityComparer<unknown>): void;
-declare function functionEqualityComparer(a: Function, b: Function): boolean;
-declare function generalEqualityComparer<T>(a: T, b: T): boolean;
-declare function objectEqualityComparer<T extends object>(a: T, b: T): boolean;
-declare function arrayEqualityComparer<K, T extends ArrayLike<K>>(a: T, b: T): boolean;
-
-/**
- * Base Variable class. **All variables should extend this class**.
- * <p>
- * The general idea is that a **variable is a value that can be observed**. When the value changes, all subscribers are
- * notified. When we say 'changed', we mean that the value has changed according to the equality comparer. The default
- * equality comparer is the strict equality comparer.
- * </p>
- * <p>
- * You can subscribe to the variable using the `subscribe` or `subscribeSilent` methods.
- * The difference between them is that the **`subscribe` method will notify the subscriber immediately** after the
- * subscription, while the `subscribeSilent` method will not notify the subscriber immediately after the subscription.
- * </p>
- * @typeparam T - the type of the variable value
- */
-declare abstract class Variable<out T> {
-    /**
-     * The current value of the variable
-     */
-    abstract get value(): T;
-    /**
-     * Subscribes to the variable. The callback will be called immediately after the subscription and every time the value
-     * of the variable changes. You can unsubscribe by calling the `dispose` method of the returned object.
-     * @param callback the callback that will be called immediately after the subscription and every time the value of the
-     * variable changes
-     * @returns an object that can be used to unsubscribe
-     */
-    abstract subscribe(callback: Func<T, void>): Disposiq;
-    /**
-     * Subscribes to the variable. The callback will not be called immediately after the subscription, only when the value
-     * of the variable changes. You can unsubscribe by calling the `dispose` method of the returned object.
-     * @param callback the callback that will be called every time the value of the variable changes
-     * @returns an object that can be used to unsubscribe
-     */
-    abstract subscribeSilent(callback: Func<T, void>): Disposiq;
-    /**
-     * Overload of the `toString` method. Returns the string representation of the value of the variable
-     * @returns the string representation of the value of the variable
-     */
-    toString(): string;
-    /**
-     * Overload of the `valueOf` method. Converts the variable to a primitive value, in this case, the value of the variable
-     * @returns the primitive value of the variable
-     */
-    valueOf(): T;
-}
-/**
- * Variable extensions
- */
-interface Variable<out T> {
-    /**
-     * Subscribes to the variable. The callback can return a disposable object that will be disposed when a value is
-     * changed or the subscription is disposed
-     * @param callback the callback
-     * @returns an object that can be used to unsubscribe
-     */
-    subscribeDisposable(callback: Func<T, IDisposable>): Disposiq;
-    /**
-     * Subscribes to the variable and calls the callback once if the condition is met
-     * @param callback the callback
-     * @param condition the condition
-     * @returns an object that can be used to unsubscribe
-     */
-    subscribeOnceWhere(callback: Action$1<T>, condition: Func<T, boolean>): Disposiq;
-    /**
-     * Subscribes to a callback that will be executed only when a specified condition is met.
-     *
-     * @param callback the function to execute whenever the condition is fulfilled.
-     * @param condition a value that determines whether the given condition is satisfied.
-     * @param equalityComparer an optional equality comparer that will be used to compare the condition value with the
-     * @return a disposable object that can be used to unsubscribe from the subscription.
-     */
-    subscribeWhere(callback: Action$1<T>, condition: T, equalityComparer?: EqualityComparer<T>): Disposiq;
-    /**
-     * Subscribes to a callback that will be executed only when a specified condition is met.
-     *
-     * @param callback the function to execute whenever the condition is fulfilled.
-     * @param condition a function that determines whether the given condition is satisfied.
-     * @return a disposable object that can be used to unsubscribe from the subscription.
-     */
-    subscribeWhere(callback: Action$1<T>, condition: Func<T, boolean>): Disposiq;
-    /**
-     * Maps the variable value to another value
-     * @param mapper the mapper
-     * @param equalityComparer the equality comparer for the mapped value
-     * @returns a new variable with the mapped value
-     */
-    map<TOutput>(mapper: Func<T, TOutput>, equalityComparer?: EqualityComparer<TOutput>): Variable<TOutput>;
-    /**
-     * Creates a new variable that will return true if any of the variable values are true
-     * @param other the other variable
-     * @returns a new OR variable
-     */
-    or(this: Variable<boolean>, other: Variable<boolean>): Variable<boolean>;
-    /**
-     * Creates a new variable that will return true if all the variable values are true
-     * @param other the other variable
-     * @returns a new AND variable
-     */
-    and(this: Variable<boolean>, other: Variable<boolean>): Variable<boolean>;
-    /**
-     * Inverts the variable value. If the value is true, the new value will be false and vice versa
-     * @returns a new variable with the inverted value
-     */
-    invert(this: Variable<boolean>): Variable<boolean>;
-    /**
-     * Combines the variable with other variables
-     * @param others the other variables
-     * @returns a new variable with the combined values
-     */
-    with<O extends unknown[]>(...others: {
-        [K in keyof O]: Variable<O[K]>;
-    }): Variable<[T, ...O]>;
-    /**
-     * Maps the variable value to another value using the mapper that returns a new variable to subscribe
-     * @param mapper the mapper that returns another variable to subscribe
-     * @param equalityComparer the equality comparer for the mapped value
-     * @returns a new variable with the mapped value
-     */
-    switchMap<TResult>(mapper: SwitchMapMapper<T, TResult>, equalityComparer?: EqualityComparer<TResult>): Variable<TResult>;
-    /**
-     * Throttles the variable value changes
-     * @param delay the delay in milliseconds
-     * @param equalityComparer the equality comparer
-     * @returns a new variable with the throttled value
-     */
-    throttle(delay: number, equalityComparer?: EqualityComparer<T>): Variable<T>;
-    /**
-     * Throttles the variable value changes
-     * @param onUpdate the event observer that will be used to throttle the value changes
-     * @param equalityComparer the equality comparer
-     * @returns a new variable with the throttled value
-     */
-    throttle(onUpdate: EventObserver, equalityComparer?: EqualityComparer<T>): Variable<T>;
-    /**
-     * Streams the variable value to another mutable variable
-     * @param receiver the receiver variable
-     * @returns an object that can be used to unsubscribe
-     */
-    streamTo<R extends T>(receiver: MutableVariable<R>): Disposiq;
-    /**
-     * Keeps the variable's subscription alive
-     * @returns an object that can be used to stop the persistence
-     */
-    startPersistent(): Disposiq;
-    /**
-     * Creates a new variable that will return the sum of the variable values
-     * @param other the other variable or a value
-     * @returns a new SUM variable
-     */
-    plus(this: Variable<number>, other: Variable<number> | number): Variable<number>;
-    /**
-     * Creates a new variable that will return the difference of the variable values
-     * @param other the other variable or a value
-     * @returns a new SUM variable
-     */
-    minus(this: Variable<number>, other: Variable<number> | number): Variable<number>;
-    /**
-     * Creates a new variable that will return the product of the variable values
-     * @param other the other variable or a value
-     * @returns a new MULTIPLY variable
-     */
-    multiply(this: Variable<number>, other: Variable<number> | number): Variable<number>;
-    /**
-     * Creates a new variable that will return the quotient of the variable values
-     * @param other the other variable or a value
-     * @returns a new DIVIDE variable
-     */
-    divide(this: Variable<number>, other: Variable<number> | number): Variable<number>;
-    /**
-     * Creates a new variable that will return the rounded value of the variable
-     * @returns a new variable with the rounded value
-     */
-    round(this: Variable<number>): Variable<number>;
-    /**
-     * Creates a new variable that will return true if the variable value is greater than the other value
-     * @param other the other variable or a value
-     * @returns a new variable with the comparison result
-     */
-    moreThan(this: Variable<number>, other: Variable<number> | number): Variable<boolean>;
-    /**
-     * Creates a new variable that will return true if the variable value is less than the other value
-     * @param other the other variable or a value
-     * @returns a new variable with the comparison result
-     */
-    lessThan(this: Variable<number>, other: Variable<number> | number): Variable<boolean>;
-    /**
-     * Creates a new variable that will return true if the variable value is greater or equal to the other value
-     * @param other the other variable or a value
-     * @returns a new variable with the comparison result
-     */
-    moreOrEqual(this: Variable<number>, other: Variable<number> | number): Variable<boolean>;
-    /**
-     * Creates a new variable that will return true if the variable value is less or equal to the other value
-     * @param other the other variable or a value
-     * @returns a new variable with the comparison result
-     */
-    lessOrEqual(this: Variable<number>, other: Variable<number> | number): Variable<boolean>;
-    /**
-     * Creates a new variable that will return true if the variable value is equal to the other value
-     * @param other the other variable or a value
-     * @param equalityComparer the equality comparer
-     * @returns a new variable with the comparison result
-     */
-    equal<R extends T>(other: Variable<R> | R, equalityComparer?: EqualityComparer<R>): Variable<boolean>;
-    /**
-     * Creates a new constant variable with the current value
-     * @returns a new variable with the sealed value
-     */
-    sealed(): Variable<T>;
-    /**
-     * Creates a new variable that will stream the variable value until the condition is met
-     * @param condition the condition
-     * @returns a new variable that will be sealed when the condition is met
-     */
-    sealWhen<R extends T>(condition: Func<R, boolean> | R): Variable<R>;
-    /**
-     * Creates a new variable that will stream the variable value until the condition is met
-     * @param condition the condition value to seal
-     * @param equalityComparer the equality comparer
-     * @returns a new variable that will be sealed when the condition is met
-     */
-    sealWhen<R extends T>(condition: R, equalityComparer?: EqualityComparer<R>): Variable<R>;
-    /**
-     * Creates a new variable that will stream the variable value and notify when the variable value is changed or the
-     * event is triggered
-     * @param event the event observer
-     */
-    notifyOn(event: EventObserver): Variable<T>;
-    /**
-     * Flattens a two-dimensional array contained in the Variable instance into a one-dimensional array.
-     * The method works on arrays of type R, combining all inner arrays into a single array.
-     *
-     * @param equalityComparer the equality comparer for the flattened array
-     * @return A new Variable instance containing the flattened one-dimensional array.
-     */
-    flat<R>(this: Variable<Array<Array<R>>>, equalityComparer?: EqualityComparer<Array<R>>): Variable<Array<R>>;
-    /**
-     * Joins the elements of the array into a single string using the specified separator.
-     *
-     * @param {string} separator - The string to separate each element in the array. If not provided, the default is a comma (",").
-     * @return {Variable<string>} A new string containing all elements of the array joined by the separator.
-     */
-    join(this: Variable<string[]>, separator?: string): Variable<string>;
 }
 
 /**
@@ -775,6 +530,265 @@ declare class ThrottledVariable<T> extends CompoundVariable<T> {
 }
 
 /**
+ * Base Variable class. **All variables should extend this class**.
+ * <p>
+ * The general idea is that a **variable is a value that can be observed**. When the value changes, all subscribers are
+ * notified. When we say 'changed', we mean that the value has changed according to the equality comparer. The default
+ * equality comparer is the strict equality comparer.
+ * </p>
+ * <p>
+ * You can subscribe to the variable using the `subscribe` or `subscribeSilent` methods.
+ * The difference between them is that the **`subscribe` method will notify the subscriber immediately** after the
+ * subscription, while the `subscribeSilent` method will not notify the subscriber immediately after the subscription.
+ * </p>
+ * @typeparam T - the type of the variable value
+ */
+declare abstract class Variable<out T> {
+    /**
+     * The current value of the variable
+     */
+    abstract get value(): T;
+    /**
+     * Subscribes to the variable. The callback will be called immediately after the subscription and every time the value
+     * of the variable changes. You can unsubscribe by calling the `dispose` method of the returned object.
+     * @param callback the callback that will be called immediately after the subscription and every time the value of the
+     * variable changes
+     * @returns an object that can be used to unsubscribe
+     */
+    abstract subscribe(callback: Func<T, void>): Disposiq;
+    /**
+     * Subscribes to the variable. The callback will not be called immediately after the subscription, only when the value
+     * of the variable changes. You can unsubscribe by calling the `dispose` method of the returned object.
+     * @param callback the callback that will be called every time the value of the variable changes
+     * @returns an object that can be used to unsubscribe
+     */
+    abstract subscribeSilent(callback: Func<T, void>): Disposiq;
+    /**
+     * Overload of the `toString` method. Returns the string representation of the value of the variable
+     * @returns the string representation of the value of the variable
+     */
+    toString(): string;
+    /**
+     * Overload of the `valueOf` method. Converts the variable to a primitive value, in this case, the value of the variable
+     * @returns the primitive value of the variable
+     */
+    valueOf(): T;
+}
+/**
+ * Variable extensions
+ */
+interface Variable<out T> {
+    /**
+     * Subscribes to the variable. The callback can return a disposable object that will be disposed when a value is
+     * changed or the subscription is disposed
+     * @param callback the callback
+     * @returns an object that can be used to unsubscribe
+     */
+    subscribeDisposable(callback: Func<T, IDisposable>): Disposiq;
+    /**
+     * Subscribes to the variable and calls the callback once if the condition is met
+     * @param callback the callback
+     * @param condition the condition
+     * @returns an object that can be used to unsubscribe
+     */
+    subscribeOnceWhere(callback: Action$1<T>, condition: Func<T, boolean>): Disposiq;
+    /**
+     * Subscribes to a callback that will be executed only when a specified condition is met.
+     *
+     * @param callback the function to execute whenever the condition is fulfilled.
+     * @param condition a value that determines whether the given condition is satisfied.
+     * @param equalityComparer an optional equality comparer that will be used to compare the condition value with the
+     * @return a disposable object that can be used to unsubscribe from the subscription.
+     */
+    subscribeWhere(callback: Action$1<T>, condition: T, equalityComparer?: EqualityComparer<T>): Disposiq;
+    /**
+     * Subscribes to a callback that will be executed only when a specified condition is met.
+     *
+     * @param callback the function to execute whenever the condition is fulfilled.
+     * @param condition a function that determines whether the given condition is satisfied.
+     * @return a disposable object that can be used to unsubscribe from the subscription.
+     */
+    subscribeWhere(callback: Action$1<T>, condition: Func<T, boolean>): Disposiq;
+    /**
+     * Maps the variable value to another value
+     * @param mapper the mapper
+     * @param equalityComparer the equality comparer for the mapped value
+     * @returns a new variable with the mapped value
+     */
+    map<TOutput>(mapper: Func<T, TOutput>, equalityComparer?: EqualityComparer<TOutput>): Variable<TOutput>;
+    /**
+     * Creates a new variable that will return true if any of the variable values are true
+     * @param other the other variable
+     * @returns a new OR variable
+     */
+    or(this: Variable<boolean>, other: Variable<boolean>): Variable<boolean>;
+    /**
+     * Creates a new variable that will return true if all the variable values are true
+     * @param other the other variable
+     * @returns a new AND variable
+     */
+    and(this: Variable<boolean>, other: Variable<boolean>): Variable<boolean>;
+    /**
+     * Inverts the variable value. If the value is true, the new value will be false and vice versa
+     * @returns a new variable with the inverted value
+     */
+    invert(this: Variable<boolean>): Variable<boolean>;
+    /**
+     * Combines the variable with other variables
+     * @param others the other variables
+     * @returns a new variable with the combined values
+     */
+    with<O extends unknown[]>(...others: {
+        [K in keyof O]: Variable<O[K]>;
+    }): Variable<[T, ...O]>;
+    /**
+     * Maps the variable value to another value using the mapper that returns a new variable to subscribe
+     * @param mapper the mapper that returns another variable to subscribe
+     * @param equalityComparer the equality comparer for the mapped value
+     * @returns a new variable with the mapped value
+     */
+    switchMap<TResult>(mapper: SwitchMapMapper<T, TResult>, equalityComparer?: EqualityComparer<TResult>): Variable<TResult>;
+    /**
+     * Throttles the variable value changes
+     * @param delay the delay in milliseconds
+     * @param equalityComparer the equality comparer
+     * @returns a new variable with the throttled value
+     */
+    throttle(delay: number, equalityComparer?: EqualityComparer<T>): Variable<T>;
+    /**
+     * Throttles the variable value changes
+     * @param onUpdate the event observer that will be used to throttle the value changes
+     * @param equalityComparer the equality comparer
+     * @returns a new variable with the throttled value
+     */
+    throttle(onUpdate: EventObserver, equalityComparer?: EqualityComparer<T>): Variable<T>;
+    /**
+     * Streams the variable value to another mutable variable
+     * @param receiver the receiver variable
+     * @returns an object that can be used to unsubscribe
+     */
+    streamTo<R extends T>(receiver: MutableVariable<R>): Disposiq;
+    /**
+     * Keeps the variable's subscription alive
+     * @returns an object that can be used to stop the persistence
+     */
+    startPersistent(): Disposiq;
+    /**
+     * Creates a new variable that will return the sum of the variable values
+     * @param other the other variable or a value
+     * @returns a new SUM variable
+     */
+    plus(this: Variable<number>, other: Variable<number> | number): Variable<number>;
+    /**
+     * Creates a new variable that will return the difference of the variable values
+     * @param other the other variable or a value
+     * @returns a new SUM variable
+     */
+    minus(this: Variable<number>, other: Variable<number> | number): Variable<number>;
+    /**
+     * Creates a new variable that will return the product of the variable values
+     * @param other the other variable or a value
+     * @returns a new MULTIPLY variable
+     */
+    multiply(this: Variable<number>, other: Variable<number> | number): Variable<number>;
+    /**
+     * Creates a new variable that will return the quotient of the variable values
+     * @param other the other variable or a value
+     * @returns a new DIVIDE variable
+     */
+    divide(this: Variable<number>, other: Variable<number> | number): Variable<number>;
+    /**
+     * Creates a new variable that will return the rounded value of the variable
+     * @returns a new variable with the rounded value
+     */
+    round(this: Variable<number>): Variable<number>;
+    /**
+     * Creates a new variable that will return true if the variable value is greater than the other value
+     * @param other the other variable or a value
+     * @returns a new variable with the comparison result
+     */
+    moreThan(this: Variable<number>, other: Variable<number> | number): Variable<boolean>;
+    /**
+     * Creates a new variable that will return true if the variable value is less than the other value
+     * @param other the other variable or a value
+     * @returns a new variable with the comparison result
+     */
+    lessThan(this: Variable<number>, other: Variable<number> | number): Variable<boolean>;
+    /**
+     * Creates a new variable that will return true if the variable value is greater or equal to the other value
+     * @param other the other variable or a value
+     * @returns a new variable with the comparison result
+     */
+    moreOrEqual(this: Variable<number>, other: Variable<number> | number): Variable<boolean>;
+    /**
+     * Creates a new variable that will return true if the variable value is less or equal to the other value
+     * @param other the other variable or a value
+     * @returns a new variable with the comparison result
+     */
+    lessOrEqual(this: Variable<number>, other: Variable<number> | number): Variable<boolean>;
+    /**
+     * Creates a new variable that will return true if the variable value is equal to the other value
+     * @param other the other variable or a value
+     * @param equalityComparer the equality comparer
+     * @returns a new variable with the comparison result
+     */
+    equal<R extends T>(other: Variable<R> | R, equalityComparer?: EqualityComparer<R>): Variable<boolean>;
+    /**
+     * Creates a new variable that will return true if the variable value is not equal to the other value
+     * @param other the other variable or a value
+     * @param equalityComparer the equality comparer
+     * @returns a new variable with the comparison result
+     */
+    notEqual<R extends T>(other: Variable<R> | R, equalityComparer?: EqualityComparer<R>): Variable<boolean>;
+    /**
+     * Creates a new constant variable with the current value
+     * @returns a new variable with the sealed value
+     */
+    sealed(): Variable<T>;
+    /**
+     * Creates a new variable that will stream the variable value until the condition is met
+     * @param condition the condition
+     * @returns a new variable that will be sealed when the condition is met
+     */
+    sealWhen<R extends T>(condition: Func<R, boolean> | R): Variable<R>;
+    /**
+     * Creates a new variable that will stream the variable value until the condition is met
+     * @param condition the condition value to seal
+     * @param equalityComparer the equality comparer
+     * @returns a new variable that will be sealed when the condition is met
+     */
+    sealWhen<R extends T>(condition: R, equalityComparer?: EqualityComparer<R>): Variable<R>;
+    /**
+     * Creates a new variable that will stream the variable value and notify when the variable value is changed or the
+     * event is triggered
+     * @param event the event observer
+     */
+    notifyOn(event: EventObserver): Variable<T>;
+    /**
+     * Flattens a two-dimensional array contained in the Variable instance into a one-dimensional array.
+     * The method works on arrays of type R, combining all inner arrays into a single array.
+     *
+     * @param equalityComparer the equality comparer for the flattened array
+     * @return A new Variable instance containing the flattened one-dimensional array.
+     */
+    flat<R>(this: Variable<Array<Array<R>>>, equalityComparer?: EqualityComparer<Array<R>>): Variable<Array<R>>;
+    /**
+     * Joins the elements of the array into a single string using the specified separator.
+     *
+     * @param {string} separator - The string to separate each element in the array. If not provided, the default is a comma (",").
+     * @return {Variable<string>} A new string containing all elements of the array joined by the separator.
+     */
+    join(this: Variable<string[]>, separator?: string): Variable<string>;
+}
+
+declare const nullVariable: Variable<null>;
+declare const undefinedVariable: Variable<undefined>;
+declare const falseVariable: Variable<boolean>;
+declare const trueVariable: Variable<boolean>;
+declare const zeroVariable: Variable<number>;
+declare const emptyStringVariable: Variable<string>;
+
+/**
  * Creates a new mutable variable
  * @param initialValue the initial value of the variable
  * @param equalityComparer the equality comparer to use when checking for changes
@@ -794,7 +808,7 @@ declare function createFuncVar<T>(activator: Func<FuncVariable<T>, IDisposable>,
  * @param value the value of the variable
  * @returns a new constant variable
  */
-declare function createConst<T>(value: T): Variable<T>;
+declare function createConstVar<T>(value: T): Variable<T>;
 /**
  * Creates a new delegate variable that can be changed by setting a source variable
  * @param sourceOrDefaultValue the source variable or the default value of the variable
@@ -994,7 +1008,7 @@ declare class ChainNode<T> extends Disposiq {
 }
 
 type ObservableListChangeEvent<T> = ObservableListRemoveEvent<T> | ObservableListAddEvent<T> | ObservableListReplaceEvent<T> | ObservableListMoveEvent<T>;
-interface ObservableListChangeBaseEvent<T> {
+interface ObservableListChangeBaseEvent<_T> {
     type: "remove" | "add" | "replace" | "move";
 }
 interface ObservableListRemoveEvent<T> extends ObservableListChangeBaseEvent<T> {
@@ -1156,4 +1170,4 @@ declare class ObservableList<T> {
     private updateSorted;
 }
 
-export { AndVariable, BaseLinkedChain, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, EventDispatcher, EventObserver, EventObserverStub, EventSafeDispatcher, FuncVariable as FuncVar, FuncVariable, type IMutableVariable as IMutableVar, type IMutableVariable, type IMutableVariable as IVary, ConstantVariable as ImmutableVar, InvertVariable, LazyEventDispatcher, FuncVariable as LazyVariable, LinkedActionChain, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConst, createConst as createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, functionEqualityComparer, generalEqualityComparer, isDelegateVariable, isMutableVariable, isVariable, isVariableOf, max, merge, min, objectEqualityComparer, or, setDefaultEqualityComparer, simpleEqualityComparer, strictEqualityComparer, sum, toVariable };
+export { AndVariable, BaseLinkedChain, CombinedVariable, CompoundVariable, ConstantVariable as ConstVar, ConstantVariable as ConstVariable, ConstantVariable, DelegateVariable, DirectVariable, type EqualityComparer, EventDispatcher, EventObserver, EventObserverStub, EventSafeDispatcher, FuncVariable as FuncVar, FuncVariable, type IMutableVariable as IMutableVar, type IMutableVariable, type IMutableVariable as IVary, ConstantVariable as ImmutableVar, InvertVariable, LazyEventDispatcher, FuncVariable as LazyVariable, LinkedActionChain, LinkedChain, MapVariable, MaxVariable, MinVariable, MutableVariable as MutableVar, MutableVariable, ObservableList, type ObservableListAddEvent, type ObservableListChangeBaseEvent, type ObservableListChangeEvent, type ObservableListMoveEvent, type ObservableListRemoveEvent, type ObservableListReplaceEvent, OrVariable, ConstantVariable as ReadonlyVar, SealVariable, SumVariable, type SwitchMapMapper, SwitchMapVariable, ThrottledVariable, Variable as Var, type VarOrVal, Variable, type VariableOrValue, MutableVariable as Vary, and, arrayEqualityComparer, combine, createConstVar as createConst, createConstVar, createDelayDispatcher, createDelegate, createDelegate as createDelegateVar, createDirect, createDirect as createDirectVar, createFuncVar, createFuncVar as createLazyVar, createVar, defaultEqualityComparer, emptyStringVariable as emptyString, emptyStringVariable, falseVariable as falseVar, falseVariable, functionEqualityComparer, generalEqualityComparer, isDelegateVariable, isMutableVariable, isVariable, isVariableOf, max, merge, min, nullVariable as nullVar, nullVariable, objectEqualityComparer, or, setDefaultEqualityComparer, simpleEqualityComparer, strictEqualityComparer, sum, toVariable, trueVariable as trueVar, trueVariable, undefinedVariable as undefinedVar, undefinedVariable, zeroVariable as zeroVar, zeroVariable };
