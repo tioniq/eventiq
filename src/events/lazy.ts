@@ -1,13 +1,7 @@
-import { EventObserver } from "./observer"
+import { DisposableContainer, type DisposableLike, type Disposiq, toDisposable, } from "@tioniq/disposiq"
 import type { Action, Func } from "../action"
-import {
-  DisposableAction,
-  DisposableContainer,
-  type DisposableLike,
-  type Disposiq,
-  toDisposable,
-} from "@tioniq/disposiq"
 import { LinkedActionChain } from "../linked-chain"
+import { EventObserver } from "./observer"
 
 /**
  * A class that implements the EventObserver class in a lazy way. The implementation receives an activator function.

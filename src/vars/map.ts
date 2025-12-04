@@ -1,8 +1,8 @@
-import { CompoundVariable } from "./compound"
-import type { Variable } from "../variable"
-import type { Func } from "../action"
 import { DisposableContainer } from "@tioniq/disposiq"
+import type { Func } from "../action"
 import type { EqualityComparer } from "../comparer"
+import type { Variable } from "../variable"
+import { CompoundVariable } from "./compound"
 
 /**
  * A variable that maps the value of another variable to a new value

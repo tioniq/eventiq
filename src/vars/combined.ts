@@ -1,7 +1,7 @@
-import { CompoundVariable } from "./compound"
-import type { Variable } from "../variable"
 import { DisposableStore } from "@tioniq/disposiq"
 import { arrayEqualityComparer } from "../comparer"
+import type { Variable } from "../variable"
+import { CompoundVariable } from "./compound"
 
 /**
  * A variable that combines multiple variables into a single variable. The value presents an array of the values of the

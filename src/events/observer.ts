@@ -1,5 +1,5 @@
-import type { Action, Func } from "../action"
 import type { CanBeDisposable, Disposiq } from "@tioniq/disposiq"
+import type { Action, Func } from "../action"
 import type { Variable } from "../variable"
 
 /**

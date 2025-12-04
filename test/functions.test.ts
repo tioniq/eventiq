@@ -1,21 +1,22 @@
 import { DisposableAction } from "@tioniq/disposiq"
 import {
-  createFuncVar,
-  createConst,
+  and,
+  ConstantVariable,
+  combine,
+  createConstVar,
+  createDelayDispatcher,
   createDelegate,
   createDirect,
-  or,
-  and,
-  sum,
-  min,
-  max,
-  createDelayDispatcher,
-  ConstantVariable,
-  MutableVariable,
+  createFuncVar,
   createVar,
-  combine, toVariable,
+  FuncVariable,
+  MutableVariable,
+  max,
+  min,
+  or,
+  sum,
+  toVariable
 } from "../src"
-import { FuncVariable } from "../src"
 
 describe("functions", () => {
   it("should create and return a mutable variable", () => {
@@ -44,7 +45,7 @@ describe("functions", () => {
   })
 
   it("should create and return a constant variable", () => {
-    const variable = createConst(10)
+    const variable = createConstVar(10)
     expect(variable.value).toBe(10)
     expect(variable instanceof ConstantVariable).toBe(true)
   })
@@ -72,54 +73,54 @@ describe("functions", () => {
   })
 
   it("should create and return an OR variable", () => {
-    const variable1 = createConst(false)
-    const variable2 = createConst(true)
-    const variable3 = createConst(true)
+    const variable1 = createConstVar(false)
+    const variable2 = createConstVar(true)
+    const variable3 = createConstVar(true)
 
     const variable = or(variable1, variable2, variable3)
     expect(variable.value).toBe(true)
   })
 
   it("should create and return an AND variable", () => {
-    const variable1 = createConst(false)
-    const variable2 = createConst(true)
-    const variable3 = createConst(true)
+    const variable1 = createConstVar(false)
+    const variable2 = createConstVar(true)
+    const variable3 = createConstVar(true)
 
     const variable = and(variable1, variable2, variable3)
     expect(variable.value).toBe(false)
   })
 
   it("should create and return a SUM variable", () => {
-    const variable1 = createConst(10)
-    const variable2 = createConst(20)
-    const variable3 = createConst(30)
+    const variable1 = createConstVar(10)
+    const variable2 = createConstVar(20)
+    const variable3 = createConstVar(30)
 
     const variable = sum(variable1, variable2, variable3)
     expect(variable.value).toBe(60)
   })
 
   it("should create and return a MIN variable", () => {
-    const variable1 = createConst(10)
-    const variable2 = createConst(20)
-    const variable3 = createConst(30)
+    const variable1 = createConstVar(10)
+    const variable2 = createConstVar(20)
+    const variable3 = createConstVar(30)
 
     const variable = min(variable1, variable2, variable3)
     expect(variable.value).toBe(10)
   })
 
   it("should create and return a MAX variable", () => {
-    const variable1 = createConst(10)
-    const variable2 = createConst(20)
-    const variable3 = createConst(30)
+    const variable1 = createConstVar(10)
+    const variable2 = createConstVar(20)
+    const variable3 = createConstVar(30)
 
     const variable = max(variable1, variable2, variable3)
     expect(variable.value).toBe(30)
   })
 
   it("should combine multiple variables into a single variable", () => {
-    const variable1 = createConst(10)
+    const variable1 = createConstVar(10)
     const variable2 = createVar(20)
-    const variable3 = createConst(30)
+    const variable3 = createConstVar(30)
 
     const variable = combine(variable1, variable2, variable3)
     expect(variable.value).toEqual([10, 20, 30])
@@ -134,7 +135,7 @@ describe("functions", () => {
   })
 
   it("should combine return the variable if only one variable is provided", () => {
-    const variable = createConst(10)
+    const variable = createConstVar(10)
     expect(combine(variable)).toBe(variable)
   })
 })
@@ -183,7 +184,7 @@ describe("delay dispatcher function", () => {
 
 describe('to variable function', () => {
   it('should return the variable if it is already a variable', () => {
-    const variable = createConst(10)
+    const variable = createConstVar(10)
     expect(toVariable(variable)).toBe(variable)
 
     const variable2 = createVar(20)

@@ -1,8 +1,8 @@
 import type { Disposiq, IDisposable } from "@tioniq/disposiq"
 import type { Action, Func } from "./action"
-import type { MutableVariable, SwitchMapMapper } from "./vars"
-import type { EventObserver } from "./events"
 import type { EqualityComparer } from "./comparer"
+import type { EventObserver } from "./events"
+import type { MutableVariable, SwitchMapMapper } from "./vars"
 
 /**
  * Base Variable class. **All variables should extend this class**.
@@ -274,6 +274,17 @@ export interface Variable<out T> {
    * @returns a new variable with the comparison result
    */
   equal<R extends T>(
+    other: Variable<R> | R,
+    equalityComparer?: EqualityComparer<R>,
+  ): Variable<boolean>
+
+  /**
+   * Creates a new variable that will return true if the variable value is not equal to the other value
+   * @param other the other variable or a value
+   * @param equalityComparer the equality comparer
+   * @returns a new variable with the comparison result
+   */
+  notEqual<R extends T>(
     other: Variable<R> | R,
     equalityComparer?: EqualityComparer<R>,
   ): Variable<boolean>

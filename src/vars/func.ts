@@ -1,12 +1,8 @@
-import { CompoundVariable } from "./compound"
+import { DisposableContainer, type DisposableLike, toDisposable, } from "@tioniq/disposiq"
 import type { Action, Func, Func0 } from "../action"
-import {
-  DisposableContainer,
-  type DisposableLike,
-  toDisposable,
-} from "@tioniq/disposiq"
-import type { IMutableVariable } from "../types";
 import type { EqualityComparer } from "../comparer";
+import type { IMutableVariable } from "../types";
+import { CompoundVariable } from "./compound"
 
 /**
  * A variable that reacts on subscription activation and deactivation using provided function called `activator`.

@@ -1,7 +1,7 @@
-import { Variable } from "../variable"
-import type { Func } from "../action"
 import { type Disposiq, emptyDisposable } from "@tioniq/disposiq"
+import type { Func } from "../action"
 import { defaultEqualityComparer, type EqualityComparer } from "../comparer"
+import { Variable } from "../variable"
 
 /**
  * A variable that always has the same value

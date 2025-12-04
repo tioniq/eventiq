@@ -1,7 +1,7 @@
-import { LinkedChain } from "../linked-chain"
+import type { Disposiq } from "@tioniq/disposiq"
 import type { Action } from "../action"
 import { functionEqualityComparer } from "../comparer"
-import type { Disposiq } from "@tioniq/disposiq"
+import { LinkedChain } from "../linked-chain"
 import { EventObserver } from "./observer"
 
 /**

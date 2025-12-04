@@ -1,6 +1,6 @@
-import { LinkedActionChain } from "../linked-chain"
-import type { Action } from "../action"
 import type { Disposiq } from "@tioniq/disposiq"
+import type { Action } from "../action"
+import { LinkedActionChain } from "../linked-chain"
 import { EventObserver } from "./observer"
 
 /**

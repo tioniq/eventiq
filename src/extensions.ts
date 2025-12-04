@@ -26,6 +26,7 @@ import { noop } from "./noop"
 import { createDelayDispatcher } from "./functions"
 import { defaultEqualityComparer, type EqualityComparer, strictEqualityComparer } from "./comparer"
 import { FuncVar } from "./aliases";
+import { EqualsToValueVariable, EqualsToVariableVariable } from "./vars/equal";
 
 Variable.prototype.subscribeDisposable = function <T>(
   this: Variable<T>,
@@ -252,9 +253,20 @@ Variable.prototype.equal = function <T>(
 ): Variable<boolean> {
   const comparer = equalityComparer ?? defaultEqualityComparer
   if (other instanceof Variable) {
-    return this.with(other).map(([a, b]) => comparer(a, b))
+    return new EqualsToVariableVariable(this, other, comparer)
   }
-  return new MapVariable<T, boolean>(this, (v) => comparer(v, other))
+  return new EqualsToValueVariable(this, other, comparer)
+}
+
+Variable.prototype.notEqual = function <T>(
+  this: Variable<T>,
+  other: Variable<T> | T,
+  equalityComparer?: EqualityComparer<T>,
+): Variable<boolean> {
+  const comparer: EqualityComparer<T> = equalityComparer
+    ? (v1, v2) => !equalityComparer(v1, v2)
+    : (v1, v2) => !defaultEqualityComparer(v1, v2)
+  return this.equal(other, comparer)
 }
 
 Variable.prototype.sealed = function <T>(this: Variable<T>): Variable<T> {

@@ -1,17 +1,18 @@
+import { DisposableAction } from "@tioniq/disposiq"
 import {
   AndVariable,
   CombinedVariable,
+  EventDispatcher,
   FuncVariable,
   InvertVariable,
-  MapVariable, MutableVar,
+  MapVariable,
+  MutableVar,
   MutableVariable,
   OrVariable,
   SumVariable,
   SwitchMapVariable,
-  ThrottledVariable,
+  ThrottledVariable
 } from "../src"
-import { DisposableAction } from "@tioniq/disposiq"
-import { EventDispatcher } from "../src"
 
 describe("extensions", () => {
   it("should subscribeDisposable work correctly", () => {
@@ -412,6 +413,25 @@ describe("extensions", () => {
     variable1.value = 1
 
     expect(equalVariable2.value).toBe(false)
+  })
+
+  it("should not equal work correctly", () => {
+    const variable1 = new MutableVariable(1)
+    const variable2 = new MutableVariable(2)
+    const equalVariable = variable1.notEqual(variable2)
+
+    expect(equalVariable.value).toBe(true)
+
+    variable1.value = 2
+    expect(equalVariable.value).toBe(false)
+
+    const equalVariable2 = variable1.notEqual(2)
+
+    expect(equalVariable2.value).toBe(false)
+
+    variable1.value = 1
+
+    expect(equalVariable2.value).toBe(true)
   })
 
   it("should sealed work correctly", () => {

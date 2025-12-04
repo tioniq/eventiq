@@ -1,24 +1,24 @@
-import {
-  FuncVariable,
-  ConstantVariable,
-  OrVariable,
-  AndVariable,
-  MinVariable,
-  MaxVariable,
-  SumVariable,
-  DelegateVariable,
-  DirectVariable,
-  MutableVariable,
-  CombinedVariable,
-} from "./vars"
 import { DisposableAction, type IDisposable } from "@tioniq/disposiq"
 import type { Func, Func0 } from "./action"
-import type { Variable } from "./variable"
-import { type EventObserver, LazyEventDispatcher } from "./events"
-import type { EqualityComparer } from "./comparer";
-import type { VarOrVal } from "./types";
 import type { Var } from "./aliases";
+import type { EqualityComparer } from "./comparer";
+import { type EventObserver, LazyEventDispatcher } from "./events"
 import { isVariableOf } from "./is";
+import type { VarOrVal } from "./types";
+import type { Variable } from "./variable"
+import {
+  AndVariable,
+  CombinedVariable,
+  ConstantVariable,
+  DelegateVariable,
+  DirectVariable,
+  FuncVariable,
+  MaxVariable,
+  MinVariable,
+  MutableVariable,
+  OrVariable,
+  SumVariable,
+} from "./vars"
 
 /**
  * Creates a new mutable variable
@@ -50,7 +50,7 @@ export function createFuncVar<T>(
  * @param value the value of the variable
  * @returns a new constant variable
  */
-export function createConst<T>(value: T): Variable<T> {
+export function createConstVar<T>(value: T): Variable<T> {
   return new ConstantVariable(value)
 }
 
@@ -159,5 +159,5 @@ export function createDelayDispatcher(delay: number): EventObserver {
  * @returns if the value is a variable, it will be returned as is, otherwise a new constant variable will be created
  */
 export function toVariable<T>(value: VarOrVal<T>): Var<T> {
-  return isVariableOf<T>(value) ? value : createConst(value)
+  return isVariableOf<T>(value) ? value : createConstVar(value)
 }

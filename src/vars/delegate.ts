@@ -1,11 +1,6 @@
-import { CompoundVariable } from "./compound"
+import { DisposableAction, DisposableContainer, emptyDisposable, type IDisposable, } from "@tioniq/disposiq"
 import { Variable } from "../variable"
-import {
-  DisposableAction,
-  DisposableContainer,
-  emptyDisposable,
-  type IDisposable,
-} from "@tioniq/disposiq"
+import { CompoundVariable } from "./compound"
 
 /**
  * A variable that delegates its value to another variable
@@ -26,11 +21,11 @@ export class DelegateVariable<T> extends CompoundVariable<T> {
     super(
       sourceOrDefaultValue instanceof Variable
         ? // biome-ignore lint/style/noNonNullAssertion: base value will not be used
-          null!
+        null!
         : sourceOrDefaultValue != undefined
           ? sourceOrDefaultValue
           : // biome-ignore lint/style/noNonNullAssertion: base value will not be used
-            null!,
+          null!,
     )
     if (sourceOrDefaultValue instanceof Variable) {
       this._source = sourceOrDefaultValue

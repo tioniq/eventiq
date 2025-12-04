@@ -1,8 +1,8 @@
-import { Variable } from "../variable"
+import type { Disposiq } from "@tioniq/disposiq"
+import type { Func } from "../action"
 import { defaultEqualityComparer, type EqualityComparer, } from "../comparer"
 import { LinkedActionChain } from "../linked-chain"
-import type { Func } from "../action"
-import type { Disposiq } from "@tioniq/disposiq"
+import { Variable } from "../variable"
 
 /**
  * A Variable class that is base for common compound variables. It provides a functionality to react on subscription

@@ -10,7 +10,6 @@ export function simpleEqualityComparer<T>(a: T, b: T): boolean {
   return a == b
 }
 
-// biome-ignore lint/style/noVar: should be available for changes
 export var defaultEqualityComparer: EqualityComparer<unknown> =
   strictEqualityComparer
 

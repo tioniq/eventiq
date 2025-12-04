@@ -1,5 +1,5 @@
 import {
-  createConst,
+  createConstVar,
   FuncVariable,
   MutableVariable,
   SwitchMapVariable,
@@ -41,7 +41,7 @@ describe("switchMap var", () => {
   it("should switch map", () => {
     const var1 = new MutableVariable(0)
     const switched = new SwitchMapVariable(var1, (v) => {
-      return v === 1 ? createConst(0) : createTimerVar()
+      return v === 1 ? createConstVar(0) : createTimerVar()
     })
 
     expect(switched.value).toBe(0)

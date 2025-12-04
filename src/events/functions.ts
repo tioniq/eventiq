@@ -1,6 +1,6 @@
-import type { EventObserver } from "./observer"
-import { LazyEventDispatcher } from "./lazy"
 import { DisposableStore } from "@tioniq/disposiq"
+import { LazyEventDispatcher } from "./lazy"
+import type { EventObserver } from "./observer"
 
 /**
  * Merges multiple event observers into a single event observer. The resulting event observer will dispatch events

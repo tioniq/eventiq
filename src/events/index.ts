@@ -1,9 +1,9 @@
-export * from "./observer"
 export * from "./dispatcher"
+export * from "./functions"
+export * from "./lazy"
+export * from "./observer"
 export * from "./safe-dispatcher"
 export * from "./stub"
-export * from "./lazy"
-export * from "./functions"
 
 import "./extensions"
 

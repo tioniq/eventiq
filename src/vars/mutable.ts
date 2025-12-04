@@ -1,9 +1,9 @@
-import { Variable } from "../variable"
-import { defaultEqualityComparer, type EqualityComparer, } from "../comparer"
-import type { Func } from "../action"
-import { LinkedActionChain } from "../linked-chain"
 import type { Disposiq } from "@tioniq/disposiq"
+import type { Func } from "../action"
+import { defaultEqualityComparer, type EqualityComparer, } from "../comparer"
+import { LinkedActionChain } from "../linked-chain"
 import type { IMutableVariable } from "../types";
+import { Variable } from "../variable"
 
 /**
  * A class that implements the Variable class and provides the ability to change the value of the variable.

@@ -1,7 +1,7 @@
 import { DisposableContainer, type Disposiq, } from "@tioniq/disposiq"
 import type { Func } from "../action"
-import { Variable } from "../variable"
 import { LinkedActionChain } from "../linked-chain"
+import { Variable } from "../variable"
 
 /**
  * A variable that inverts the value of another variable

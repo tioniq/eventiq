@@ -6,11 +6,11 @@ import {
   emptyDisposable,
 } from "@tioniq/disposiq"
 import type { Action, Func } from "../action"
-import { EventObserver } from "./observer"
-import type { Variable } from "../variable"
-import { LazyEventDispatcher } from "./lazy"
-import { EventDispatcher } from "./dispatcher"
 import { noop } from "../noop";
+import type { Variable } from "../variable"
+import { EventDispatcher } from "./dispatcher"
+import { LazyEventDispatcher } from "./lazy"
+import { EventObserver } from "./observer"
 
 EventObserver.prototype.subscribeOnce = function <T>(
   this: EventObserver<T>,
@@ -141,6 +141,6 @@ EventDispatcher.prototype.dispatchSafe = function <T>(
 ): void {
   try {
     this.dispatch(value)
-  } catch (e) {
+  } catch (_e) {
   }
 }

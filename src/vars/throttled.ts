@@ -1,8 +1,8 @@
-import { CompoundVariable } from "./compound"
-import type { Variable } from "../variable"
 import { DisposableContainer } from "@tioniq/disposiq"
-import type { EventObserver } from "../events"
 import type { EqualityComparer } from "../comparer"
+import type { EventObserver } from "../events"
+import type { Variable } from "../variable"
+import { CompoundVariable } from "./compound"
 
 const noScheduledValue = Object.freeze({})
 

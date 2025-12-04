@@ -1,14 +1,15 @@
 export * from "./aliases"
 export * from "./comparer"
+export * from "./constants"
+export * from "./events"
 export * from "./extensions"
 export * from "./functions"
 export * from "./is"
 export * from "./linked-chain"
 export * from "./types"
 export * from "./variable"
-export * from "./events"
 
 import "./extensions"
 
-export * from "./vars"
 export * from "./list/observable-list"
+export * from "./vars"

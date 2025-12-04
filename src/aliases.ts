@@ -1,14 +1,15 @@
 import {
-  createConst,
-  createDelegate,
-  createDirect,
-  createFuncVar,
-} from "./functions"
+  emptyStringVariable,
+  falseVariable,
+  nullVariable,
+  trueVariable,
+  undefinedVariable,
+  zeroVariable
+} from "./constants"
+import { createConstVar, createDelegate, createDirect, createFuncVar, } from "./functions"
 import { IMutableVariable } from "./types"
 import { Variable } from "./variable"
-import { MutableVariable } from "./vars"
-import { ConstantVariable } from "./vars"
-import { FuncVariable } from "./vars"
+import { ConstantVariable, FuncVariable, MutableVariable } from "./vars"
 
 export {
   Variable as Var,
@@ -23,7 +24,14 @@ export {
   FuncVariable as FuncVar,
   FuncVariable as LazyVariable,
   createFuncVar as createLazyVar,
-  createConst as createConstVar,
+  // deprecated
+  createConstVar as createConst,
   createDelegate as createDelegateVar,
   createDirect as createDirectVar,
+  nullVariable as nullVar,
+  undefinedVariable as undefinedVar,
+  falseVariable as falseVar,
+  trueVariable as trueVar,
+  zeroVariable as zeroVar,
+  emptyStringVariable as emptyString
 }

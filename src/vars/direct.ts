@@ -1,8 +1,8 @@
-import { Variable } from "../variable"
 import type { Disposiq } from "@tioniq/disposiq"
 import type { Func } from "../action"
 import { defaultEqualityComparer, type EqualityComparer, } from "../comparer"
 import { LinkedActionChain } from "../linked-chain"
+import { Variable } from "../variable"
 
 /**
  * A variable that can be changed by setting the value property. The 'direct' means that the change will not be checked

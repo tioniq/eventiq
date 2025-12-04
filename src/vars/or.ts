@@ -1,6 +1,6 @@
-import { CompoundVariable } from "./compound"
 import { disposeAll, type IDisposable } from "@tioniq/disposiq"
 import type { Variable } from "../variable"
+import { CompoundVariable } from "./compound"
 
 /**
  * A variable that will return true if any of the variable values are true

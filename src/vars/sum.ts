@@ -1,6 +1,6 @@
-import { CompoundVariable } from "./compound"
-import type { Variable } from "../variable"
 import { DisposableStore } from "@tioniq/disposiq"
+import type { Variable } from "../variable"
+import { CompoundVariable } from "./compound"
 
 /**
  * A variable that represents the sum of multiple provided variables. If the type of the variables is boolean, the

@@ -1,8 +1,8 @@
-import { Variable } from "../variable"
-import { DisposableAction, DisposableContainer, type Disposiq, emptyDisposable, } from "@tioniq/disposiq"
+import { DisposableContainer, type Disposiq, emptyDisposable, } from "@tioniq/disposiq"
 import type { Func } from "../action"
-import { LinkedActionChain } from "../linked-chain"
 import { defaultEqualityComparer, type EqualityComparer, } from "../comparer"
+import { LinkedActionChain } from "../linked-chain"
+import { Variable } from "../variable"
 
 /**
  * A variable that seals the value of another variable. When sealed, the variable will not change its value
@@ -105,7 +105,7 @@ export class SealVariable<T> extends Variable<T> {
     }
     this._sealed = true
     this._varSubscription.dispose()
-    // biome-ignore lint/style/noArguments: used because we accept the value as an argument event if it is undefined
+    // biome-ignore lint/complexity/noArguments: used because we accept the value as an argument event if it is undefined
     if (arguments.length === 0) {
       const currentValue = this._chain.empty ? this._var.value : this._value
       this._varSubscription.dispose()

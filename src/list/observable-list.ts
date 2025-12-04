@@ -6,7 +6,7 @@ export type ObservableListChangeEvent<T> =
   | ObservableListReplaceEvent<T>
   | ObservableListMoveEvent<T>
 
-export interface ObservableListChangeBaseEvent<T> {
+export interface ObservableListChangeBaseEvent<_T> {
   type: "remove" | "add" | "replace" | "move"
 }
 
@@ -501,6 +501,7 @@ export class ObservableList<T> {
     }
     while (true) {
       let maxDistance = 0
+      // biome-ignore lint/complexity/noUselessUndefinedInitialization: index needs to be initialized to undefined
       let index: SortItemData<T> | undefined = undefined
       let hasDistanceMoved = false
       for (const it of items) {
