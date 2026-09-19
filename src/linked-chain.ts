@@ -112,7 +112,7 @@ export class BaseLinkedChain<T> {
   }
 
   /**
-   * Adds an element to the chain. If the element is already in the chain, it will not be added again.
+   * Adds an element to the chain. If the element is already in the chain, it will not be added again. Scans the whole chain (O(n)); variables and dispatchers use `add` instead.
    * @param value the element to add
    * @returns an array containing the subscription and a boolean value indicating if the element was added
    */
@@ -156,7 +156,7 @@ export class BaseLinkedChain<T> {
   }
 
   /**
-   * Adds an element to the beginning of the chain. If the element is already in the chain, it will not be added again.
+   * Adds an element to the beginning of the chain. If the element is already in the chain, it will not be added again. Scans the whole chain (O(n)); variables and dispatchers use `add` instead.
    * @param value the element to add
    * @returns an array containing the subscription and a boolean value indicating if the element was added
    */

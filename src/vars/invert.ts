@@ -44,10 +44,8 @@ export class InvertVariable extends Variable<boolean> {
     if (this._chain.empty) {
       this._activate()
     }
-    const [disposable, added] = this._chain.addUnique(callback)
-    if (added) {
-      callback(this._value)
-    }
+    const disposable = this._chain.add(callback)
+    callback(this._value)
     return disposable
   }
 

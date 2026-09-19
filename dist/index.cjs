@@ -282,7 +282,7 @@ var BaseLinkedChain = class {
     return array;
   }
   /**
-   * Adds an element to the chain. If the element is already in the chain, it will not be added again.
+   * Adds an element to the chain. If the element is already in the chain, it will not be added again. Scans the whole chain (O(n)); variables and dispatchers use `add` instead.
    * @param value the element to add
    * @returns an array containing the subscription and a boolean value indicating if the element was added
    */
@@ -322,7 +322,7 @@ var BaseLinkedChain = class {
     return node;
   }
   /**
-   * Adds an element to the beginning of the chain. If the element is already in the chain, it will not be added again.
+   * Adds an element to the beginning of the chain. If the element is already in the chain, it will not be added again. Scans the whole chain (O(n)); variables and dispatchers use `add` instead.
    * @param value the element to add
    * @returns an array containing the subscription and a boolean value indicating if the element was added
    */
@@ -983,17 +983,15 @@ var CompoundVariable = class extends Variable {
     if (this._chain.empty) {
       this.activate();
     }
-    const [disposable, added] = this._chain.addUnique(callback);
-    if (added) {
-      callback(this._value);
-    }
+    const disposable = this._chain.add(callback);
+    callback(this._value);
     return disposable;
   }
   subscribeSilent(callback) {
     if (this._chain.empty) {
       this.activate();
     }
-    return this._chain.addUnique(callback)[0];
+    return this._chain.add(callback);
   }
   /**
    * A method for getting the exact value of the variable. It is called when there are no subscriptions
@@ -1276,14 +1274,12 @@ var DirectVariable = class extends Variable {
     return this._equalityComparer;
   }
   subscribe(callback) {
-    const [disposable, added] = this._chain.addUnique(callback);
-    if (added) {
-      callback(this._value);
-    }
+    const disposable = this._chain.add(callback);
+    callback(this._value);
     return disposable;
   }
   subscribeSilent(callback) {
-    return this._chain.addUnique(callback)[0];
+    return this._chain.add(callback);
   }
   /**
    * Sets the value of the variable without notifying the subscribers
@@ -1394,10 +1390,8 @@ var InvertVariable = class extends Variable {
     if (this._chain.empty) {
       this._activate();
     }
-    const [disposable, added] = this._chain.addUnique(callback);
-    if (added) {
-      callback(this._value);
-    }
+    const disposable = this._chain.add(callback);
+    callback(this._value);
     return disposable;
   }
   subscribeSilent(callback) {
@@ -1584,14 +1578,12 @@ var MutableVariable = class extends Variable {
     return this._equalityComparer;
   }
   subscribe(callback) {
-    const [disposable, added] = this._chain.addUnique(callback);
-    if (added) {
-      callback(this._value);
-    }
+    const disposable = this._chain.add(callback);
+    callback(this._value);
     return disposable;
   }
   subscribeSilent(callback) {
-    return this._chain.addUnique(callback)[0];
+    return this._chain.add(callback);
   }
   /**
    * Sets the value of the variable without notifying the subscribers
@@ -1721,10 +1713,8 @@ var SealVariable = class extends Variable {
     if (this._chain.empty) {
       this._activate();
     }
-    const [disposable, added] = this._chain.addUnique(callback);
-    if (added) {
-      callback(this._value);
-    }
+    const disposable = this._chain.add(callback);
+    callback(this._value);
     return disposable;
   }
   subscribeSilent(callback) {
@@ -1734,7 +1724,7 @@ var SealVariable = class extends Variable {
     if (this._chain.empty) {
       this._activate();
     }
-    return this._chain.addUnique(callback)[0];
+    return this._chain.add(callback);
   }
   /**
    * Seals the variable. If the variable is already sealed, the method will do nothing

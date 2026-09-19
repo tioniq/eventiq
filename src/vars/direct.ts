@@ -48,15 +48,13 @@ export class DirectVariable<T> extends Variable<T> {
   }
 
   subscribe(callback: Func<T, void>): Disposiq {
-    const [disposable, added] = this._chain.addUnique(callback)
-    if (added) {
-      callback(this._value)
-    }
+    const disposable = this._chain.add(callback)
+    callback(this._value)
     return disposable
   }
 
   subscribeSilent(callback: Func<T, void>): Disposiq {
-    return this._chain.addUnique(callback)[0]
+    return this._chain.add(callback)
   }
 
   /**

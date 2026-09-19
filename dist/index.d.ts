@@ -783,10 +783,10 @@ interface Variable<out T> {
 
 declare const nullVariable: Variable<null>;
 declare const undefinedVariable: Variable<undefined>;
-declare const falseVariable: Variable<boolean>;
-declare const trueVariable: Variable<boolean>;
-declare const zeroVariable: Variable<number>;
-declare const emptyStringVariable: Variable<string>;
+declare const falseVariable: Variable<false>;
+declare const trueVariable: Variable<true>;
+declare const zeroVariable: Variable<0>;
+declare const emptyStringVariable: Variable<"">;
 
 /**
  * Creates a new mutable variable
@@ -937,7 +937,7 @@ declare class BaseLinkedChain<T> {
      */
     toArray(): T[];
     /**
-     * Adds an element to the chain. If the element is already in the chain, it will not be added again.
+     * Adds an element to the chain. If the element is already in the chain, it will not be added again. Scans the whole chain (O(n)); variables and dispatchers use `add` instead.
      * @param value the element to add
      * @returns an array containing the subscription and a boolean value indicating if the element was added
      */
@@ -949,7 +949,7 @@ declare class BaseLinkedChain<T> {
      */
     add(value: T): Disposiq;
     /**
-     * Adds an element to the beginning of the chain. If the element is already in the chain, it will not be added again.
+     * Adds an element to the beginning of the chain. If the element is already in the chain, it will not be added again. Scans the whole chain (O(n)); variables and dispatchers use `add` instead.
      * @param value the element to add
      * @returns an array containing the subscription and a boolean value indicating if the element was added
      */
