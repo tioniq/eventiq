@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-09-19
+
+### Changed
+
+- **Behaviour change:** variables no longer de-duplicate subscribers. Subscribing the same callback twice now creates
+  two subscriptions: the callback is called twice per change (and twice immediately with `subscribe`), and each
+  returned disposable removes only its own subscription. Previously the second call returned the first subscription,
+  so disposing either one removed both. Affects `MutableVariable`, `DirectVariable`, `InvertVariable`, `SealVariable`
+  and every `CompoundVariable` (`map`, `and`, `or`, `equal`, `with`, `switchMap`, `throttle`, ...). Event
+  dispatchers already behaved this way.
+- `Variable.subscribe` / `subscribeSilent` are now O(1). The de-duplication scanned every existing subscriber, so N
+  subscribers on one variable cost O(N²) to set up (about 7 µs per subscribe at 10,000 subscribers, now ~10 ns).
+- `startPersistent()` called twice on one variable now returns two independent handles; before, disposing either one
+  ended persistence for both.
+
+### Added
+
+- `npm run bench`: a micro-benchmark of subscribe / dispose / emit at 10, 1,000 and 10,000 subscribers
+
 ## [1.3.3] - 2025-12-04
 
 ### Added

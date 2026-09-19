@@ -70,6 +70,16 @@ them when they are no longer needed. Additionally, `Eventiq` is ready for the
 upcoming [Explicit Resource Management API](https://github.com/tc39/proposal-explicit-resource-management), which works
 in TypeScript since version 5.2.
 
+Subscription semantics (variables and event dispatchers alike):
+
+- Subscribing and unsubscribing are O(1), whatever the number of subscribers.
+- Subscribers are called in the order they subscribed.
+- Every `subscribe` call is its own subscription: the same callback subscribed twice is called twice, and each returned
+  object removes only its own subscription. Disposing a subscription more than once is safe.
+- A callback subscribed during a notification is not called for that notification, only for the next ones. A
+  subscription disposed during a notification is not called again, including later in the same notification.
+- A value set from inside a callback is delivered after the current notification has reached every subscriber.
+
 ## EventObserver
 
 The `EventObserver` class itself is very simple. However, it has a lot of extensions and implementations that make it
